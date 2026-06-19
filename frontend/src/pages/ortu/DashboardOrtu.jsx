@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'preact/hooks'
-import api from '../../utils/api'
-import { AppShell } from '../../components/layout/AppShell.jsx'
-import Chart from 'chart.js/auto'
+import { useEffect, useRef, useState } from 'preact/hooks';
+import api from '../../utils/api';
+import { AppShell } from '../../components/layout/AppShell.jsx';
+import { Chart, registerables } from 'chart.js';
+
+Chart.register(...registerables);
 
 function StatCard({ label, value }) {
   return (
@@ -9,44 +11,46 @@ function StatCard({ label, value }) {
       <div className="stat-value">{value}</div>
       <div className="stat-label">{label}</div>
     </div>
-  )
+  );
 }
 
 export default function DashboardOrtu({ user, onLogout }) {
-  const [loading, setLoading] = useState(true)
-  const [data, setData] = useState(null)
-  const canvasRef = useRef(null)
-  const chartRef = useRef(null)
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState(null);
+  const canvasRef = useRef(null);
+  const chartRef = useRef(null);
 
   useEffect(() => {
-    let mounted = true
+    let mounted = true;
 
     async function fetchData() {
       try {
-        const res = await api.get('/dashboard')
-        if (!mounted) return
-        setData(res.data || res)
+        const res = await api.get('/dashboard');
+        if (!mounted) return;
+        setData(res.data || res);
       } catch (err) {
-        console.error(err)
+        console.error(err);
       } finally {
-        setLoading(false)
+        setLoading(false);
       }
     }
 
-    fetchData()
+    fetchData();
 
-    return () => { mounted = false }
-  }, [])
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
-    if (!data || !canvasRef.current) return
+    if (!data || !canvasRef.current) return;
 
-    const labels = (data.trend || []).map((r) => r.tanggal || '')
-    const hadir = (data.trend || []).map((r) => r.hadir || 0)
+    const labels = (data.trend || []).map((r) => r.tanggal || '');
+    const hadir = (data.trend || []).map((r) => r.hadir || 0);
 
     if (chartRef.current) {
-      chartRef.current.destroy()
-      chartRef.current = null
+      chartRef.current.destroy();
+      chartRef.current = null;
     }
 
     chartRef.current = new Chart(canvasRef.current.getContext('2d'), {
@@ -64,17 +68,17 @@ export default function DashboardOrtu({ user, onLogout }) {
         ],
       },
       options: { maintainAspectRatio: false },
-    })
+    });
 
     return () => {
       if (chartRef.current) {
-        chartRef.current.destroy()
-        chartRef.current = null
+        chartRef.current.destroy();
+        chartRef.current = null;
       }
-    }
-  }, [data])
+    };
+  }, [data]);
 
-  const totals = data?.totals || {}
+  const totals = data?.totals || {};
 
   return (
     <AppShell title={`Dashboard Orang Tua`} navItems={[]}>
@@ -91,5 +95,5 @@ export default function DashboardOrtu({ user, onLogout }) {
         </div>
       </section>
     </AppShell>
-  )
+  );
 }
