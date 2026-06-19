@@ -17,6 +17,7 @@ function StatCard({ label, value }) {
 export default function DashboardGuru({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);
+  const [warnings, setWarnings] = useState([]);
   const canvasRef = useRef(null);
   const chartRef = useRef(null);
 
@@ -28,6 +29,13 @@ export default function DashboardGuru({ user, onLogout }) {
         const res = await api.get('/dashboard');
         if (!mounted) return;
         setData(res.data || res);
+        // fetch early warnings (rombel scoped)
+        try {
+          const warnRes = await api.get('/early-warnings');
+          if (mounted) setWarnings(warnRes.data?.warnings || warnRes.warnings || []);
+        } catch (e) {
+          console.error('Early warnings fetch failed', e);
+        }
       } catch (err) {
         console.error(err);
       } finally {
@@ -104,6 +112,21 @@ export default function DashboardGuru({ user, onLogout }) {
         <div style={{ height: 320 }}>
           <canvas ref={canvasRef} />
         </div>
+      </section>
+
+      <section style={{ marginTop: '1rem' }}>
+        <h3 style={{ marginBottom: '.5rem' }}>Peringatan Dini</h3>
+        {warnings.length === 0 ? (
+          <p>Tidak ada peringatan untuk saat ini.</p>
+        ) : (
+          <ul className="warning-list">
+            {warnings.map((w) => (
+              <li key={w.siswa_id}>
+                {w.nama_lengkap} — Absensi alpha: {w.alpha_count} dalam 14 hari
+              </li>
+            ))}
+          </ul>
+        )}
       </section>
     </AppShell>
   );

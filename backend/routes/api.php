@@ -27,6 +27,7 @@ use Rajasa\PresensiSiswa\Http\Controllers\SiswaPresensiController;
 use Rajasa\PresensiSiswa\Http\Controllers\SiswaKalenderController;
 use Rajasa\PresensiSiswa\Http\Controllers\RombelController;
 use Rajasa\PresensiSiswa\Http\Controllers\ScanReadinessImportController;
+use Rajasa\PresensiSiswa\Http\Controllers\EarlyWarningController;
 
 return function (RouteCollector $route): void {
     $route->get('/api/health', HealthController::class);
@@ -37,6 +38,9 @@ return function (RouteCollector $route): void {
 
     // Role-adaptive dashboard endpoint (siswa/guru/ortu/admin)
     $route->get('/api/dashboard', RoleDashboardController::class);
+
+    // Early Warning endpoint — pattern-based attendance alerts
+    $route->get('/api/early-warnings', EarlyWarningController::class);
 
         $route->get('/api/siswa/dashboard', SiswaDashboardController::class);
     $route->get('/api/siswa/presensi', SiswaPresensiController::class);
