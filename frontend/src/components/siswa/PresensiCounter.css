@@ -1,0 +1,271 @@
+/**
+ * PresensiCounter.css
+ *
+ * Styles for the 5-card attendance counter widget displayed on the
+ * Dashboard Siswa → Presensi page (Level 4).
+ *
+ * Card palette (muted, not too bright — per FigJam note):
+ *   Tepat Waktu  → teal/green
+ *   Terlambat    → amber/orange
+ *   Alpha        → red (soft)
+ *   Sakit        → sky/blue
+ *   Izin         → violet/purple
+ *
+ * Font: Poppins 19.5 (counter value) / 16.5 (label) — per FigJam spec.
+ *
+ * @author fashich/dashboard-siswa-page
+ */
+
+/* ─── Section wrapper ────────────────────────────────────────────────────── */
+.presensi-counter-section {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+/* Page title */
+.presensi-counter-title {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #1e293b;
+  margin: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.presensi-counter-subtitle {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0.2rem 0 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+/* ─── Counter grid ────────────────────────────────────────────────────────── */
+.presensi-counter-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 1rem;
+}
+
+@media (max-width: 1100px) {
+  .presensi-counter-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 640px) {
+  .presensi-counter-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+/* ─── Individual counter card ─────────────────────────────────────────────── */
+.counter-card {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1.25rem 1.25rem 1.1rem;
+  border-radius: 14px;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 4px rgba(0,0,0,.05);
+  font-family: 'Poppins', sans-serif;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.counter-card::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 4px;
+  border-radius: 14px 14px 0 0;
+  background: var(--card-accent);
+}
+
+.counter-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 14px rgba(0,0,0,.09);
+}
+
+/* ─── Card icon ───────────────────────────────────────────────────────────── */
+.counter-card-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 10px;
+  background: var(--card-icon-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.counter-card-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: var(--card-icon-color);
+}
+
+/* ─── Card body ───────────────────────────────────────────────────────────── */
+.counter-card-body {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  width: 100%;
+}
+
+/* Big number — Poppins 19.5 equivalent */
+.counter-card-value {
+  font-size: 1.9rem;
+  font-weight: 700;
+  line-height: 1;
+  color: #1e293b;
+  letter-spacing: -0.5px;
+}
+
+/* Loading/skeleton pulse */
+.counter-card-value.is-loading {
+  width: 3rem;
+  height: 1.9rem;
+  background: #e2e8f0;
+  border-radius: 6px;
+  animation: pulse 1.4s ease-in-out infinite;
+}
+
+/* Label — Poppins 16.5 equivalent */
+.counter-card-label {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #64748b;
+  white-space: nowrap;
+}
+
+/* ─── Color themes ────────────────────────────────────────────────────────── */
+
+/* Tepat Waktu — teal */
+.counter-card--hadir {
+  --card-accent:      #0d9488;   /* teal-600  */
+  --card-icon-bg:     #ccfbf1;   /* teal-100  */
+  --card-icon-color:  #0f766e;   /* teal-700  */
+}
+
+/* Terlambat — amber */
+.counter-card--terlambat {
+  --card-accent:      #d97706;   /* amber-600 */
+  --card-icon-bg:     #fef3c7;   /* amber-100 */
+  --card-icon-color:  #b45309;   /* amber-700 */
+}
+
+/* Alpha — rose/red */
+.counter-card--alpha {
+  --card-accent:      #dc2626;   /* red-600   */
+  --card-icon-bg:     #fee2e2;   /* red-100   */
+  --card-icon-color:  #b91c1c;   /* red-700   */
+}
+
+/* Sakit — sky */
+.counter-card--sakit {
+  --card-accent:      #0284c7;   /* sky-600   */
+  --card-icon-bg:     #e0f2fe;   /* sky-100   */
+  --card-icon-color:  #0369a1;   /* sky-700   */
+}
+
+/* Izin — violet */
+.counter-card--izin {
+  --card-accent:      #7c3aed;   /* violet-600 */
+  --card-icon-bg:     #ede9fe;   /* violet-100 */
+  --card-icon-color:  #6d28d9;   /* violet-700 */
+}
+
+/* ─── Error state ─────────────────────────────────────────────────────────── */
+.presensi-counter-error {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: 10px;
+  background: #fff5f5;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  font-size: 0.875rem;
+  font-family: 'Poppins', sans-serif;
+}
+
+.presensi-counter-error svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+  flex-shrink: 0;
+}
+
+.counter-retry-btn {
+  margin-left: auto;
+  padding: 0.35rem 0.85rem;
+  border: 1px solid #fca5a5;
+  border-radius: 6px;
+  background: #fff;
+  color: #dc2626;
+  font-size: 0.8rem;
+  font-family: 'Poppins', sans-serif;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.counter-retry-btn:hover {
+  background: #fee2e2;
+}
+
+/* ─── Dark theme overrides ────────────────────────────────────────────────── */
+:root[data-theme='dark'] .presensi-counter-title {
+  color: #f1f5f9;
+}
+
+:root[data-theme='dark'] .presensi-counter-subtitle {
+  color: #94a3b8;
+}
+
+:root[data-theme='dark'] .counter-card {
+  background: #1e2a35;
+  border-color: #374151;
+}
+
+:root[data-theme='dark'] .counter-card-value {
+  color: #f1f5f9;
+}
+
+:root[data-theme='dark'] .counter-card-label {
+  color: #94a3b8;
+}
+
+:root[data-theme='dark'] .counter-card-value.is-loading {
+  background: #374151;
+}
+
+:root[data-theme='dark'] .counter-card--hadir     { --card-icon-bg: #042f2e; }
+:root[data-theme='dark'] .counter-card--terlambat { --card-icon-bg: #451a03; }
+:root[data-theme='dark'] .counter-card--alpha     { --card-icon-bg: #450a0a; }
+:root[data-theme='dark'] .counter-card--sakit     { --card-icon-bg: #0c4a6e; }
+:root[data-theme='dark'] .counter-card--izin      { --card-icon-bg: #2e1065; }
+
+:root[data-theme='dark'] .presensi-counter-error {
+  background: #2d1a1a;
+  border-color: #7f1d1d;
+  color: #f87171;
+}
+
+:root[data-theme='dark'] .counter-retry-btn {
+  background: #1e2a35;
+  border-color: #7f1d1d;
+  color: #f87171;
+}
+
+:root[data-theme='dark'] .counter-retry-btn:hover {
+  background: #2d1a1a;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.45; }
+}

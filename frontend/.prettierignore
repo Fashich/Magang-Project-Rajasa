@@ -1,0 +1,11 @@
+node_modules/
+dist/
+build/
+coverage/
+.vite/
+.cache/
+.DS_Store
+
+# generated/local artifacts
+../bootstrap/.tmp/
+../bootstrap/backups/

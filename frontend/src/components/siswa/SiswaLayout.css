@@ -1,0 +1,496 @@
+/**
+ * SiswaLayout.css
+ *
+ * Styles for the student dashboard layout, including the top header
+ * navigation (Level 2) and the dynamic sidebar (Level 3).
+ *
+ * Font: Poppins (as specified in HTA design document)
+ * Design reference: prototype MainLayout + FigJam HTA Siswa diagram
+ *
+ * @author fashich/dashboard-siswa-page
+ */
+
+/* ─── Google Fonts ────────────────────────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+/* ─── CSS Design Tokens ───────────────────────────────────────────────────── */
+:root {
+  /* Palette */
+  --clr-primary:       #0284c7;    /* sky-600 */
+  --clr-primary-light: #e0f2fe;    /* sky-100 */
+  --clr-primary-dark:  #0369a1;    /* sky-700 */
+  --clr-accent:        #f97316;    /* orange-500 — brand accent */
+  --clr-danger:        #ef4444;
+
+  /* Neutrals */
+  --clr-white:         #ffffff;
+  --clr-bg:            #f1f5f9;    /* slate-100 */
+  --clr-border:        #e2e8f0;    /* slate-200 */
+  --clr-text-base:     #1e293b;    /* slate-800 */
+  --clr-text-muted:    #64748b;    /* slate-500 */
+  --clr-text-subtle:   #94a3b8;    /* slate-400 */
+  --clr-hover:         #f8fafc;    /* slate-50 */
+  --clr-sidebar-bg:    #ffffff;
+
+  /* Dimensions */
+  --sidebar-width:      240px;
+  --sidebar-collapsed:   72px;
+  --header-height:       64px;
+
+  /* Typography */
+  --font-main:         'Poppins', sans-serif;
+
+  /* Transitions */
+  --transition-fast:   0.18s ease;
+  --transition-med:    0.28s ease;
+
+  /* Shadows */
+  --shadow-sm:  0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --shadow-md:  0 4px 12px rgba(0,0,0,.08);
+}
+
+/* ─── Dark Theme Tokens ───────────────────────────────────────────────────── */
+:root[data-theme='dark'] {
+  --clr-primary:       #38bdf8;    /* sky-400 — brighter for dark bg */
+  --clr-primary-light: #0c4a6e;    /* sky-900 */
+  --clr-primary-dark:  #7dd3fc;    /* sky-300 */
+  --clr-danger:        #f87171;
+
+  --clr-white:         #1e2a35;
+  --clr-bg:            #111827;    /* gray-900 */
+  --clr-border:        #374151;    /* gray-700 */
+  --clr-text-base:     #f1f5f9;    /* slate-100 */
+  --clr-text-muted:    #94a3b8;    /* slate-400 */
+  --clr-text-subtle:   #64748b;    /* slate-500 */
+  --clr-hover:         #1f2937;    /* gray-800 */
+  --clr-sidebar-bg:    #1a2332;
+
+  --shadow-sm:  0 1px 3px rgba(0,0,0,.3), 0 1px 2px rgba(0,0,0,.2);
+  --shadow-md:  0 4px 12px rgba(0,0,0,.4);
+}
+
+/* ─── Layout Shell ────────────────────────────────────────────────────────── */
+.siswa-layout {
+  display: flex;
+  min-height: 100vh;
+  background: var(--clr-bg);
+  font-family: var(--font-main);
+}
+
+/* ─── Sidebar ─────────────────────────────────────────────────────────────── */
+.siswa-sidebar {
+  width: var(--sidebar-width);
+  background: var(--clr-sidebar-bg);
+  border-right: 1px solid var(--clr-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: var(--header-height);
+  left: 0;
+  height: calc(100vh - var(--header-height));
+  z-index: 80;
+  transition: width var(--transition-med), transform var(--transition-med);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+/* Collapsed state (icon-only) */
+.siswa-layout.sidebar-collapsed .siswa-sidebar {
+  width: var(--sidebar-collapsed);
+}
+
+/* ─── Sidebar Brand (top section) ─────────────────────────────────────────── */
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1.25rem 1.25rem 1rem;
+  border-bottom: 1px solid var(--clr-border);
+  min-height: 68px;
+}
+
+.sidebar-brand-icon {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: linear-gradient(135deg, var(--clr-primary), var(--clr-primary-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.sidebar-brand-icon svg {
+  width: 22px;
+  height: 22px;
+  fill: currentColor;
+}
+
+.sidebar-brand-text {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.sidebar-brand-text strong {
+  display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--clr-text-base);
+  line-height: 1.2;
+}
+
+.sidebar-brand-text span {
+  font-size: 0.72rem;
+  color: var(--clr-text-muted);
+  letter-spacing: 0.3px;
+}
+
+/* ─── Sidebar Navigation ──────────────────────────────────────────────────── */
+.sidebar-nav {
+  flex: 1;
+  padding: 1rem 0.75rem;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.sidebar-nav-section {
+  margin-bottom: 0.25rem;
+}
+
+.sidebar-nav-label {
+  font-size: 0.68rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--clr-text-subtle);
+  padding: 0.5rem 0.75rem 0.25rem;
+  white-space: nowrap;
+  overflow: hidden;
+  transition: opacity var(--transition-med);
+}
+
+.sidebar-layout.sidebar-collapsed .sidebar-nav-label {
+  opacity: 0;
+}
+
+/* Nav item / button */
+.sidebar-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.6rem 0.75rem;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  color: var(--clr-text-muted);
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  white-space: nowrap;
+}
+
+.sidebar-nav-item:hover {
+  background: var(--clr-primary-light);
+  color: var(--clr-primary-dark);
+}
+
+.sidebar-nav-item.active {
+  background: var(--clr-primary);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.35);
+}
+
+.sidebar-nav-item .nav-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-nav-item .nav-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.sidebar-nav-item .nav-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: opacity var(--transition-med), width var(--transition-med);
+}
+
+/* Empty sidebar state */
+.sidebar-empty {
+  padding: 1.5rem 1rem;
+  text-align: center;
+  color: var(--clr-text-subtle);
+  font-size: 0.8rem;
+}
+
+/* ─── Sidebar Footer (Logout) ─────────────────────────────────────────────── */
+.sidebar-footer {
+  padding: 0.75rem;
+  border-top: 1px solid var(--clr-border);
+}
+
+.sidebar-logout-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid var(--clr-border);
+  border-radius: 8px;
+  background: var(--clr-white);
+  color: var(--clr-text-muted);
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-fast), color var(--transition-fast), border-color var(--transition-fast);
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.sidebar-logout-btn:hover {
+  background: #fff5f5;
+  color: var(--clr-danger);
+  border-color: #fca5a5;
+}
+
+.sidebar-logout-btn .nav-icon {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.sidebar-logout-btn .nav-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+/* ─── Main Content ────────────────────────────────────────────────────────── */
+.siswa-content {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  margin-top: var(--header-height);
+  min-height: calc(100vh - var(--header-height));
+  transition: margin-left var(--transition-med);
+}
+
+.siswa-layout.sidebar-collapsed .siswa-content {
+  margin-left: var(--sidebar-collapsed);
+}
+
+.siswa-page-content {
+  padding: 1.75rem;
+}
+
+/* ─── Header ──────────────────────────────────────────────────────────────── */
+.siswa-header {
+  display: flex;
+  align-items: center;
+  height: var(--header-height);
+  background: var(--clr-white);
+  border-bottom: 1px solid var(--clr-border);
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  box-shadow: var(--shadow-sm);
+  padding: 0 1rem 0 1.25rem;
+  gap: 1rem;
+}
+
+/* Toggle button (left of header) */
+.header-toggle-btn {
+  width: 36px;
+  height: 36px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--clr-text-muted);
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background var(--transition-fast), color var(--transition-fast);
+}
+
+.header-toggle-btn:hover {
+  background: var(--clr-primary-light);
+  color: var(--clr-primary);
+}
+
+.header-toggle-btn svg {
+  width: 20px;
+  height: 20px;
+  fill: currentColor;
+}
+
+/* Brand mark in header */
+.header-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  text-decoration: none;
+  margin-right: 0.5rem;
+}
+
+.header-brand-icon {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--clr-primary), var(--clr-primary-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  flex-shrink: 0;
+}
+
+.header-brand-icon svg {
+  width: 18px;
+  height: 18px;
+  fill: currentColor;
+}
+
+.header-brand-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--clr-text-base);
+  white-space: nowrap;
+}
+
+/* ─── Header Navigation (Level 2) ────────────────────────────────────────── */
+.header-nav {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.header-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 1rem;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  font-family: var(--font-main);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--clr-text-muted);
+  cursor: pointer;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: background var(--transition-fast), color var(--transition-fast);
+  position: relative;
+}
+
+.header-nav-item:hover {
+  background: var(--clr-primary-light);
+  color: var(--clr-primary-dark);
+}
+
+.header-nav-item.active {
+  color: var(--clr-primary);
+  background: var(--clr-primary-light);
+  font-weight: 600;
+}
+
+/* Underline indicator on active */
+.header-nav-item.active::after {
+  content: '';
+  position: absolute;
+  bottom: -1px;          /* flush with header bottom border */
+  left: 0.75rem;
+  right: 0.75rem;
+  height: 3px;
+  background: var(--clr-primary);
+  border-radius: 3px 3px 0 0;
+}
+
+.header-nav-item .nav-icon svg {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+}
+
+/* ─── Header Right — User profile ─────────────────────────────────────────── */
+.header-user {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-left: auto;
+  padding: 0.35rem 0.65rem;
+  border-radius: 10px;
+  cursor: default;
+  transition: background var(--transition-fast);
+}
+
+.header-user:hover {
+  background: var(--clr-hover);
+}
+
+.header-user-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--clr-primary), var(--clr-primary-dark));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-weight: 600;
+  font-size: 0.9rem;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+.header-user-info {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.2;
+}
+
+.header-user-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--clr-text-base);
+}
+
+.header-user-role {
+  font-size: 0.72rem;
+  color: var(--clr-text-muted);
+}
+
+/* ─── Responsive ──────────────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  :root {
+    --sidebar-width: 200px;
+  }
+
+  .header-user-info {
+    display: none;
+  }
+
+  .header-brand-text {
+    display: none;
+  }
+}

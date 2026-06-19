@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<phpunit
+  bootstrap="vendor/autoload.php"
+  colors="true"
+  cacheDirectory=".phpunit.cache"
+>
+  <testsuites>
+    <testsuite name="Unit">
+      <directory>tests/Unit</directory>
+    </testsuite>
+
+    <testsuite name="Feature">
+      <directory>tests/Feature</directory>
+    </testsuite>
+  </testsuites>
+
+  <php>
+    <env name="APP_ENV" value="testing" force="true"/>
+    <env name="APP_DEBUG" value="true" force="true"/>
+    <env name="APP_TIMEZONE" value="Asia/Jakarta" force="true"/>
+    <env name="APP_NAME" value="Presensi Siswa Rajasa Test" force="true"/>
+    <env name="CORS_ALLOWED_ORIGINS" value="http://localhost:3000,http://localhost:8080" force="true"/>
+    <env name="CORS_ALLOWED_METHODS" value="GET,POST,PUT,PATCH,DELETE,OPTIONS" force="true"/>
+    <env name="CORS_ALLOWED_HEADERS" value="Content-Type,Authorization,X-Requested-With" force="true"/>
+  </php>
+</phpunit>

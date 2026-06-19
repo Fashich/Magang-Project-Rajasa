@@ -1,0 +1,10 @@
+# Paksa semua file teks menggunakan LF saat di-commit ke Git
+* text=auto
+*.php text eol=lf
+*.js text eol=lf
+*.css text eol=lf
+*.json text eol=lf
+
+# Pastikan file binary tidak disentuh
+*.png binary
+*.jpg binary

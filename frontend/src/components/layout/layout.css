@@ -1,0 +1,91 @@
+.app-shell {
+  min-height: 100vh;
+  display: flex;
+  background: #f7f8fb;
+  color: #172033;
+}
+
+.app-shell__main {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-shell__content {
+  width: 100%;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: 32px;
+}
+
+.app-header {
+  min-height: 88px;
+  display: flex;
+  align-items: center;
+  padding: 24px 32px;
+  background: #ffffff;
+  border-bottom: 1px solid #e7eaf0;
+}
+
+.app-header__eyebrow {
+  margin: 0 0 4px;
+  color: #667085;
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.app-header__title {
+  margin: 0;
+  color: #101828;
+  font-size: 1.75rem;
+  line-height: 1.2;
+}
+
+.app-sidebar {
+  width: 240px;
+  flex: 0 0 240px;
+  padding: 24px 18px;
+  background: #111827;
+  color: #ffffff;
+}
+
+.app-sidebar__brand {
+  margin-bottom: 28px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.app-sidebar__nav {
+  display: grid;
+  gap: 8px;
+}
+
+.app-sidebar__link {
+  display: block;
+  padding: 10px 12px;
+  color: #d1d5db;
+  text-decoration: none;
+  border-radius: 10px;
+}
+
+.app-sidebar__link:hover {
+  color: #ffffff;
+  background: rgb(255 255 255 / 10%);
+}
+
+@media (max-width: 768px) {
+  .app-shell {
+    display: block;
+  }
+
+  .app-sidebar {
+    width: auto;
+    min-height: auto;
+  }
+
+  .app-shell__content {
+    padding: 20px;
+  }
+}

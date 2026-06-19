@@ -1,0 +1,68 @@
+# docker build & start all service
+docker compose up -d --build
+
+# check status container
+docker compose ps
+
+# see all service logs
+docker compose logs -f
+
+# see per-service logs
+docker compose logs -f db
+docker compose logs -f backend
+docker compose logs -f frontend
+docker compose logs -f nginx
+
+# stop all service
+docker compose down
+
+
+# install dependency backend
+docker compose exec backend composer install
+
+# check backend entry point
+docker compose exec backend ls -lah /var/www/public/index.php
+
+
+# install dependency frontend
+docker compose exec frontend npm install
+
+# cleaning docker images
+> open git bash
+sh docker-refresh.sh
+
+# run local server
+docker compose exec frontend npm run dev -- --host
+atau 
+docker compose exec frontend npm run dev
+
+
+# test nginx config
+docker compose exec nginx nginx -t
+
+# reload nginx
+docker compose exec nginx nginx -s reload
+
+# restrat nginx
+docker compose restart nginx
+
+
+# API test
+curl -i http://localhost:8080/api/test
+curl -i http://localhost:3000/api/test
+curl -I http://localhost:3000
+curl -I http://localhost:8080
+
+
+# restart all service
+docker compose restart
+
+# restart per-service
+docker compose restart backend
+docker compose restart frontend
+docker compose restart nginx
+docker compose restart db
+
+
+# cloudflare start
+docker run --rm -it --network host cloudflare/cloudflared:latest tunnel --url http://localhost:3000
