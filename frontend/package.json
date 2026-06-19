@@ -13,6 +13,7 @@
   },
   "dependencies": {
     "html5-qrcode": "^2.3.8",
+    "chart.js": "^4.4.0",
     "preact": "^10.27.2"
   },
   "devDependencies": {

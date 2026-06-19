@@ -2,6 +2,9 @@ import { useEffect, useState } from 'preact/hooks'
 import { authApi } from './utils/api'
 import auth from './utils/auth'
 import DashboardSiswa from './pages/siswa/DashboardSiswa'
+import DashboardGuru from './pages/guru/DashboardGuru'
+import DashboardOrtu from './pages/ortu/DashboardOrtu'
+import DashboardAdmin from './pages/admin/DashboardAdmin'
 import './app.css'
 
 const THEME_KEY = 'rajasa-presensi-theme'
@@ -193,9 +196,24 @@ export function App() {
 
   // ── Route by role ──
   if (authUser) {
-    if (authUser.user_type === 'siswa') {
+    const role = authUser.user_type
+
+    if (role === 'siswa') {
       return <DashboardSiswa user={authUser} onLogout={handleLogout} />
     }
+
+    if (role === 'guru' || role === 'guru_staff' || role === 'staff') {
+      return <DashboardGuru user={authUser} onLogout={handleLogout} />
+    }
+
+    if (role === 'ortu' || role === 'wali_murid') {
+      return <DashboardOrtu user={authUser} onLogout={handleLogout} />
+    }
+
+    if (role === 'admin' || role === 'super_admin') {
+      return <DashboardAdmin user={authUser} onLogout={handleLogout} />
+    }
+
     return <RoleNotImplemented role={authUser.user_type} onLogout={handleLogout} />
   }
 
