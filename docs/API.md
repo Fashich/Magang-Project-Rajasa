@@ -50,6 +50,7 @@ Authorization: Bearer TOKEN
 | `POST` | `/auth/login` | Login dan ambil token | Public |
 | `POST` | `/auth/logout` | Logout client-side | Login |
 | `GET` | `/me` | Data user aktif | Login |
+| `GET` | `/dashboard` | Ringkasan dashboard adaptif per role | `dashboard.read` |
 | `GET` | `/rombel/options` | Daftar rombel aktif | `attendance.session.read` |
 | `POST` | `/presensi/sesi/check-warning` | Cek jam sudah pernah dipakai hari ini | `attendance.session.create` |
 | `POST` | `/presensi/sesi` | Membuat sesi presensi | `attendance.session.create` |
@@ -85,6 +86,52 @@ Response mengembalikan token, user, role, dan permission.
 ### GET `/me`
 
 Mengembalikan user aktif berdasarkan bearer token.
+
+## Role Dashboard
+
+### GET `/dashboard`
+
+Fungsi: mengembalikan ringkasan dashboard sesuai role user aktif.
+
+Role awal:
+
+```text
+siswa, guru, guru_staff, admin, super_admin, staff, ortu, wali_murid
+```
+
+Response utama:
+
+```json
+{
+  "role": "admin",
+  "scope": {
+    "label": "Seluruh sekolah"
+  },
+  "totals": {
+    "tepat_waktu": 120,
+    "terlambat": 8,
+    "sakit": 2,
+    "izin": 4,
+    "alpha": 3
+  },
+  "trend": [
+    {
+      "tanggal": "2026-06-19",
+      "hadir": 30,
+      "terlambat": 2,
+      "sakit": 0,
+      "izin": 1,
+      "alpha": 0
+    }
+  ],
+  "summary": {
+    "total_siswa": 320,
+    "total_rombel": 12,
+    "sesi_aktif": 1,
+    "total_presensi": 137
+  }
+}
+```
 
 ## Rombel Options
 
