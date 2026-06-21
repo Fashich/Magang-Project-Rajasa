@@ -2,6 +2,7 @@ import { useEffect, useState } from 'preact/hooks'
 import { authApi } from './utils/api'
 import auth from './utils/auth'
 import DashboardSiswa from './pages/siswa/DashboardSiswa'
+import DashboardAdmin from './pages/admin/DashboardAdmin'
 import './app.css'
 
 const THEME_KEY = 'rajasa-presensi-theme'
@@ -195,6 +196,9 @@ export function App() {
   if (authUser) {
     if (authUser.user_type === 'siswa') {
       return <DashboardSiswa user={authUser} onLogout={handleLogout} />
+    }
+    if (authUser.user_type === 'admin') {
+      return <DashboardAdmin user={authUser} onLogout={handleLogout} />
     }
     return <RoleNotImplemented role={authUser.user_type} onLogout={handleLogout} />
   }
