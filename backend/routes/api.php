@@ -27,6 +27,11 @@ use Rajasa\PresensiSiswa\Http\Controllers\SiswaPresensiController;
 use Rajasa\PresensiSiswa\Http\Controllers\SiswaKalenderController;
 use Rajasa\PresensiSiswa\Http\Controllers\RombelController;
 use Rajasa\PresensiSiswa\Http\Controllers\ScanReadinessImportController;
+use Rajasa\PresensiSiswa\Http\Controllers\UsersIndexController;
+use Rajasa\PresensiSiswa\Http\Controllers\UsersCreateController;
+use Rajasa\PresensiSiswa\Http\Controllers\UsersUpdateController;
+use Rajasa\PresensiSiswa\Http\Controllers\UsersDeleteController;
+use Rajasa\PresensiSiswa\Http\Controllers\UsersResetPasswordController;
 
 return function (RouteCollector $route): void {
     $route->get('/api/health', HealthController::class);
@@ -40,6 +45,13 @@ return function (RouteCollector $route): void {
     $route->get('/api/siswa/presensi', SiswaPresensiController::class);
     $route->get('/api/siswa/kalender-akademik', SiswaKalenderController::class);
     $route->get('/api/rombel/options', RombelController::class);
+
+    // ── Users (admin) ────────────────────────────────────────────────────────
+    $route->get('/api/users', UsersIndexController::class);
+    $route->post('/api/users', UsersCreateController::class);
+    $route->patch('/api/users/{id:\d+}', UsersUpdateController::class);
+    $route->delete('/api/users/{id:\d+}', UsersDeleteController::class);
+    $route->post('/api/users/{id:\d+}/reset-password', UsersResetPasswordController::class);
 
     $route->post('/api/presensi/sesi', PresensiSesiCreateController::class);
     $route->get('/api/presensi/sesi/aktif', PresensiSesiActiveController::class);

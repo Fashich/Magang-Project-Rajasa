@@ -7,6 +7,7 @@
 import { useCallback } from 'preact/hooks'
 import AdminLayout from './AdminLayout'
 import AdminDashboardPage from './AdminDashboardPage'
+import UsersPage from './UsersPage'
 
 // ─── Placeholder for pages not yet implemented ────────────────────────────────
 function ComingSoon({ title, desc, icon }) {
@@ -29,7 +30,7 @@ function resolvePage(page, setPage) {
     case 'sesi':       return <ComingSoon title="Sesi Presensi"        desc="Monitor dan kelola semua sesi presensi aktif di seluruh sekolah." icon="📋" />
     case 'e-izin':     return <ComingSoon title="Portal E-Izin"        desc="Approval berjenjang izin/sakit siswa — ortu → wali kelas → BK." icon="📅" />
     case 'peringatan': return <ComingSoon title="Early Warning System"  desc="Deteksi pola bolos berulang dan notifikasi otomatis ke orang tua." icon="⚠️" />
-    case 'users':      return <ComingSoon title="Manajemen Pengguna"    desc="Kelola akun siswa, guru, staff, dan orang tua." icon="👥" />
+    case 'users':      return <UsersPage />
     case 'laporan':    return <ComingSoon title="Laporan & Export"      desc="Generate laporan akreditasi PDF/Excel." icon="📊" />
     case 'audit':      return <ComingSoon title="Audit Trail"           desc="Log aktivitas lengkap per pengguna." icon="🔍" />
     case 'settings':   return <ComingSoon title="Pengaturan Sistem"     desc="Konfigurasi sekolah, periode akademik, parameter sistem." icon="⚙️" />

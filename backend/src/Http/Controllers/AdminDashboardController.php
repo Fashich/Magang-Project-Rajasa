@@ -89,10 +89,12 @@ final class AdminDashboardController
         }
 
         // ── Rombel breakdown ──────────────────────────────────────────────────
+        // FIX: kolom yang benar adalah rombel_id_aktif (bukan rombel_id)
+        //      dan label_rombel (bukan label)
 
         $rombelRows = DB::table('rombel AS r')
             ->leftJoin('siswa AS s', function ($j) {
-                $j->on('s.rombel_id', '=', 'r.rombel_id')
+                $j->on('s.rombel_id_aktif', '=', 'r.rombel_id')
                   ->where('s.status', '=', 'aktif');
             })
             ->leftJoin('presensi_jam_siswa AS pjs', function ($j) {
@@ -102,12 +104,12 @@ final class AdminDashboardController
             ->where('r.status', 'aktif')
             ->selectRaw("
                 r.rombel_id,
-                r.label,
+                r.label_rombel AS label,
                 COUNT(DISTINCT s.siswa_id) AS total_siswa,
                 SUM(CASE WHEN pjs.status IN ('hadir','terlambat') THEN 1 ELSE 0 END) AS hadir
             ")
-            ->groupBy('r.rombel_id', 'r.label')
-            ->orderBy('r.label')
+            ->groupBy('r.rombel_id', 'r.label_rombel')
+            ->orderBy('r.label_rombel')
             ->limit(10)
             ->get();
 
