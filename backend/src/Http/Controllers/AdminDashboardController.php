@@ -8,6 +8,7 @@ use Rajasa\PresensiSiswa\Core\Response;
 use Rajasa\PresensiSiswa\Http\Middleware\AuthMiddleware;
 use Rajasa\PresensiSiswa\Models\Siswa;
 use Rajasa\PresensiSiswa\Models\PresensiJamSiswa;
+use Carbon\Carbon;
 use Illuminate\Database\Capsule\Manager as DB;
 
 /**
@@ -43,7 +44,7 @@ final class AdminDashboardController
         // ── Status totals (today) ─────────────────────────────────────────────
 
         $todayTotals = PresensiJamSiswa::query()
-            ->whereDate('created_at', now()->toDateString())
+            ->whereDate('created_at', Carbon::now()->toDateString())
             ->selectRaw("
                 SUM(status = 'hadir')     AS hadir,
                 SUM(status = 'terlambat') AS terlambat,
@@ -66,7 +67,7 @@ final class AdminDashboardController
         // ── Trend 14 days ─────────────────────────────────────────────────────
 
         $trendRows = PresensiJamSiswa::query()
-            ->where('created_at', '>=', now()->subDays(14)->startOfDay())
+            ->where('created_at', '>=', Carbon::now()->subDays(14)->startOfDay())
             ->selectRaw("
                 DATE(created_at) AS date,
                 status,

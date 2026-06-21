@@ -1,0 +1,271 @@
+/* SesiPage.css — Halaman Monitor Sesi Presensi (admin) */
+
+/* ── Page layout ─────────────────────────────────────────────────────────── */
+
+.sesi-page {
+  padding: 0;
+  font-family: 'Poppins', sans-serif;
+}
+
+.sesi-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.sesi-page-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--admin-text-primary, #1e293b);
+  margin: 0 0 0.25rem;
+}
+
+.sesi-page-sub {
+  font-size: 0.85rem;
+  color: var(--admin-text-muted, #64748b);
+  margin: 0;
+}
+
+.sesi-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-shrink: 0;
+}
+
+.sesi-refresh-info {
+  font-size: 0.8rem;
+  color: var(--admin-text-muted, #64748b);
+  background: var(--admin-bg-subtle, #f1f5f9);
+  padding: 0.35rem 0.75rem;
+  border-radius: 99px;
+}
+
+/* ── Summary cards ───────────────────────────────────────────────────────── */
+
+.sesi-summary-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+@media (max-width: 768px) {
+  .sesi-summary-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+.sesi-summary-card {
+  background: var(--admin-card-bg, #fff);
+  border: 1px solid var(--admin-border, #e2e8f0);
+  border-radius: 12px;
+  padding: 1rem 1.25rem;
+  text-align: center;
+}
+
+.sesi-summary-card--active  { border-left: 4px solid #22c55e; }
+.sesi-summary-card--done    { border-left: 4px solid #3b82f6; }
+.sesi-summary-card--error   { border-left: 4px solid #ef4444; }
+
+.sesi-summary-num {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--admin-text-primary, #1e293b);
+  line-height: 1;
+  margin-bottom: 0.35rem;
+}
+
+.sesi-summary-lbl {
+  font-size: 0.78rem;
+  color: var(--admin-text-muted, #64748b);
+  font-weight: 500;
+}
+
+/* ── Badges ──────────────────────────────────────────────────────────────── */
+
+.sesi-badge {
+  display: inline-block;
+  padding: 0.2rem 0.6rem;
+  border-radius: 99px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.sesi-badge--aktif     { background: #dcfce7; color: #15803d; }
+.sesi-badge--suspended { background: #fef9c3; color: #a16207; }
+.sesi-badge--selesai   { background: #dbeafe; color: #1d4ed8; }
+.sesi-badge--error     { background: #fee2e2; color: #dc2626; }
+.sesi-badge--mode-rombel { background: #ede9fe; color: #6d28d9; }
+.sesi-badge--mode-piket  { background: #e0f2fe; color: #0369a1; }
+
+/* ── Filter bar ──────────────────────────────────────────────────────────── */
+
+.sesi-date-input {
+  height: 38px;
+  padding: 0 0.75rem;
+  border: 1px solid var(--admin-border, #e2e8f0);
+  border-radius: 8px;
+  font-family: 'Poppins', sans-serif;
+  font-size: 0.85rem;
+  color: var(--admin-text-primary, #1e293b);
+  background: var(--admin-card-bg, #fff);
+  cursor: pointer;
+}
+
+.sesi-date-input:focus {
+  outline: none;
+  border-color: #6366f1;
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* ── Tabel rows ──────────────────────────────────────────────────────────── */
+
+.sesi-row--active {
+  background: rgba(34, 197, 94, 0.04);
+}
+
+.sesi-ruang {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted, #64748b);
+  margin-top: 0.2rem;
+}
+
+.sesi-guru-nama {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--admin-text-primary, #1e293b);
+}
+
+.sesi-guru-user {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted, #64748b);
+}
+
+.sesi-time {
+  font-size: 0.82rem;
+  color: var(--admin-text-secondary, #475569);
+  white-space: nowrap;
+}
+
+.sesi-jam-chip {
+  display: inline-block;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+  margin-right: 2px;
+}
+
+.sesi-hadir-num {
+  font-weight: 700;
+  color: var(--admin-text-primary, #1e293b);
+}
+
+.sesi-hadir-lbl {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted, #64748b);
+}
+
+.sesi-dash {
+  color: #cbd5e1;
+  font-size: 0.85rem;
+}
+
+/* ── Modal ───────────────────────────────────────────────────────────────── */
+
+.sesi-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.sesi-modal {
+  background: var(--admin-card-bg, #fff);
+  border-radius: 16px;
+  box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+  width: 100%;
+  max-width: 480px;
+  overflow: hidden;
+}
+
+.sesi-modal-header {
+  padding: 1.25rem 1.5rem 0;
+}
+
+.sesi-modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--admin-text-primary, #1e293b);
+  margin: 0;
+}
+
+.sesi-modal-body {
+  padding: 1rem 1.5rem;
+  font-size: 0.875rem;
+  color: var(--admin-text-secondary, #475569);
+}
+
+.sesi-modal-body p { margin: 0 0 0.75rem; }
+
+.sesi-modal-info {
+  background: var(--admin-bg-subtle, #f8fafc);
+  border: 1px solid var(--admin-border, #e2e8f0);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.85rem;
+  font-size: 0.82rem;
+}
+
+.sesi-modal-warning {
+  color: #b45309;
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 8px;
+  padding: 0.6rem 0.85rem;
+  font-size: 0.8rem;
+  margin-bottom: 0 !important;
+}
+
+.sesi-modal-footer {
+  padding: 0.85rem 1.5rem 1.25rem;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  border-top: 1px solid var(--admin-border, #e2e8f0);
+}
+
+/* ── Dark theme ──────────────────────────────────────────────────────────── */
+
+[data-theme='dark'] .sesi-page-title      { color: #f1f5f9; }
+[data-theme='dark'] .sesi-page-sub        { color: #94a3b8; }
+[data-theme='dark'] .sesi-summary-card    { background: #1e293b; border-color: #334155; }
+[data-theme='dark'] .sesi-summary-num     { color: #f1f5f9; }
+[data-theme='dark'] .sesi-summary-lbl     { color: #94a3b8; }
+[data-theme='dark'] .sesi-date-input      { background: #1e293b; border-color: #334155; color: #f1f5f9; }
+[data-theme='dark'] .sesi-row--active     { background: rgba(34, 197, 94, 0.07); }
+[data-theme='dark'] .sesi-guru-nama       { color: #f1f5f9; }
+[data-theme='dark'] .sesi-guru-user       { color: #94a3b8; }
+[data-theme='dark'] .sesi-ruang           { color: #94a3b8; }
+[data-theme='dark'] .sesi-jam-chip        { background: #334155; border-color: #475569; color: #cbd5e1; }
+[data-theme='dark'] .sesi-hadir-num       { color: #f1f5f9; }
+[data-theme='dark'] .sesi-hadir-lbl       { color: #94a3b8; }
+[data-theme='dark'] .sesi-modal           { background: #1e293b; }
+[data-theme='dark'] .sesi-modal-title     { color: #f1f5f9; }
+[data-theme='dark'] .sesi-modal-body      { color: #cbd5e1; }
+[data-theme='dark'] .sesi-modal-info      { background: #0f172a; border-color: #334155; }
+[data-theme='dark'] .sesi-modal-footer    { border-color: #334155; }
+[data-theme='dark'] .sesi-refresh-info    { background: #1e293b; color: #94a3b8; }

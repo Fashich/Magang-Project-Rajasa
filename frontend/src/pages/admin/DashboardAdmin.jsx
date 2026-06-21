@@ -8,6 +8,7 @@ import { useCallback } from 'preact/hooks'
 import AdminLayout from './AdminLayout'
 import AdminDashboardPage from './AdminDashboardPage'
 import UsersPage from './UsersPage'
+import SesiPage from './SesiPage'
 
 // ─── Placeholder for pages not yet implemented ────────────────────────────────
 function ComingSoon({ title, desc, icon }) {
@@ -27,7 +28,7 @@ function resolvePage(page, setPage) {
   switch (page) {
     case 'dashboard':  return <AdminDashboardPage onNav={setPage} />
     case 'analitik':   return <ComingSoon title="Analitik Kehadiran"   desc="Visualisasi tren, korelasi prestasi, laporan mendalam per rombel." icon="📈" />
-    case 'sesi':       return <ComingSoon title="Sesi Presensi"        desc="Monitor dan kelola semua sesi presensi aktif di seluruh sekolah." icon="📋" />
+    case 'sesi':       return <SesiPage />
     case 'e-izin':     return <ComingSoon title="Portal E-Izin"        desc="Approval berjenjang izin/sakit siswa — ortu → wali kelas → BK." icon="📅" />
     case 'peringatan': return <ComingSoon title="Early Warning System"  desc="Deteksi pola bolos berulang dan notifikasi otomatis ke orang tua." icon="⚠️" />
     case 'users':      return <UsersPage />
