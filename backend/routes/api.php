@@ -22,6 +22,7 @@ use Rajasa\PresensiSiswa\Http\Controllers\PresensiSesiWarningCheckController;
 use Rajasa\PresensiSiswa\Http\Controllers\PresensiSesiPauseController;
 use Rajasa\PresensiSiswa\Http\Controllers\PresensiSesiResumeController;
 use Rajasa\PresensiSiswa\Http\Controllers\SiswaDashboardController;
+use Rajasa\PresensiSiswa\Http\Controllers\AdminDashboardController;
 use Rajasa\PresensiSiswa\Http\Controllers\SiswaPresensiController;
 use Rajasa\PresensiSiswa\Http\Controllers\SiswaKalenderController;
 use Rajasa\PresensiSiswa\Http\Controllers\RombelController;
@@ -35,6 +36,7 @@ return function (RouteCollector $route): void {
     $route->get('/api/me', MeController::class);
 
         $route->get('/api/siswa/dashboard', SiswaDashboardController::class);
+    $route->get('/api/dashboard', AdminDashboardController::class);
     $route->get('/api/siswa/presensi', SiswaPresensiController::class);
     $route->get('/api/siswa/kalender-akademik', SiswaKalenderController::class);
     $route->get('/api/rombel/options', RombelController::class);
