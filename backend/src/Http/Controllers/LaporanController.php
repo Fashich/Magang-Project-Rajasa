@@ -93,7 +93,7 @@ final class LaporanController
                 SUM(CASE WHEN pjs.status = 'izin'      THEN 1 ELSE 0 END)          AS izin,
                 COUNT(pjs.presensi_id)                                              AS total_records
             ")
-            ->groupBy('r.rombel_id', 'r.label_rombel', 'r.tingkatan')
+            ->groupBy('r.rombel_id', 'r.label_rombel', 'r.tingkatan', 'r.tingkat_angka')
             ->orderBy('r.tingkat_angka')
             ->orderBy('r.label_rombel')
             ->get();

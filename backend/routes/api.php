@@ -36,6 +36,11 @@ use Rajasa\PresensiSiswa\Http\Controllers\SesiIndexController;
 use Rajasa\PresensiSiswa\Http\Controllers\SesiForceFinishController;
 use Rajasa\PresensiSiswa\Http\Controllers\AuditTrailController;
 use Rajasa\PresensiSiswa\Http\Controllers\LaporanController;
+use Rajasa\PresensiSiswa\Http\Controllers\AnalitikController;
+use Rajasa\PresensiSiswa\Http\Controllers\PengaturanGetController;
+use Rajasa\PresensiSiswa\Http\Controllers\PengaturanTahunAjaranController;
+use Rajasa\PresensiSiswa\Http\Controllers\PengaturanJurusanController;
+use Rajasa\PresensiSiswa\Http\Controllers\PengaturanKonfigurasiController;
 
 return function (RouteCollector $route): void {
     $route->get('/api/health', HealthController::class);
@@ -64,6 +69,16 @@ return function (RouteCollector $route): void {
     // ── Audit Trail (admin) ──────────────────────────────────────────────────
     $route->get('/api/admin/audit', AuditTrailController::class);
     $route->get('/api/admin/laporan', LaporanController::class);
+    $route->get('/api/admin/analitik', AnalitikController::class);
+
+    // ── Pengaturan Sistem (admin) ─────────────────────────────────────────────
+    $route->get('/api/admin/pengaturan',                            PengaturanGetController::class);
+    $route->post('/api/admin/pengaturan/tahun-ajaran',              PengaturanTahunAjaranController::class);
+    $route->patch('/api/admin/pengaturan/tahun-ajaran/{id:\d+}',   PengaturanTahunAjaranController::class);
+    $route->post('/api/admin/pengaturan/jurusan',                   PengaturanJurusanController::class);
+    $route->patch('/api/admin/pengaturan/jurusan/{id:\d+}',        PengaturanJurusanController::class);
+    $route->delete('/api/admin/pengaturan/jurusan/{id:\d+}',       PengaturanJurusanController::class);
+    $route->patch('/api/admin/pengaturan/konfigurasi',              PengaturanKonfigurasiController::class);
 
     $route->post('/api/presensi/sesi', PresensiSesiCreateController::class);
     $route->get('/api/presensi/sesi/aktif', PresensiSesiActiveController::class);
