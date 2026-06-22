@@ -22,10 +22,29 @@ use Rajasa\PresensiSiswa\Http\Controllers\PresensiSesiWarningCheckController;
 use Rajasa\PresensiSiswa\Http\Controllers\PresensiSesiPauseController;
 use Rajasa\PresensiSiswa\Http\Controllers\PresensiSesiResumeController;
 use Rajasa\PresensiSiswa\Http\Controllers\SiswaDashboardController;
+use Rajasa\PresensiSiswa\Http\Controllers\AdminDashboardController;
 use Rajasa\PresensiSiswa\Http\Controllers\SiswaPresensiController;
 use Rajasa\PresensiSiswa\Http\Controllers\SiswaKalenderController;
 use Rajasa\PresensiSiswa\Http\Controllers\RombelController;
 use Rajasa\PresensiSiswa\Http\Controllers\ScanReadinessImportController;
+use Rajasa\PresensiSiswa\Http\Controllers\UsersIndexController;
+use Rajasa\PresensiSiswa\Http\Controllers\UsersCreateController;
+use Rajasa\PresensiSiswa\Http\Controllers\UsersUpdateController;
+use Rajasa\PresensiSiswa\Http\Controllers\UsersDeleteController;
+use Rajasa\PresensiSiswa\Http\Controllers\UsersResetPasswordController;
+use Rajasa\PresensiSiswa\Http\Controllers\SesiIndexController;
+use Rajasa\PresensiSiswa\Http\Controllers\SesiForceFinishController;
+use Rajasa\PresensiSiswa\Http\Controllers\AuditTrailController;
+use Rajasa\PresensiSiswa\Http\Controllers\LaporanController;
+use Rajasa\PresensiSiswa\Http\Controllers\AnalitikController;
+use Rajasa\PresensiSiswa\Http\Controllers\PengaturanGetController;
+use Rajasa\PresensiSiswa\Http\Controllers\PengaturanTahunAjaranController;
+use Rajasa\PresensiSiswa\Http\Controllers\PengaturanJurusanController;
+use Rajasa\PresensiSiswa\Http\Controllers\PengaturanKonfigurasiController;
+use Rajasa\PresensiSiswa\Http\Controllers\EarlyWarningController;
+use Rajasa\PresensiSiswa\Http\Controllers\EIzinIndexController;
+use Rajasa\PresensiSiswa\Http\Controllers\EIzinCreateController;
+use Rajasa\PresensiSiswa\Http\Controllers\EIzinApproveController;
 
 return function (RouteCollector $route): void {
     $route->get('/api/health', HealthController::class);
@@ -35,9 +54,44 @@ return function (RouteCollector $route): void {
     $route->get('/api/me', MeController::class);
 
         $route->get('/api/siswa/dashboard', SiswaDashboardController::class);
+    $route->get('/api/dashboard', AdminDashboardController::class);
     $route->get('/api/siswa/presensi', SiswaPresensiController::class);
     $route->get('/api/siswa/kalender-akademik', SiswaKalenderController::class);
     $route->get('/api/rombel/options', RombelController::class);
+
+    // ── Users (admin) ────────────────────────────────────────────────────────
+    $route->get('/api/users', UsersIndexController::class);
+    $route->post('/api/users', UsersCreateController::class);
+    $route->patch('/api/users/{id:\d+}', UsersUpdateController::class);
+    $route->delete('/api/users/{id:\d+}', UsersDeleteController::class);
+    $route->post('/api/users/{id:\d+}/reset-password', UsersResetPasswordController::class);
+
+    // ── Sesi Presensi (admin monitor) ────────────────────────────────────────
+    $route->get('/api/admin/sesi', SesiIndexController::class);
+    $route->post('/api/admin/sesi/{id:\d+}/force-finish', SesiForceFinishController::class);
+
+    // ── Audit Trail (admin) ──────────────────────────────────────────────────
+    $route->get('/api/admin/audit', AuditTrailController::class);
+    $route->get('/api/admin/laporan', LaporanController::class);
+    $route->get('/api/admin/analitik', AnalitikController::class);
+
+    // ── Pengaturan Sistem (admin) ─────────────────────────────────────────────
+    $route->get('/api/admin/pengaturan',                            PengaturanGetController::class);
+    $route->post('/api/admin/pengaturan/tahun-ajaran',              PengaturanTahunAjaranController::class);
+    $route->patch('/api/admin/pengaturan/tahun-ajaran/{id:\d+}',   PengaturanTahunAjaranController::class);
+    $route->post('/api/admin/pengaturan/jurusan',                   PengaturanJurusanController::class);
+    $route->patch('/api/admin/pengaturan/jurusan/{id:\d+}',        PengaturanJurusanController::class);
+    $route->delete('/api/admin/pengaturan/jurusan/{id:\d+}',       PengaturanJurusanController::class);
+    $route->patch('/api/admin/pengaturan/konfigurasi',              PengaturanKonfigurasiController::class);
+
+    // ── Early Warning ─────────────────────────────────────────────────────────
+    $route->get('/api/early-warnings',         EarlyWarningController::class);
+    $route->post('/api/early-warnings/notify', EarlyWarningController::class);
+
+    // ── E-Izin (Portal Izin/Sakit Siswa) ─────────────────────────────────────
+    $route->get('/api/e-izin',                       EIzinIndexController::class);
+    $route->post('/api/e-izin',                      EIzinCreateController::class);
+    $route->patch('/api/e-izin/{id:\d+}/approve',   EIzinApproveController::class);
 
     $route->post('/api/presensi/sesi', PresensiSesiCreateController::class);
     $route->get('/api/presensi/sesi/aktif', PresensiSesiActiveController::class);
