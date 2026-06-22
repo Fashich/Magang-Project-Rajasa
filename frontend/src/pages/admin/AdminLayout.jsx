@@ -61,6 +61,137 @@ const NAV_SECTIONS = [
   },
 ]
 
+// ─── Logout Overlay ───────────────────────────────────────────────────────────
+// Ditampilkan sebagai portal di atas semua konten.
+// state: 'idle' | 'confirming' | 'loading'
+
+function LogoutOverlay({ state, onConfirm, onCancel }) {
+  if (state === 'idle') return null
+
+  return (
+    <div
+      style={{
+        position: 'fixed', inset: 0,
+        background: 'rgba(15, 23, 42, 0.6)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        zIndex: 9999, padding: '1rem',
+        backdropFilter: 'blur(3px)',
+        fontFamily: "'Poppins', sans-serif",
+      }}
+      onClick={state === 'confirming' ? onCancel : undefined}
+    >
+      <div
+        style={{
+          background: '#ffffff',
+          borderRadius: '16px',
+          boxShadow: '0 20px 60px rgba(0,0,0,0.25)',
+          width: '100%', maxWidth: '360px',
+          overflow: 'hidden',
+        }}
+        onClick={e => e.stopPropagation()}
+      >
+
+        {/* ── State: konfirmasi ── */}
+        {state === 'confirming' && (
+          <>
+            {/* Header */}
+            <div style={{ padding: '1.5rem 1.5rem 1.125rem', display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
+                background: '#fef2f2',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <svg viewBox="0 0 24 24" style={{ width: 22, height: 22, fill: '#dc2626' }}>
+                  <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zM4 5h8V3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8v-2H4V5z"/>
+                </svg>
+              </div>
+              <div>
+                <p style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.3 }}>
+                  Keluar dari sistem?
+                </p>
+                <p style={{ margin: '0.2rem 0 0', fontSize: '0.8rem', color: '#64748b' }}>
+                  Sesi aktif akan diakhiri.
+                </p>
+              </div>
+            </div>
+
+            {/* Footer buttons */}
+            <div style={{
+              display: 'flex', justifyContent: 'flex-end', gap: '0.5rem',
+              padding: '0.875rem 1.5rem 1.25rem',
+              borderTop: '1px solid #e2e8f0',
+            }}>
+              <button
+                type="button"
+                onClick={onCancel}
+                style={{
+                  padding: '0.45rem 1rem', borderRadius: 8, cursor: 'pointer',
+                  border: '1px solid #e2e8f0', background: 'transparent',
+                  fontFamily: "'Poppins', sans-serif", fontSize: '0.82rem', fontWeight: 600,
+                  color: '#475569',
+                }}
+              >
+                Batal
+              </button>
+              <button
+                type="button"
+                onClick={onConfirm}
+                style={{
+                  padding: '0.45rem 1.125rem', borderRadius: 8, cursor: 'pointer',
+                  border: '1px solid #dc2626', background: '#dc2626',
+                  fontFamily: "'Poppins', sans-serif", fontSize: '0.82rem', fontWeight: 600,
+                  color: '#fff',
+                }}
+              >
+                Ya, Keluar
+              </button>
+            </div>
+          </>
+        )}
+
+        {/* ── State: loading ── */}
+        {state === 'loading' && (
+          <div style={{
+            padding: '2.25rem 1.5rem 1.75rem',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem',
+          }}>
+            {/* Spinner pakai CSS animation dari AdminLayout.css (adminSpin sudah ada) */}
+            <div style={{
+              width: 40, height: 40,
+              border: '3px solid #e2e8f0',
+              borderTopColor: '#dc2626',
+              borderRadius: '50%',
+              animation: 'adminSpin 0.75s linear infinite',
+            }} />
+            <div style={{ textAlign: 'center' }}>
+              <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>
+                Sedang keluar…
+              </p>
+              <p style={{ margin: '0.25rem 0 0', fontSize: '0.78rem', color: '#64748b' }}>
+                Menghapus sesi, harap tunggu.
+              </p>
+            </div>
+            <button
+              type="button"
+              onClick={onCancel}
+              style={{
+                marginTop: '0.25rem',
+                padding: '0.4rem 1.25rem', borderRadius: 8, cursor: 'pointer',
+                border: '1px solid #e2e8f0', background: 'transparent',
+                fontFamily: "'Poppins', sans-serif", fontSize: '0.78rem', fontWeight: 600,
+                color: '#64748b',
+              }}
+            >
+              Batalkan
+            </button>
+          </div>
+        )}
+
+      </div>
+    </div>
+  )
+}
+
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 
 function AdminSidebar({ collapsed, activePage, onPageChange, onLogout, user }) {
@@ -165,129 +296,13 @@ function AdminHeader({ onToggle, activePage, onToggleTheme, theme, user }) {
   )
 }
 
-// ─── Logout overlay ───────────────────────────────────────────────────────────
-// State: 'idle' | 'confirming' | 'loading'
-
-function LogoutOverlay({ state, onConfirm, onCancel }) {
-  if (state === 'idle') return null
-
-  return (
-    <div style={{
-      position: 'fixed', inset: 0,
-      background: 'rgba(15, 23, 42, 0.55)',
-      display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 9000, padding: '1rem',
-      backdropFilter: 'blur(3px)',
-      fontFamily: 'var(--admin-font, Poppins, sans-serif)',
-    }}>
-      <div style={{
-        background: 'var(--admin-surface, #fff)',
-        borderRadius: '18px',
-        boxShadow: '0 24px 64px rgba(0,0,0,0.18)',
-        width: '100%', maxWidth: '360px',
-        overflow: 'hidden',
-      }}>
-        {/* ── Konfirmasi ── */}
-        {state === 'confirming' && (
-          <>
-            <div style={{ padding: '1.5rem 1.5rem 1.25rem', display: 'flex', alignItems: 'flex-start', gap: '0.875rem' }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: 12, flexShrink: 0,
-                background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <svg viewBox="0 0 24 24" style={{ width: 22, height: 22, fill: '#dc2626' }}>
-                  <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zM4 5h8V3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8v-2H4V5z"/>
-                </svg>
-              </div>
-              <div>
-                <p style={{ margin: '0 0 0.2rem', fontSize: '0.95rem', fontWeight: 700, color: 'var(--admin-text, #0f172a)' }}>
-                  Keluar dari sistem?
-                </p>
-                <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--admin-text-muted, #475569)' }}>
-                  Sesi aktif akan diakhiri. Kamu perlu login ulang.
-                </p>
-              </div>
-            </div>
-            <div style={{
-              display: 'flex', justifyContent: 'flex-end', gap: '0.625rem',
-              padding: '0.875rem 1.5rem 1.375rem',
-              borderTop: '1px solid var(--admin-border, #e2e8f0)',
-            }}>
-              <button
-                type="button"
-                onClick={onCancel}
-                style={{
-                  padding: '0.45rem 1rem', borderRadius: 8, cursor: 'pointer',
-                  border: '1px solid var(--admin-border, #e2e8f0)',
-                  background: 'transparent', fontFamily: 'inherit',
-                  fontSize: '0.82rem', fontWeight: 600,
-                  color: 'var(--admin-text-muted, #475569)',
-                }}
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={onConfirm}
-                style={{
-                  padding: '0.45rem 1.125rem', borderRadius: 8, cursor: 'pointer',
-                  border: '1px solid #dc2626', background: '#dc2626',
-                  fontFamily: 'inherit', fontSize: '0.82rem', fontWeight: 600, color: '#fff',
-                }}
-              >
-                Ya, Keluar
-              </button>
-            </div>
-          </>
-        )}
-
-        {/* ── Loading ── */}
-        {state === 'loading' && (
-          <div style={{ padding: '2rem 1.5rem', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem' }}>
-            {/* Spinner */}
-            <div style={{
-              width: 40, height: 40,
-              border: '3px solid var(--admin-border, #e2e8f0)',
-              borderTopColor: '#dc2626',
-              borderRadius: '50%',
-              animation: 'adminSpin 0.8s linear infinite',
-            }} />
-            <div style={{ textAlign: 'center' }}>
-              <p style={{ margin: '0 0 0.2rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--admin-text, #0f172a)' }}>
-                Sedang keluar…
-              </p>
-              <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--admin-text-muted, #475569)' }}>
-                Menghapus sesi, harap tunggu.
-              </p>
-            </div>
-            <button
-              type="button"
-              onClick={onCancel}
-              style={{
-                marginTop: '0.25rem',
-                padding: '0.4rem 1rem', borderRadius: 8, cursor: 'pointer',
-                border: '1px solid var(--admin-border, #e2e8f0)',
-                background: 'transparent', fontFamily: 'inherit',
-                fontSize: '0.78rem', fontWeight: 600,
-                color: 'var(--admin-text-muted, #475569)',
-              }}
-            >
-              Batalkan
-            </button>
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
 // ─── Main Export ──────────────────────────────────────────────────────────────
 
 export default function AdminLayout({ user, onLogout, renderPage }) {
-  const [activePage,   setActivePage]  = useState('dashboard')
-  const [collapsed,    setCollapsed]   = useState(false)
-  const [theme,        setTheme]       = useState(() => localStorage.getItem(THEME_KEY) || 'light')
-  const [logoutState,  setLogoutState] = useState('idle') // 'idle' | 'confirming' | 'loading'
+  const [activePage,  setActivePage]  = useState('dashboard')
+  const [collapsed,   setCollapsed]   = useState(false)
+  const [theme,       setTheme]       = useState(() => localStorage.getItem(THEME_KEY) || 'light')
+  const [logoutState, setLogoutState] = useState('idle') // 'idle' | 'confirming' | 'loading'
   const abortRef = useRef(null)
 
   useEffect(() => {
@@ -297,16 +312,19 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
 
   const handleToggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), [])
 
-  // Klik tombol Keluar → tampilkan konfirmasi dulu
+  // Step 1 — klik tombol "Keluar" di sidebar → tampilkan dialog konfirmasi
   const handleLogoutClick = useCallback(() => {
     setLogoutState('confirming')
   }, [])
 
-  // Konfirmasi → jalankan logout + tampilkan loading
+  // Step 2 — klik "Ya, Keluar" → tampilkan loading, jalankan API, lalu redirect
   const handleLogoutConfirm = useCallback(async () => {
     setLogoutState('loading')
+
     const controller = new AbortController()
     abortRef.current = controller
+
+    let cancelled = false
 
     try {
       const token = localStorage.getItem('presensi_lab_rajasa:auth_token')
@@ -319,9 +337,17 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
         },
       })
-    } catch { /* ignore — expired token atau cancel, tetap lanjut */ }
+    } catch (err) {
+      // Jika user klik "Batalkan" saat loading → abort error → keluar dari handler
+      if (err && err.name === 'AbortError') {
+        cancelled = true
+      }
+      // Error lain (network, dll) diabaikan — tetap lanjut logout
+    }
 
-    // Bersihkan storage
+    if (cancelled) return
+
+    // Bersihkan semua auth storage
     localStorage.removeItem('presensi_lab_rajasa:auth_token')
     localStorage.removeItem('presensi_lab_rajasa:auth_user')
     localStorage.removeItem('auth_token')
@@ -331,7 +357,7 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
     if (typeof onLogout === 'function') onLogout()
   }, [onLogout])
 
-  // Tombol batal — batalkan fetch jika sedang loading
+  // Step X — klik "Batal" / "Batalkan" → tutup overlay, batalkan fetch jika sedang berjalan
   const handleLogoutCancel = useCallback(() => {
     if (abortRef.current) {
       abortRef.current.abort()
@@ -362,6 +388,7 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
         </div>
       </main>
 
+      {/* Logout overlay — selalu di-render di sini, muncul saat state bukan 'idle' */}
       <LogoutOverlay
         state={logoutState}
         onConfirm={handleLogoutConfirm}
