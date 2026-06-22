@@ -3,7 +3,19 @@ import api from '../../utils/api';
 import { AppShell } from '../../components/layout/AppShell.jsx';
 import { Chart, registerables } from 'chart.js';
 
+<<<<<<< Updated upstream
 Chart.register(...registerables);
+=======
+import AdminLayout from './AdminLayout'
+import AdminDashboardPage from './AdminDashboardPage'
+import UsersPage from './UsersPage'
+import SesiPage from './SesiPage'
+import AuditPage from './AuditPage'
+import LaporanPage from './LaporanPage'
+import AnalitikPage from './AnalitikPage'
+import PengaturanPage from './PengaturanPage'
+import EarlyWarningPage from './EarlyWarningPage'
+>>>>>>> Stashed changes
 
 function StatCard({ label, value }) {
   return (
@@ -14,6 +26,83 @@ function StatCard({ label, value }) {
   );
 }
 
+<<<<<<< Updated upstream
+=======
+// ─── Daftar semua halaman ────────────────────────────────────────────────────
+// Halaman ComingSoon (belum ada data) tidak perlu keep-alive — ringan saja.
+// Halaman nyata (ada fetch) → selalu di-render, visibility dikontrol.
+
+const REAL_PAGES = ['dashboard','analitik','sesi','users','laporan','audit','settings']
+
+function PageSlot({ id, activePage, children }) {
+  const isActive = activePage === id
+  return (
+    <div
+      key={id}
+      style={{
+        display: isActive ? '' : 'none',
+        // Pastikan slot mengisi full height container saat aktif
+        minHeight: isActive ? '100%' : undefined,
+      }}
+      aria-hidden={!isActive}
+    >
+      {children}
+    </div>
+  )
+}
+
+// ─── Render semua page sekaligus, sembunyikan yang tidak aktif ───────────────
+
+function AllPages({ activePage, onNav }) {
+  return (
+    <>
+      <PageSlot id="dashboard" activePage={activePage}>
+        <AdminDashboardPage onNav={onNav} />
+      </PageSlot>
+
+      <PageSlot id="analitik" activePage={activePage}>
+        <AnalitikPage />
+      </PageSlot>
+
+      {/* SesiPage punya auto-refresh 1 detik — kirim pageActive agar interval
+          berhenti saat halaman disembunyikan */}
+      <PageSlot id="sesi" activePage={activePage}>
+        <SesiPage pageActive={activePage === 'sesi'} />
+      </PageSlot>
+
+      <PageSlot id="peringatan" activePage={activePage}>
+        <EarlyWarningPage />
+      </PageSlot>
+
+      <PageSlot id="users" activePage={activePage}>
+        <UsersPage />
+      </PageSlot>
+
+      <PageSlot id="laporan" activePage={activePage}>
+        <LaporanPage />
+      </PageSlot>
+
+      <PageSlot id="audit" activePage={activePage}>
+        <AuditPage />
+      </PageSlot>
+
+      <PageSlot id="settings" activePage={activePage}>
+        <PengaturanPage />
+      </PageSlot>
+
+      {/* Halaman ComingSoon — tidak perlu keep-alive, render hanya saat aktif */}
+      {activePage === 'e-izin' && (
+        <ComingSoon title="Portal E-Izin"
+          desc="Approval berjenjang izin/sakit siswa — ortu → wali kelas → BK." icon="📅" />
+      )}
+
+    </>
+  )
+}
+
+// ─── Main ────────────────────────────────────────────────────────────────────
+
+>>>>>>> Stashed changes
 export default function DashboardAdmin({ user, onLogout }) {
   const [loading, setLoading] = useState(true);
   const [data, setData] = useState(null);

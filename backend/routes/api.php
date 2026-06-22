@@ -27,6 +27,23 @@ use Rajasa\PresensiSiswa\Http\Controllers\SiswaPresensiController;
 use Rajasa\PresensiSiswa\Http\Controllers\SiswaKalenderController;
 use Rajasa\PresensiSiswa\Http\Controllers\RombelController;
 use Rajasa\PresensiSiswa\Http\Controllers\ScanReadinessImportController;
+<<<<<<< Updated upstream
+=======
+use Rajasa\PresensiSiswa\Http\Controllers\UsersIndexController;
+use Rajasa\PresensiSiswa\Http\Controllers\UsersCreateController;
+use Rajasa\PresensiSiswa\Http\Controllers\UsersUpdateController;
+use Rajasa\PresensiSiswa\Http\Controllers\UsersDeleteController;
+use Rajasa\PresensiSiswa\Http\Controllers\UsersResetPasswordController;
+use Rajasa\PresensiSiswa\Http\Controllers\SesiIndexController;
+use Rajasa\PresensiSiswa\Http\Controllers\SesiForceFinishController;
+use Rajasa\PresensiSiswa\Http\Controllers\AuditTrailController;
+use Rajasa\PresensiSiswa\Http\Controllers\LaporanController;
+use Rajasa\PresensiSiswa\Http\Controllers\AnalitikController;
+use Rajasa\PresensiSiswa\Http\Controllers\PengaturanGetController;
+use Rajasa\PresensiSiswa\Http\Controllers\PengaturanTahunAjaranController;
+use Rajasa\PresensiSiswa\Http\Controllers\PengaturanJurusanController;
+use Rajasa\PresensiSiswa\Http\Controllers\PengaturanKonfigurasiController;
+>>>>>>> Stashed changes
 use Rajasa\PresensiSiswa\Http\Controllers\EarlyWarningController;
 
 return function (RouteCollector $route): void {
@@ -47,6 +64,38 @@ return function (RouteCollector $route): void {
     $route->get('/api/siswa/kalender-akademik', SiswaKalenderController::class);
     $route->get('/api/rombel/options', RombelController::class);
 
+<<<<<<< Updated upstream
+=======
+    // ── Users (admin) ────────────────────────────────────────────────────────
+    $route->get('/api/users', UsersIndexController::class);
+    $route->post('/api/users', UsersCreateController::class);
+    $route->patch('/api/users/{id:\d+}', UsersUpdateController::class);
+    $route->delete('/api/users/{id:\d+}', UsersDeleteController::class);
+    $route->post('/api/users/{id:\d+}/reset-password', UsersResetPasswordController::class);
+
+    // ── Sesi Presensi (admin monitor) ────────────────────────────────────────
+    $route->get('/api/admin/sesi', SesiIndexController::class);
+    $route->post('/api/admin/sesi/{id:\d+}/force-finish', SesiForceFinishController::class);
+
+    // ── Audit Trail (admin) ──────────────────────────────────────────────────
+    $route->get('/api/admin/audit', AuditTrailController::class);
+    $route->get('/api/admin/laporan', LaporanController::class);
+    $route->get('/api/admin/analitik', AnalitikController::class);
+
+    // ── Pengaturan Sistem (admin) ─────────────────────────────────────────────
+    $route->get('/api/admin/pengaturan',                            PengaturanGetController::class);
+    $route->post('/api/admin/pengaturan/tahun-ajaran',              PengaturanTahunAjaranController::class);
+    $route->patch('/api/admin/pengaturan/tahun-ajaran/{id:\d+}',   PengaturanTahunAjaranController::class);
+    $route->post('/api/admin/pengaturan/jurusan',                   PengaturanJurusanController::class);
+    $route->patch('/api/admin/pengaturan/jurusan/{id:\d+}',        PengaturanJurusanController::class);
+    $route->delete('/api/admin/pengaturan/jurusan/{id:\d+}',       PengaturanJurusanController::class);
+    $route->patch('/api/admin/pengaturan/konfigurasi',              PengaturanKonfigurasiController::class);
+
+    // ── Early Warning ─────────────────────────────────────────────────────────
+    $route->get('/api/early-warnings',         EarlyWarningController::class);
+    $route->post('/api/early-warnings/notify', EarlyWarningController::class);
+
+>>>>>>> Stashed changes
     $route->post('/api/presensi/sesi', PresensiSesiCreateController::class);
     $route->get('/api/presensi/sesi/aktif', PresensiSesiActiveController::class);
     $route->post('/api/presensi/sesi/{id:\d+}/pause', PresensiSesiPauseController::class);
