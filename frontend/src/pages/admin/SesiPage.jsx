@@ -2,6 +2,10 @@
  * SesiPage.jsx
  * Halaman Monitor Sesi Presensi (admin)
  * Branch: feature/admin-dashboard
+ *
+ * Perubahan:
+ * - Auto-refresh 1 detik (live update tanpa countdown)
+ * - UI redesign: proper data density, live indicator, clean table
  */
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
@@ -45,127 +49,209 @@ function formatDuration(startedAt, endedAt) {
   const start = new Date(startedAt)
   const end   = endedAt ? new Date(endedAt) : new Date()
   const mins  = Math.floor((end - start) / 60000)
+  if (mins < 1) return '< 1 mnt'
   if (mins < 60) return `${mins} mnt`
   return `${Math.floor(mins / 60)}j ${mins % 60}mnt`
 }
 
-// ── Badge komponen ─────────────────────────────────────────────────────────────
+function formatTanggal(str) {
+  return new Date(str).toLocaleDateString('id-ID', {
+    weekday: 'long', day: 'numeric', month: 'long', year: 'numeric',
+  })
+}
+
+// ── Badge ─────────────────────────────────────────────────────────────────────
 
 function StatusBadge({ status }) {
   const map = {
-    aktif:     { label: 'Aktif',     cls: 'sesi-badge sesi-badge--aktif' },
-    suspended: { label: 'Dijeda',    cls: 'sesi-badge sesi-badge--suspended' },
-    selesai:   { label: 'Selesai',   cls: 'sesi-badge sesi-badge--selesai' },
-    gagal:     { label: 'Gagal',     cls: 'sesi-badge sesi-badge--error' },
-    expired:   { label: 'Expired',   cls: 'sesi-badge sesi-badge--error' },
-    terputus:  { label: 'Terputus',  cls: 'sesi-badge sesi-badge--error' },
+    aktif:     { label: 'Aktif',    cls: 'sp-badge sp-badge--aktif' },
+    suspended: { label: 'Dijeda',   cls: 'sp-badge sp-badge--suspended' },
+    selesai:   { label: 'Selesai',  cls: 'sp-badge sp-badge--selesai' },
+    gagal:     { label: 'Gagal',    cls: 'sp-badge sp-badge--error' },
+    expired:   { label: 'Expired',  cls: 'sp-badge sp-badge--error' },
+    terputus:  { label: 'Terputus', cls: 'sp-badge sp-badge--error' },
   }
-  const { label, cls } = map[status] || { label: status, cls: 'sesi-badge' }
+  const { label, cls } = map[status] || { label: status, cls: 'sp-badge' }
   return <span class={cls}>{label}</span>
 }
 
 function ModeBadge({ mode }) {
   return (
-    <span class={`sesi-badge sesi-badge--mode-${mode}`}>
-      {mode === 'rombel' ? '📚 Rombel' : '🏫 Piket'}
+    <span class={`sp-mode-badge sp-mode-badge--${mode}`}>
+      {mode === 'rombel' ? 'Rombel' : 'Piket'}
+    </span>
+  )
+}
+
+// ── Live dot indicator ────────────────────────────────────────────────────────
+
+function LiveDot() {
+  return (
+    <span class="sp-live">
+      <span class="sp-live-dot" />
+      Live
     </span>
   )
 }
 
 // ── Summary cards ─────────────────────────────────────────────────────────────
 
-function SummaryCards({ summary }) {
+const CARD_DEFS = [
+  { key: 'total',          label: 'Total Sesi',       mod: '',        icon: '≡' },
+  { key: 'sedang_berjalan',label: 'Sedang Berjalan',  mod: '--green', icon: '▶' },
+  { key: 'selesai',        label: 'Selesai',          mod: '--blue',  icon: '✓' },
+  { key: 'bermasalah',     label: 'Bermasalah',       mod: '--red',   icon: '!' },
+]
+
+function SummaryCards({ summary, isToday }) {
   return (
-    <div class="sesi-summary-row">
-      <div class="sesi-summary-card">
-        <div class="sesi-summary-num">{summary.total}</div>
-        <div class="sesi-summary-lbl">Total Sesi</div>
-      </div>
-      <div class="sesi-summary-card sesi-summary-card--active">
-        <div class="sesi-summary-num">{summary.sedang_berjalan}</div>
-        <div class="sesi-summary-lbl">Sedang Berjalan</div>
-      </div>
-      <div class="sesi-summary-card sesi-summary-card--done">
-        <div class="sesi-summary-num">{summary.selesai}</div>
-        <div class="sesi-summary-lbl">Selesai</div>
-      </div>
-      <div class="sesi-summary-card sesi-summary-card--error">
-        <div class="sesi-summary-num">{summary.bermasalah}</div>
-        <div class="sesi-summary-lbl">Bermasalah</div>
+    <div class="sp-stats">
+      {CARD_DEFS.map(({ key, label, mod, icon }) => (
+        <div key={key} class={`sp-stat${mod}`}>
+          <div class="sp-stat-icon-wrap">
+            <span class="sp-stat-icon">{icon}</span>
+          </div>
+          <div class="sp-stat-body">
+            <div class="sp-stat-num">{summary[key] ?? 0}</div>
+            <div class="sp-stat-lbl">{label}</div>
+          </div>
+          {key === 'sedang_berjalan' && (summary[key] ?? 0) > 0 && isToday && (
+            <LiveDot />
+          )}
+        </div>
+      ))}
+    </div>
+  )
+}
+
+// ── Confirm modal ─────────────────────────────────────────────────────────────
+
+function ConfirmModal({ sesi, onConfirm, onCancel, loading }) {
+  if (!sesi) return null
+  return (
+    <div class="sp-overlay" onClick={onCancel}>
+      <div class="sp-modal" onClick={e => e.stopPropagation()}>
+        <div class="sp-modal-header">
+          <div class="sp-modal-icon">⏹</div>
+          <div>
+            <h3 class="sp-modal-title">Paksa Selesaikan Sesi</h3>
+            <p class="sp-modal-sub">Tindakan ini tidak bisa dibatalkan</p>
+          </div>
+        </div>
+        <div class="sp-modal-body">
+          <div class="sp-modal-detail">
+            <div class="sp-detail-row">
+              <span class="sp-detail-key">Guru</span>
+              <span class="sp-detail-val">{sesi.dibuka_oleh?.nama || sesi.dibuka_oleh?.username || '—'}</span>
+            </div>
+            <div class="sp-detail-row">
+              <span class="sp-detail-key">Mode</span>
+              <span class="sp-detail-val">
+                {sesi.mode_presensi === 'rombel'
+                  ? `Rombel — ${sesi.rombel?.label_rombel ?? '—'}`
+                  : 'Piket'}
+              </span>
+            </div>
+            <div class="sp-detail-row">
+              <span class="sp-detail-key">Ruang</span>
+              <span class="sp-detail-val">{sesi.ruang || '—'}</span>
+            </div>
+            <div class="sp-detail-row">
+              <span class="sp-detail-key">Mulai</span>
+              <span class="sp-detail-val">{formatTime(sesi.started_at)}</span>
+            </div>
+            <div class="sp-detail-row">
+              <span class="sp-detail-key">Status</span>
+              <span class="sp-detail-val"><StatusBadge status={sesi.status} /></span>
+            </div>
+          </div>
+          <p class="sp-modal-warn">
+            Guru atau staff tidak akan bisa melanjutkan sesi ini setelah diakhiri paksa.
+          </p>
+        </div>
+        <div class="sp-modal-footer">
+          <button class="sp-btn sp-btn--ghost" onClick={onCancel} disabled={loading}>
+            Batal
+          </button>
+          <button class="sp-btn sp-btn--danger" onClick={onConfirm} disabled={loading}>
+            {loading ? 'Memproses…' : 'Akhiri Paksa'}
+          </button>
+        </div>
       </div>
     </div>
   )
 }
 
-// ── Konfirmasi force-finish ────────────────────────────────────────────────────
+// ── Toast ─────────────────────────────────────────────────────────────────────
 
-function ConfirmModal({ sesi, onConfirm, onCancel, loading }) {
-  if (!sesi) return null
+function Toast({ toast }) {
+  if (!toast) return null
   return (
-    <div class="sesi-modal-overlay" onClick={onCancel}>
-      <div class="sesi-modal" onClick={e => e.stopPropagation()}>
-        <div class="sesi-modal-header">
-          <h3 class="sesi-modal-title">⚠️ Paksa Selesaikan Sesi</h3>
-        </div>
-        <div class="sesi-modal-body">
-          <p>Kamu akan memaksa menyelesaikan sesi berikut:</p>
-          <div class="sesi-modal-info">
-            <div><strong>Guru:</strong> {sesi.dibuka_oleh?.nama || sesi.dibuka_oleh?.username}</div>
-            <div><strong>Mode:</strong> {sesi.mode_presensi === 'rombel' ? `Rombel — ${sesi.rombel?.label_rombel}` : 'Piket'}</div>
-            <div><strong>Ruang:</strong> {sesi.ruang}</div>
-            <div><strong>Dimulai:</strong> {formatTime(sesi.started_at)}</div>
-            <div><strong>Status:</strong> <StatusBadge status={sesi.status} /></div>
-          </div>
-          <p class="sesi-modal-warning">
-            Tindakan ini tidak bisa dibatalkan. Guru/staff tidak akan bisa melanjutkan sesi ini.
+    <div class={`sp-toast sp-toast--${toast.type}`}>
+      <span class="sp-toast-icon">{toast.type === 'success' ? '✓' : '✗'}</span>
+      {toast.msg}
+    </div>
+  )
+}
+
+// ── Empty / Error states ──────────────────────────────────────────────────────
+
+function EmptyState({ tanggal }) {
+  const isToday = tanggal === todayString()
+  return (
+    <tr>
+      <td colSpan={10}>
+        <div class="sp-empty">
+          <div class="sp-empty-icon">📋</div>
+          <p class="sp-empty-title">
+            {isToday ? 'Belum ada sesi hari ini' : 'Tidak ada sesi pada tanggal ini'}
+          </p>
+          <p class="sp-empty-sub">
+            {isToday
+              ? 'Data akan muncul otomatis saat guru membuka sesi presensi.'
+              : 'Coba pilih tanggal lain.'}
           </p>
         </div>
-        <div class="sesi-modal-footer">
-          <button class="admin-btn admin-btn--ghost" onClick={onCancel} disabled={loading}>
-            Batal
-          </button>
-          <button class="admin-btn admin-btn--danger" onClick={onConfirm} disabled={loading}>
-            {loading ? 'Memproses…' : 'Ya, Selesaikan Paksa'}
-          </button>
-        </div>
-      </div>
-    </div>
+      </td>
+    </tr>
   )
 }
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
 export default function SesiPage() {
-  const [tanggal, setTanggal]       = useState(todayString())
-  const [statusFilter, setStatus]   = useState('semua')
-  const [modeFilter, setMode]       = useState('semua')
-  const [page, setPage]             = useState(1)
-  const [rows, setRows]             = useState([])
-  const [meta, setMeta]             = useState({ total: 0, last_page: 1 })
-  const [summary, setSummary]       = useState({ total: 0, sedang_berjalan: 0, selesai: 0, bermasalah: 0 })
-  const [loading, setLoading]       = useState(false)
-  const [error, setError]           = useState(null)
-  const [confirmSesi, setConfirm]   = useState(null)
-  const [finishing, setFinishing]   = useState(false)
-  const [toast, setToast]           = useState(null)
-  const [countdown, setCountdown]   = useState(30)
-  const timerRef                    = useRef(null)
+  const [tanggal, setTanggal]     = useState(todayString)
+  const [statusFilter, setStatus] = useState('semua')
+  const [modeFilter, setMode]     = useState('semua')
+  const [page, setPage]           = useState(1)
+  const [rows, setRows]           = useState([])
+  const [meta, setMeta]           = useState({ total: 0, last_page: 1 })
+  const [summary, setSummary]     = useState({ total: 0, sedang_berjalan: 0, selesai: 0, bermasalah: 0 })
+  const [loading, setLoading]     = useState(false)
+  const [error, setError]         = useState(null)
+  const [confirmSesi, setConfirm] = useState(null)
+  const [finishing, setFinishing] = useState(false)
+  const [toast, setToast]         = useState(null)
+  const [lastUpdated, setLastUpdated] = useState(null)
+  const timerRef                  = useRef(null)
 
   const showToast = useCallback((msg, type = 'success') => {
     setToast({ msg, type })
     setTimeout(() => setToast(null), 3500)
   }, [])
 
-  const fetchData = useCallback(async (showLoader = true) => {
+  const fetchData = useCallback(async (showLoader = false) => {
     if (showLoader) setLoading(true)
     setError(null)
     try {
-      const params = new URLSearchParams({ tanggal, status: statusFilter, mode: modeFilter, page })
+      const params = new URLSearchParams({
+        tanggal, status: statusFilter, mode: modeFilter, page,
+      })
       const res = await apiFetch(`/admin/sesi?${params}`)
       setRows(res.data?.data ?? [])
       setMeta(res.data?.meta ?? { total: 0, last_page: 1 })
       setSummary(res.data?.summary ?? { total: 0, sedang_berjalan: 0, selesai: 0, bermasalah: 0 })
-      setCountdown(30)
+      setLastUpdated(new Date())
     } catch (e) {
       setError(e.message)
     } finally {
@@ -173,18 +259,20 @@ export default function SesiPage() {
     }
   }, [tanggal, statusFilter, modeFilter, page])
 
-  // Auto-refresh setiap 30 detik
+  // ── Auto-refresh 1 detik (hanya saat tab aktif & melihat hari ini) ─────────
   useEffect(() => {
-    fetchData()
+    fetchData(true)
+
+    const isToday = tanggal === todayString()
+    if (!isToday) return
+
     timerRef.current = setInterval(() => {
-      setCountdown(c => {
-        if (c <= 1) {
-          fetchData(false)
-          return 30
-        }
-        return c - 1
-      })
+      // Hanya refresh jika tab tidak tersembunyi
+      if (!document.hidden) {
+        fetchData(false)
+      }
     }, 1000)
+
     return () => clearInterval(timerRef.current)
   }, [fetchData])
 
@@ -196,7 +284,7 @@ export default function SesiPage() {
     setFinishing(true)
     try {
       await apiFetch(`/admin/sesi/${confirmSesi.presensi_sesi_id}/force-finish`, { method: 'POST' })
-      showToast('Sesi berhasil diselesaikan paksa.')
+      showToast('Sesi berhasil diakhiri.')
       setConfirm(null)
       fetchData(false)
     } catch (e) {
@@ -209,39 +297,41 @@ export default function SesiPage() {
   const isToday = tanggal === todayString()
 
   return (
-    <div class="sesi-page">
+    <div class="sp-page">
 
-      {/* Header */}
-      <div class="sesi-page-header">
-        <div>
-          <h1 class="sesi-page-title">Sesi Presensi</h1>
-          <p class="sesi-page-sub">Monitor semua sesi presensi — {new Date(tanggal).toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}</p>
+      {/* ── Header ── */}
+      <div class="sp-header">
+        <div class="sp-header-left">
+          <h1 class="sp-title">Sesi Presensi</h1>
+          <p class="sp-sub">{formatTanggal(tanggal)}</p>
         </div>
-        <div class="sesi-header-actions">
-          {isToday && (
-            <span class="sesi-refresh-info">
-              Refresh otomatis dalam <strong>{countdown}s</strong>
+        <div class="sp-header-right">
+          {isToday && lastUpdated && (
+            <span class="sp-updated">
+              Diperbarui {lastUpdated.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
             </span>
           )}
-          <button class="admin-btn admin-btn--outline" onClick={() => fetchData(true)} disabled={loading}>
-            {loading ? '…' : '↻ Refresh'}
-          </button>
+          {!isToday && (
+            <button class="sp-btn sp-btn--outline" onClick={() => fetchData(true)} disabled={loading}>
+              {loading ? '…' : '↻ Muat Ulang'}
+            </button>
+          )}
         </div>
       </div>
 
-      {/* Summary cards */}
-      <SummaryCards summary={summary} />
+      {/* ── Summary cards ── */}
+      <SummaryCards summary={summary} isToday={isToday} />
 
-      {/* Filter bar */}
-      <div class="admin-filter-bar">
+      {/* ── Filter bar ── */}
+      <div class="sp-filter-bar">
         <input
           type="date"
-          class="sesi-date-input"
+          class="sp-input-date"
           value={tanggal}
           max={todayString()}
           onChange={e => setTanggal(e.target.value)}
         />
-        <select class="admin-filter-select" value={statusFilter} onChange={e => setStatus(e.target.value)}>
+        <select class="sp-select" value={statusFilter} onChange={e => setStatus(e.target.value)}>
           <option value="semua">Semua Status</option>
           <option value="aktif">Aktif</option>
           <option value="suspended">Dijeda</option>
@@ -250,90 +340,102 @@ export default function SesiPage() {
           <option value="terputus">Terputus</option>
           <option value="gagal">Gagal</option>
         </select>
-        <select class="admin-filter-select" value={modeFilter} onChange={e => setMode(e.target.value)}>
+        <select class="sp-select" value={modeFilter} onChange={e => setMode(e.target.value)}>
           <option value="semua">Semua Mode</option>
           <option value="rombel">Rombel</option>
           <option value="piket">Piket</option>
         </select>
+        <span class="sp-total-pill">{meta.total} sesi</span>
       </div>
 
-      {/* Error */}
-      {error && <div class="admin-state-box admin-state-box--error">⚠️ {error}</div>}
+      {/* ── Error ── */}
+      {error && (
+        <div class="sp-error-bar">
+          <span>⚠</span> {error}
+        </div>
+      )}
 
-      {/* Tabel */}
-      <div class="admin-card">
-        <div class="admin-table-wrap">
-          <table class="admin-table">
+      {/* ── Tabel ── */}
+      <div class="sp-card">
+        <div class="sp-table-wrap">
+          <table class="sp-table">
             <thead>
               <tr>
-                <th>#</th>
-                <th>Mode / Ruang</th>
+                <th class="sp-th-num">#</th>
+                <th>Mode</th>
                 <th>Guru / Staff</th>
                 <th>Rombel</th>
+                <th>Ruang</th>
                 <th>Jam</th>
                 <th>Mulai</th>
                 <th>Durasi</th>
-                <th>Hadir</th>
-                <th>Status</th>
-                <th>Aksi</th>
+                <th class="sp-th-c">Hadir</th>
+                <th class="sp-th-c">Status</th>
+                <th class="sp-th-c">Aksi</th>
               </tr>
             </thead>
             <tbody>
-              {loading && (
+              {loading && rows.length === 0 && (
                 <tr>
-                  <td colSpan={10} class="admin-state-box">Memuat data…</td>
-                </tr>
-              )}
-              {!loading && rows.length === 0 && (
-                <tr>
-                  <td colSpan={10} class="admin-state-box">
-                    {tanggal === todayString()
-                      ? 'Belum ada sesi hari ini.'
-                      : 'Tidak ada sesi pada tanggal tersebut.'}
+                  <td colSpan={11}>
+                    <div class="sp-empty">
+                      <div class="sp-spinner" />
+                      <p class="sp-empty-title">Memuat data…</p>
+                    </div>
                   </td>
                 </tr>
               )}
-              {!loading && rows.map((row, i) => {
+              {!loading && rows.length === 0 && (
+                <EmptyState tanggal={tanggal} />
+              )}
+              {rows.map((row, i) => {
                 const isActive = ['aktif', 'suspended'].includes(row.status)
+                const jamList  = row.jam_list ? String(row.jam_list).split(',') : []
                 return (
-                  <tr key={row.presensi_sesi_id} class={isActive ? 'sesi-row--active' : ''}>
-                    <td class="admin-table-num">{(page - 1) * 20 + i + 1}</td>
+                  <tr key={row.presensi_sesi_id} class={isActive ? 'sp-row-live' : ''}>
+                    <td class="sp-td-num">{(page - 1) * 20 + i + 1}</td>
                     <td>
                       <ModeBadge mode={row.mode_presensi} />
-                      <div class="sesi-ruang">{row.ruang}</div>
                     </td>
-                    <td>
-                      <div class="sesi-guru-nama">{row.dibuka_oleh?.nama || '—'}</div>
-                      <div class="sesi-guru-user">@{row.dibuka_oleh?.username || '—'}</div>
+                    <td class="sp-td-guru">
+                      <span class="sp-guru-nama">{row.dibuka_oleh?.nama || '—'}</span>
+                      <span class="sp-guru-user">@{row.dibuka_oleh?.username || '—'}</span>
                     </td>
-                    <td>{row.rombel?.label_rombel ?? <span class="sesi-dash">—</span>}</td>
-                    <td>
-                      {row.jam_list
-                        ? row.jam_list.split(',').map(j => (
-                            <span key={j} class="sesi-jam-chip">J{j}</span>
-                          ))
-                        : <span class="sesi-dash">—</span>}
+                    <td class="sp-td-rombel">
+                      {row.rombel?.label_rombel ?? <span class="sp-nil">—</span>}
                     </td>
-                    <td class="sesi-time">{formatTime(row.started_at)}</td>
-                    <td class="sesi-time">{formatDuration(row.started_at, row.ended_at)}</td>
-                    <td class="sesi-hadir">
-                      <span class="sesi-hadir-num">{row.total_hadir}</span>
-                      <span class="sesi-hadir-lbl"> siswa</span>
+                    <td class="sp-td-ruang">
+                      {row.ruang || <span class="sp-nil">—</span>}
                     </td>
-                    <td><StatusBadge status={row.status} /></td>
-                    <td>
-                      <div class="admin-row-actions">
-                        {isActive && (
+                    <td class="sp-td-jam">
+                      {jamList.length > 0
+                        ? jamList.map(j => <span key={j} class="sp-jam">J{j.trim()}</span>)
+                        : <span class="sp-nil">—</span>}
+                    </td>
+                    <td class="sp-td-time">{formatTime(row.started_at)}</td>
+                    <td class="sp-td-time">
+                      {isActive
+                        ? <span class="sp-duration-live">{formatDuration(row.started_at, null)}</span>
+                        : formatDuration(row.started_at, row.ended_at)}
+                    </td>
+                    <td class="sp-td-c">
+                      <span class="sp-hadir">{row.total_hadir ?? 0}</span>
+                    </td>
+                    <td class="sp-td-c">
+                      <StatusBadge status={row.status} />
+                    </td>
+                    <td class="sp-td-c">
+                      {isActive
+                        ? (
                           <button
-                            class="admin-action-btn admin-action-btn--danger"
-                            title="Paksa selesaikan sesi ini"
+                            class="sp-stop-btn"
+                            title="Akhiri sesi ini secara paksa"
                             onClick={() => setConfirm(row)}
                           >
-                            ⏹
+                            ⏹ Akhiri
                           </button>
-                        )}
-                        {!isActive && <span class="sesi-dash">—</span>}
-                      </div>
+                        )
+                        : <span class="sp-nil">—</span>}
                     </td>
                   </tr>
                 )
@@ -342,21 +444,21 @@ export default function SesiPage() {
           </table>
         </div>
 
-        {/* Pagination */}
+        {/* ── Pagination ── */}
         {meta.last_page > 1 && (
-          <div class="admin-pagination">
+          <div class="sp-pagination">
             <button
-              class="admin-pagination-btn"
+              class="sp-pg-btn"
               disabled={page <= 1}
               onClick={() => setPage(p => p - 1)}
             >
               ← Prev
             </button>
-            <span class="admin-pagination-info">
-              Hal {page} / {meta.last_page} · {meta.total} sesi
+            <span class="sp-pg-info">
+              Halaman {page} / {meta.last_page}
             </span>
             <button
-              class="admin-pagination-btn"
+              class="sp-pg-btn"
               disabled={page >= meta.last_page}
               onClick={() => setPage(p => p + 1)}
             >
@@ -366,7 +468,7 @@ export default function SesiPage() {
         )}
       </div>
 
-      {/* Modal konfirmasi force finish */}
+      {/* ── Modal ── */}
       <ConfirmModal
         sesi={confirmSesi}
         onConfirm={handleForceFinish}
@@ -374,12 +476,8 @@ export default function SesiPage() {
         loading={finishing}
       />
 
-      {/* Toast */}
-      {toast && (
-        <div class={`admin-toast admin-toast--${toast.type}`}>
-          {toast.type === 'success' ? '✓' : '✗'} {toast.msg}
-        </div>
-      )}
+      {/* ── Toast ── */}
+      <Toast toast={toast} />
     </div>
   )
 }
