@@ -219,7 +219,7 @@ function EmptyState({ tanggal }) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export default function SesiPage() {
+export default function SesiPage({ pageActive = true }) {
   const [tanggal, setTanggal]     = useState(todayString)
   const [statusFilter, setStatus] = useState('semua')
   const [modeFilter, setMode]     = useState('semua')
@@ -268,7 +268,7 @@ export default function SesiPage() {
 
     timerRef.current = setInterval(() => {
       // Hanya refresh jika tab tidak tersembunyi
-      if (!document.hidden) {
+      if (!document.hidden && pageActive) {
         fetchData(false)
       }
     }, 1000)
