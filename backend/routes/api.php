@@ -34,6 +34,7 @@ use Rajasa\PresensiSiswa\Http\Controllers\UsersDeleteController;
 use Rajasa\PresensiSiswa\Http\Controllers\UsersResetPasswordController;
 use Rajasa\PresensiSiswa\Http\Controllers\SesiIndexController;
 use Rajasa\PresensiSiswa\Http\Controllers\SesiForceFinishController;
+use Rajasa\PresensiSiswa\Http\Controllers\AuditTrailController;
 
 return function (RouteCollector $route): void {
     $route->get('/api/health', HealthController::class);
@@ -58,6 +59,9 @@ return function (RouteCollector $route): void {
     // ── Sesi Presensi (admin monitor) ────────────────────────────────────────
     $route->get('/api/admin/sesi', SesiIndexController::class);
     $route->post('/api/admin/sesi/{id:\d+}/force-finish', SesiForceFinishController::class);
+
+    // ── Audit Trail (admin) ──────────────────────────────────────────────────
+    $route->get('/api/admin/audit', AuditTrailController::class);
 
     $route->post('/api/presensi/sesi', PresensiSesiCreateController::class);
     $route->get('/api/presensi/sesi/aktif', PresensiSesiActiveController::class);

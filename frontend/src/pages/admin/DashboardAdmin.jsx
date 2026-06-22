@@ -9,6 +9,7 @@ import AdminLayout from './AdminLayout'
 import AdminDashboardPage from './AdminDashboardPage'
 import UsersPage from './UsersPage'
 import SesiPage from './SesiPage'
+import AuditPage from './AuditPage'
 
 // ─── Placeholder for pages not yet implemented ────────────────────────────────
 function ComingSoon({ title, desc, icon }) {
@@ -33,7 +34,7 @@ function resolvePage(page, setPage) {
     case 'peringatan': return <ComingSoon title="Early Warning System"  desc="Deteksi pola bolos berulang dan notifikasi otomatis ke orang tua." icon="⚠️" />
     case 'users':      return <UsersPage />
     case 'laporan':    return <ComingSoon title="Laporan & Export"      desc="Generate laporan akreditasi PDF/Excel." icon="📊" />
-    case 'audit':      return <ComingSoon title="Audit Trail"           desc="Log aktivitas lengkap per pengguna." icon="🔍" />
+    case 'audit':      return <AuditPage />
     case 'settings':   return <ComingSoon title="Pengaturan Sistem"     desc="Konfigurasi sekolah, periode akademik, parameter sistem." icon="⚙️" />
     default:           return null
   }
