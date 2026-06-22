@@ -3,6 +3,9 @@ import tailwindcss from '@tailwindcss/vite';
 import preact from '@preact/preset-vite';
 
 export default defineConfig({
+  optimizeDeps: {
+    include: ['chart.js', 'chart.js/auto'],
+  },
   plugins: [preact(), tailwindcss()],
   server: {
     host: true,
