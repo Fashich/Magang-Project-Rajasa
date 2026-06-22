@@ -11,7 +11,7 @@
 import auth from './auth';
 
 // Base API URL - adjust based on environment
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8080/api';
+const API_BASE_URL = import.meta.env.VITE_API_URL || '/api';
 
 /**
  * API utility object for making HTTP requests
