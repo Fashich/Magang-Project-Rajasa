@@ -1,0 +1,572 @@
+/**
+ * EIzinPage.css
+ * Portal E-Izin — mengikuti design token dari AdminLayout.css
+ * Branch: feature/e-izin
+ */
+
+/* ── CSS Variables ────────────────────────────────────────────────────────── */
+
+:root {
+  --eizin-badge-pending:    #f59e0b;
+  --eizin-badge-wali:       #8b5cf6;
+  --eizin-badge-disetujui:  #10b981;
+  --eizin-badge-ditolak:    #ef4444;
+}
+
+/* ── Page layout ──────────────────────────────────────────────────────────── */
+
+.eizin-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.eizin-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.eizin-page-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--admin-text);
+  font-family: var(--admin-font);
+}
+
+.eizin-page-sub {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+}
+
+/* ── Tab bar ──────────────────────────────────────────────────────────────── */
+
+.eizin-tab-bar {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 2px solid var(--admin-border);
+}
+
+.eizin-tab-btn {
+  padding: 0.5rem 1.25rem;
+  border: none;
+  background: transparent;
+  font-family: var(--admin-font);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.eizin-tab-btn:hover { color: var(--admin-primary); }
+
+.eizin-tab-btn.active {
+  color: var(--admin-primary);
+  border-bottom-color: var(--admin-primary);
+  font-weight: 600;
+}
+
+.eizin-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Stat cards ───────────────────────────────────────────────────────────── */
+
+.eizin-stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.875rem;
+}
+
+.eizin-stat-card {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 12px;
+  padding: 0.875rem 1rem;
+  border-left: 4px solid var(--accent, var(--admin-primary));
+}
+
+.eizin-stat-icon { font-size: 1.5rem; }
+
+.eizin-stat-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--admin-text);
+  line-height: 1;
+}
+
+.eizin-stat-label {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  margin-top: 2px;
+}
+
+/* ── Filters ──────────────────────────────────────────────────────────────── */
+
+.eizin-filters {
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+/* ── Inputs & selects ─────────────────────────────────────────────────────── */
+
+.eizin-input,
+.eizin-select {
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid var(--admin-border);
+  border-radius: 8px;
+  font-family: var(--admin-font);
+  font-size: 0.875rem;
+  color: var(--admin-text);
+  background: var(--admin-surface);
+  transition: border-color 0.15s;
+  width: 100%;
+}
+
+.eizin-input:focus,
+.eizin-select:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+}
+
+.eizin-textarea {
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid var(--admin-border);
+  border-radius: 8px;
+  font-family: var(--admin-font);
+  font-size: 0.875rem;
+  color: var(--admin-text);
+  background: var(--admin-surface);
+  resize: vertical;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.eizin-textarea:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+}
+
+/* ── Buttons ──────────────────────────────────────────────────────────────── */
+
+.eizin-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  border: none;
+  font-family: var(--admin-font);
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: opacity 0.15s, background 0.15s;
+  white-space: nowrap;
+}
+
+.eizin-btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+.eizin-btn-primary  { background: var(--admin-primary); color: #fff; }
+.eizin-btn-approve  { background: #10b981; color: #fff; }
+.eizin-btn-reject   { background: #ef4444; color: #fff; }
+.eizin-btn-ghost    {
+  background: var(--admin-surface);
+  color: var(--admin-text);
+  border: 1.5px solid var(--admin-border);
+}
+.eizin-btn-ghost:hover { background: var(--admin-hover); }
+
+.eizin-btn-sm { padding: 0.35rem 0.75rem; font-size: 0.8125rem; }
+
+/* ── Table ────────────────────────────────────────────────────────────────── */
+
+.eizin-table-wrap {
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--admin-border);
+}
+
+.eizin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.875rem;
+  font-family: var(--admin-font);
+}
+
+.eizin-table thead tr {
+  background: var(--admin-surface-elevated, var(--admin-surface));
+}
+
+.eizin-table th {
+  padding: 0.75rem 1rem;
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--admin-text-muted);
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  white-space: nowrap;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.eizin-table td {
+  padding: 0.75rem 1rem;
+  color: var(--admin-text);
+  border-bottom: 1px solid var(--admin-border);
+  vertical-align: middle;
+}
+
+.eizin-row { cursor: pointer; transition: background 0.1s; }
+.eizin-row:hover { background: var(--admin-hover, rgba(0,0,0,.03)); }
+.eizin-table tbody tr:last-child td { border-bottom: none; }
+
+.eizin-id      { font-size: 0.75rem; color: var(--admin-text-muted); }
+.eizin-nama    { font-weight: 600; }
+.eizin-rombel  { font-size: 0.8125rem; }
+.eizin-tanggal { font-size: 0.8125rem; white-space: nowrap; }
+.eizin-tanggal-end { color: var(--admin-text-muted); }
+.eizin-hari    { font-weight: 600; color: var(--admin-primary); }
+.eizin-submitted { font-size: 0.8125rem; color: var(--admin-text-muted); white-space: nowrap; }
+
+.eizin-empty {
+  text-align: center;
+  color: var(--admin-text-muted);
+  padding: 2.5rem 1rem !important;
+}
+
+/* ── Badge ────────────────────────────────────────────────────────────────── */
+
+.eizin-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* ── Pagination ───────────────────────────────────────────────────────────── */
+
+.eizin-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+}
+
+.eizin-page-info {
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+}
+
+/* ── Error / Success ──────────────────────────────────────────────────────── */
+
+.eizin-error {
+  background: #fef2f2;
+  border: 1px solid #fca5a5;
+  color: #dc2626;
+  border-radius: 8px;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+}
+
+.eizin-success {
+  background: #f0fdf4;
+  border: 1px solid #86efac;
+  color: #16a34a;
+  border-radius: 8px;
+  padding: 0.625rem 1rem;
+  font-size: 0.875rem;
+}
+
+/* ── Modal ────────────────────────────────────────────────────────────────── */
+
+.eizin-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.eizin-modal {
+  background: var(--admin-bg, #fff);
+  border-radius: 16px;
+  width: 100%;
+  max-width: 480px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 20px 60px rgba(0,0,0,.25);
+  display: flex;
+  flex-direction: column;
+}
+
+.eizin-modal-detail { max-width: 540px; }
+
+.eizin-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.eizin-modal-header h3 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--admin-text);
+}
+
+.eizin-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.1rem;
+  cursor: pointer;
+  color: var(--admin-text-muted);
+  padding: 4px 8px;
+  border-radius: 6px;
+  transition: background 0.15s;
+}
+
+.eizin-modal-close:hover { background: var(--admin-hover); }
+
+.eizin-modal-info {
+  padding: 1rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.eizin-modal-info-row {
+  display: flex;
+  gap: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.eizin-modal-info-row > span:first-child {
+  width: 90px;
+  flex-shrink: 0;
+  color: var(--admin-text-muted);
+  font-size: 0.8rem;
+  padding-top: 1px;
+}
+
+.eizin-modal-alasan {
+  color: var(--admin-text);
+  line-height: 1.5;
+}
+
+.eizin-modal-divider {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--admin-primary);
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--admin-border);
+}
+
+.eizin-modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  padding: 0 1.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.eizin-action-btn {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 0.625rem;
+  border-radius: 8px;
+  border: 2px solid var(--admin-border);
+  background: var(--admin-surface);
+  font-family: var(--admin-font);
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.eizin-action-btn input[type="radio"] { display: none; }
+
+.eizin-action-btn.active.approve {
+  border-color: #10b981;
+  background: #f0fdf4;
+  color: #16a34a;
+  font-weight: 600;
+}
+
+.eizin-action-btn.active.reject {
+  border-color: #ef4444;
+  background: #fef2f2;
+  color: #dc2626;
+  font-weight: 600;
+}
+
+.eizin-modal-catatan {
+  padding: 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+}
+
+.eizin-modal-catatan textarea {
+  padding: 0.5rem 0.75rem;
+  border: 1.5px solid var(--admin-border);
+  border-radius: 8px;
+  font-family: var(--admin-font);
+  font-size: 0.875rem;
+  color: var(--admin-text);
+  background: var(--admin-surface);
+  resize: vertical;
+}
+
+.eizin-modal-catatan textarea:focus {
+  outline: none;
+  border-color: var(--admin-primary);
+}
+
+.eizin-modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--admin-border);
+  margin-top: 0.75rem;
+}
+
+/* ── Form card ────────────────────────────────────────────────────────────── */
+
+.eizin-form-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: 14px;
+  padding: 1.5rem;
+  max-width: 680px;
+}
+
+.eizin-form-title {
+  margin: 0 0 0.25rem;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--admin-text);
+}
+
+.eizin-form-sub {
+  margin: 0 0 1.25rem;
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+  line-height: 1.5;
+}
+
+.eizin-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.eizin-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+}
+
+.eizin-form-full { grid-column: 1 / -1; }
+
+.eizin-form-group label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+}
+
+.eizin-required { color: #ef4444; }
+.eizin-optional { color: var(--admin-text-muted); font-weight: 400; }
+
+.eizin-form-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1.25rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--admin-border);
+}
+
+/* ── Autocomplete ─────────────────────────────────────────────────────────── */
+
+.eizin-autocomplete { position: relative; }
+
+.eizin-ac-loading {
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+  padding: 4px 0;
+}
+
+.eizin-ac-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 0;
+  background: var(--admin-bg, #fff);
+  border: 1.5px solid var(--admin-primary);
+  border-radius: 8px;
+  z-index: 50;
+  max-height: 200px;
+  overflow-y: auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,.12);
+}
+
+.eizin-ac-item {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.1s;
+}
+
+.eizin-ac-item:hover { background: var(--admin-hover); }
+
+.eizin-ac-rombel {
+  font-size: 0.8rem;
+  color: var(--admin-text-muted);
+}
+
+/* ── Dark theme ───────────────────────────────────────────────────────────── */
+
+[data-theme='dark'] .eizin-error   { background: #450a0a; border-color: #7f1d1d; color: #fca5a5; }
+[data-theme='dark'] .eizin-success { background: #052e16; border-color: #166534; color: #86efac; }
+[data-theme='dark'] .eizin-ac-dropdown { background: var(--admin-surface); }
+
+[data-theme='dark'] .eizin-action-btn.active.approve { background: #052e16; }
+[data-theme='dark'] .eizin-action-btn.active.reject  { background: #450a0a; }
+
+/* ── Responsive ───────────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .eizin-form-grid { grid-template-columns: 1fr; }
+  .eizin-form-full { grid-column: 1; }
+  .eizin-stats { grid-template-columns: 1fr 1fr; }
+  .eizin-modal-info-row > span:first-child { width: 70px; }
+}
