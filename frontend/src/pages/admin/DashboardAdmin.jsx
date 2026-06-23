@@ -7,6 +7,7 @@ import LaporanPage from './LaporanPage'
 import AnalitikPage from './AnalitikPage'
 import PengaturanPage from './PengaturanPage'
 import EarlyWarningPage from './EarlyWarningPage'
+import EIzinPage from './EIzinPage'
 
 // ─── ComingSoon placeholder ───────────────────────────────────────────────────
 
@@ -93,14 +94,9 @@ function AllPages({ activePage, onNav }) {
         <PengaturanPage />
       </PageSlot>
 
-      {/* E-Izin — belum diimplementasi, render hanya saat aktif */}
-      {activePage === 'e-izin' && (
-        <ComingSoon
-          title="Portal E-Izin"
-          desc="Approval berjenjang izin/sakit siswa — ortu → wali kelas → BK."
-          icon="📅"
-        />
-      )}
+      <PageSlot id="e-izin" activePage={activePage}>
+        <EIzinPage />
+      </PageSlot>
     </>
   )
 }
