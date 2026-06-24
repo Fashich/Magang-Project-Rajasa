@@ -11,6 +11,7 @@ import EarlyWarningPage from './EarlyWarningPage'
 import EIzinPage from './EIzinPage'
 import LogbookPage from './LogbookPage'
 import CommunicationHub from './CommunicationHub'
+import GamifikasiPage from './GamifikasiPage'
 
 // ─── ComingSoon placeholder ───────────────────────────────────────────────────
 
@@ -111,6 +112,10 @@ function AllPages({ activePage, onNav }) {
 
       <PageSlot id="communication" activePage={activePage}>
         <CommunicationHub />
+      </PageSlot>
+
+      <PageSlot id="gamifikasi" activePage={activePage}>
+        <GamifikasiPage />
       </PageSlot>
     </>
   )

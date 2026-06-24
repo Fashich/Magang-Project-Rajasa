@@ -53,6 +53,7 @@ use Rajasa\PresensiSiswa\Http\Controllers\LogbookPenilaianController;
 use Rajasa\PresensiSiswa\Http\Controllers\NilaiController;
 use Rajasa\PresensiSiswa\Http\Controllers\AnalitikPrestasiController;
 use Rajasa\PresensiSiswa\Http\Controllers\TiketController;
+use Rajasa\PresensiSiswa\Http\Controllers\GamifikasiController;
 
 return function (RouteCollector $route): void {
     $route->get('/api/health', HealthController::class);
@@ -127,6 +128,13 @@ return function (RouteCollector $route): void {
     $route->patch('/api/tiket/{id:\d+}',                    TiketController::class);
     $route->delete('/api/tiket/{id:\d+}',                   TiketController::class);
     $route->post('/api/tiket/{id:\d+}/balas',               TiketController::class);
+
+    // ── Gamifikasi ────────────────────────────────────────────────────────────────
+    $route->get('/api/gamifikasi/profil',          GamifikasiController::class);
+    $route->get('/api/gamifikasi/leaderboard',     GamifikasiController::class);
+    $route->get('/api/gamifikasi/badge',           GamifikasiController::class);
+    $route->post('/api/gamifikasi/hitung',         GamifikasiController::class);
+    $route->post('/api/gamifikasi/poin',           GamifikasiController::class);
 
     // ── Presensi Sesi ─────────────────────────────────────────────────────────
     $route->post('/api/presensi/sesi',                              PresensiSesiCreateController::class);

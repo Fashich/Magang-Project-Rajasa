@@ -1,0 +1,435 @@
+/**
+ * GamifikasiPage.css
+ * Gamifikasi — poin, badge, leaderboard
+ * CSS vars kompatibel dengan Admin/Guru/SiswaLayout
+ */
+
+.gm-page {
+  --gm-primary:      var(--admin-primary, var(--guru-primary, var(--clr-primary, #6366f1)));
+  --gm-primary-light:var(--admin-primary-light, var(--guru-primary-light, var(--clr-primary-light, #ede9fe)));
+  --gm-surface:      var(--admin-surface, var(--guru-surface, var(--clr-white, #fff)));
+  --gm-bg:           var(--admin-bg, var(--guru-bg, var(--clr-bg, #f8fafc)));
+  --gm-border:       var(--admin-border, var(--guru-border, var(--clr-border, #e2e8f0)));
+  --gm-text:         var(--admin-text, var(--guru-text, var(--clr-text-base, #0f172a)));
+  --gm-text-muted:   var(--admin-text-muted, var(--guru-text-muted, var(--clr-text-muted, #64748b)));
+  --gm-danger:       var(--admin-danger, var(--guru-danger, var(--clr-danger, #ef4444)));
+  --gm-font:         var(--admin-font, var(--guru-font, var(--font-main, 'Poppins', sans-serif)));
+  --gm-radius:       var(--admin-radius, 12px);
+  --gm-shadow:       var(--admin-shadow, 0 1px 3px rgba(0,0,0,.06));
+  --gm-shadow-md:    var(--admin-shadow-md, 0 4px 16px rgba(0,0,0,.08));
+
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  font-family: var(--gm-font);
+}
+
+/* ── Header ── */
+.gm-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.gm-page-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--gm-text);
+}
+
+.gm-page-sub {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--gm-text-muted);
+}
+
+/* ── Buttons ── */
+.gm-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  background: var(--gm-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--gm-font);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+.gm-btn-primary:hover    { opacity: 0.88; }
+.gm-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.gm-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.875rem;
+  background: transparent;
+  color: var(--gm-text-muted);
+  border: 1px solid var(--gm-border);
+  border-radius: 8px;
+  font-family: var(--gm-font);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.gm-btn-ghost:hover { background: var(--gm-primary-light); color: var(--gm-primary); border-color: var(--gm-primary); }
+
+/* ── Filter bar ── */
+.gm-filter-bar {
+  background: var(--gm-surface);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius);
+  padding: 0.875rem 1rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  box-shadow: var(--gm-shadow);
+}
+
+.gm-filter-bar input,
+.gm-filter-bar select {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--gm-border);
+  border-radius: 8px;
+  font-family: var(--gm-font);
+  font-size: 0.8125rem;
+  color: var(--gm-text);
+  background: var(--gm-bg);
+  outline: none;
+  transition: border-color 0.15s;
+}
+.gm-filter-bar input:focus,
+.gm-filter-bar select:focus { border-color: var(--gm-primary); }
+
+/* ── Tab bar ── */
+.gm-tab-bar {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 2px solid var(--gm-border);
+}
+
+.gm-tab-btn {
+  padding: 0.5rem 1.25rem;
+  border: none;
+  background: transparent;
+  font-family: var(--gm-font);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--gm-text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.gm-tab-btn:hover { color: var(--gm-primary); }
+.gm-tab-btn.active {
+  color: var(--gm-primary);
+  border-bottom-color: var(--gm-primary);
+  font-weight: 600;
+}
+
+/* ── Tab content ── */
+.gm-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Hero card (profil) ── */
+.gm-hero-card {
+  background: linear-gradient(135deg, var(--lvl-color, #6366f1) 0%, color-mix(in srgb, var(--lvl-color, #6366f1) 70%, #000) 100%);
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  flex-wrap: wrap;
+  color: #fff;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.15);
+}
+
+.gm-hero-left { display: flex; align-items: center; gap: 1rem; }
+
+.gm-level-badge {
+  font-size: 2.5rem;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+}
+
+.gm-level-nama {
+  font-size: 0.75rem;
+  font-weight: 600;
+  opacity: 0.85;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 0.15rem;
+}
+
+.gm-siswa-nama {
+  font-size: 1.125rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.gm-siswa-meta {
+  font-size: 0.8rem;
+  opacity: 0.75;
+  margin-top: 0.2rem;
+}
+
+.gm-hero-right { text-align: right; min-width: 160px; }
+
+.gm-total-poin {
+  font-size: 2.5rem;
+  font-weight: 800;
+  line-height: 1;
+  filter: drop-shadow(0 1px 2px rgba(0,0,0,0.2));
+}
+
+.gm-poin-label {
+  font-size: 0.8rem;
+  opacity: 0.8;
+  margin-top: 0.2rem;
+}
+
+/* ── Progress bar ── */
+.gm-poin-bar-wrap {
+  height: 6px;
+  background: rgba(255,255,255,0.3);
+  border-radius: 999px;
+  overflow: hidden;
+  margin-top: 0.625rem;
+}
+
+.gm-poin-bar-fill {
+  height: 100%;
+  border-radius: 999px;
+  background: rgba(255,255,255,0.9);
+  transition: width 0.6s ease;
+}
+
+/* ── Stat cards ── */
+.gm-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 0.875rem;
+}
+
+.gm-stat-card {
+  background: var(--gm-surface);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius);
+  padding: 1rem;
+  text-align: center;
+  box-shadow: var(--gm-shadow);
+}
+
+.gm-stat-icon  { font-size: 1.5rem; margin-bottom: 0.375rem; }
+.gm-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--gm-text); line-height: 1; }
+.gm-stat-label { font-size: 0.75rem; color: var(--gm-text-muted); margin-top: 0.25rem; }
+
+/* ── Section ── */
+.gm-section { display: flex; flex-direction: column; gap: 0.875rem; }
+
+.gm-section-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--gm-text);
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+/* ── Badge grid (owned) ── */
+.gm-badge-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 0.875rem;
+}
+
+.gm-badge-item {
+  background: var(--gm-surface);
+  border: 2px solid var(--bclr, var(--gm-primary));
+  border-radius: var(--gm-radius);
+  padding: 0.875rem 0.625rem;
+  text-align: center;
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--bclr, var(--gm-primary)) 25%, transparent);
+}
+
+.gm-badge-icon   { font-size: 2rem; margin-bottom: 0.375rem; }
+.gm-badge-nama   { font-size: 0.8125rem; font-weight: 700; color: var(--gm-text); }
+.gm-badge-desc   { font-size: 0.7rem; color: var(--gm-text-muted); margin-top: 0.2rem; line-height: 1.4; }
+.gm-badge-periode{ font-size: 0.65rem; color: var(--bclr, var(--gm-primary)); margin-top: 0.3rem; font-weight: 600; }
+
+/* ── Card & Table ── */
+.gm-card {
+  background: var(--gm-surface);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius);
+  box-shadow: var(--gm-shadow);
+  overflow: hidden;
+}
+
+.gm-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.gm-table th {
+  padding: 0.625rem 1rem;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--gm-text-muted);
+  background: var(--gm-bg);
+  border-bottom: 1px solid var(--gm-border);
+}
+
+.gm-table td {
+  padding: 0.75rem 1rem;
+  color: var(--gm-text);
+  border-bottom: 1px solid var(--gm-border);
+}
+
+.gm-table tr:last-child td { border-bottom: none; }
+.gm-table tbody tr:hover { background: var(--gm-bg); }
+
+.gm-row-self {
+  background: var(--gm-primary-light) !important;
+  font-weight: 600;
+}
+
+/* ── Podium ── */
+.gm-podium {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  gap: 1.5rem;
+  padding: 1.5rem 1rem 0;
+}
+
+.gm-podium-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  min-width: 80px;
+}
+
+.gm-podium-top { margin-bottom: -8px; }
+
+.gm-podium-crown { font-size: 1.25rem; }
+
+.gm-podium-avatar {
+  font-size: 2rem;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,0.15));
+}
+
+.gm-podium-name {
+  font-size: 0.8125rem;
+  font-weight: 700;
+  color: var(--gm-text);
+  text-align: center;
+}
+
+.gm-podium-poin {
+  font-size: 0.7rem;
+  color: var(--gm-text-muted);
+  font-weight: 600;
+}
+
+.gm-podium-bar {
+  width: 80px;
+  background: var(--pclr, var(--gm-primary));
+  border-radius: 8px 8px 0 0;
+  opacity: 0.85;
+}
+
+/* ── Self rank card ── */
+.gm-self-rank-card {
+  background: var(--gm-primary-light);
+  border: 1px solid var(--gm-primary);
+  border-radius: var(--gm-radius);
+  padding: 0.875rem 1.25rem;
+  font-size: 0.875rem;
+  color: var(--gm-text);
+  text-align: center;
+}
+
+/* ── Katalog badge ── */
+.gm-badge-katalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 0.875rem;
+}
+
+.gm-katalog-item {
+  background: var(--gm-surface);
+  border: 2px solid var(--gm-border);
+  border-radius: var(--gm-radius);
+  padding: 1rem 0.75rem;
+  text-align: center;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.gm-katalog-owned {
+  border-color: var(--bclr, var(--gm-primary));
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--bclr, var(--gm-primary)) 20%, transparent);
+}
+
+.gm-katalog-locked { opacity: 0.55; }
+
+.gm-katalog-icon   { font-size: 2rem; margin-bottom: 0.375rem; }
+.gm-katalog-nama   { font-size: 0.8125rem; font-weight: 700; color: var(--gm-text); }
+.gm-katalog-desc   { font-size: 0.7rem; color: var(--gm-text-muted); margin-top: 0.2rem; line-height: 1.4; }
+.gm-katalog-reward { font-size: 0.7rem; color: var(--bclr, var(--gm-primary)); font-weight: 600; margin-top: 0.3rem; }
+.gm-katalog-check  { font-size: 0.7rem; color: #15803d; font-weight: 700; margin-top: 0.3rem; }
+
+/* ── Admin panel ── */
+.gm-admin-panel {
+  background: var(--gm-surface);
+  border: 1px solid var(--gm-border);
+  border-radius: var(--gm-radius);
+  padding: 1.25rem;
+  box-shadow: var(--gm-shadow);
+}
+
+/* ── Alert ── */
+.gm-alert {
+  padding: 0.75rem 1rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+}
+
+.gm-alert-error   { background: #fef2f2; border: 1px solid #fca5a5; color: #dc2626; }
+.gm-alert-success { background: #f0fdf4; border: 1px solid #86efac; color: #15803d; }
+
+/* ── Loading / empty ── */
+.gm-loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--gm-text-muted);
+  font-size: 0.875rem;
+}
+
+.gm-empty {
+  text-align: center;
+  padding: 2.5rem 1rem;
+  color: var(--gm-text-muted);
+  font-size: 0.875rem;
+}
+
+.gm-empty-icon { font-size: 2.5rem; margin-bottom: 0.5rem; }

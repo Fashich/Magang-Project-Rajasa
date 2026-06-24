@@ -6,6 +6,7 @@
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
 import GuruLayout from './GuruLayout'
 import CommunicationHub from '../admin/CommunicationHub'
+import GamifikasiPage from '../admin/GamifikasiPage'
 
 const API = import.meta.env.VITE_API_URL || '/api'
 
@@ -627,6 +628,7 @@ export default function DashboardGuru({ user, onLogout }) {
           <PageSlot id="logbook"       active={activePage}><PageLogbook /></PageSlot>
           <PageSlot id="izin"          active={activePage}><PageIzin /></PageSlot>
           <PageSlot id="communication" active={activePage}><CommunicationHub /></PageSlot>
+          <PageSlot id="gamifikasi" active={activePage}><GamifikasiPage /></PageSlot>
           <PageSlot id="akun"          active={activePage}><PageAkun user={user} /></PageSlot>
         </>
       )}

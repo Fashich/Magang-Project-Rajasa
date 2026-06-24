@@ -18,6 +18,7 @@ import TablePresensi from '../../components/siswa/TablePresensi'
 import EIzinSiswa from './EIzinSiswa'
 import LogbookSiswa from './LogbookSiswa'
 import CommunicationHub from '../admin/CommunicationHub'
+import GamifikasiPage from '../admin/GamifikasiPage'
 
 // ── Page resolver ─────────────────────────────────────────────────────────────
 
@@ -29,6 +30,7 @@ function resolveContent(activePage) {
     case 'izin':      return <EIzinSiswa />
     case 'logbook':        return <LogbookSiswa />
     case 'communication':  return <CommunicationHub />
+    case 'gamifikasi':     return <GamifikasiPage />
     default:          return <PresensiCounter />
   }
 }
