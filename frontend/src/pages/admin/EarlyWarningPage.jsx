@@ -160,7 +160,7 @@ export default function EarlyWarningPage() {
   // Load daftar rombel untuk filter dropdown
   useEffect(() => {
     apiFetch('/rombel/options')
-      .then(res => setRombel(res.data ?? []))
+      .then(res => setRombel(res.data?.rombel ?? []))
       .catch(() => {})
   }, [])
 
