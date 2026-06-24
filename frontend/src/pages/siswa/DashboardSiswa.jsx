@@ -17,6 +17,7 @@ import KalenderAkademik from '../../components/siswa/KalenderAkademik'
 import TablePresensi from '../../components/siswa/TablePresensi'
 import EIzinSiswa from './EIzinSiswa'
 import LogbookSiswa from './LogbookSiswa'
+import CommunicationHub from '../admin/CommunicationHub'
 
 // ── Page resolver ─────────────────────────────────────────────────────────────
 
@@ -26,7 +27,8 @@ function resolveContent(activePage) {
     case 'rekap':     return <TablePresensi />
     case 'kalender':  return <KalenderAkademik />
     case 'izin':      return <EIzinSiswa />
-    case 'logbook':   return <LogbookSiswa />
+    case 'logbook':        return <LogbookSiswa />
+    case 'communication':  return <CommunicationHub />
     default:          return <PresensiCounter />
   }
 }
