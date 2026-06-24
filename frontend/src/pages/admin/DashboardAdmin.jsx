@@ -5,10 +5,12 @@ import SesiPage from './SesiPage'
 import AuditPage from './AuditPage'
 import LaporanPage from './LaporanPage'
 import AnalitikPage from './AnalitikPage'
+import AnalitikPrestasiPage from './AnalitikPrestasiPage'
 import PengaturanPage from './PengaturanPage'
 import EarlyWarningPage from './EarlyWarningPage'
 import EIzinPage from './EIzinPage'
 import LogbookPage from './LogbookPage'
+import CommunicationHub from './CommunicationHub'
 
 // ─── ComingSoon placeholder ───────────────────────────────────────────────────
 
@@ -69,6 +71,10 @@ function AllPages({ activePage, onNav }) {
         <AnalitikPage />
       </PageSlot>
 
+      <PageSlot id="analitik-prestasi" activePage={activePage}>
+        <AnalitikPrestasiPage />
+      </PageSlot>
+
       {/* SesiPage punya auto-refresh 1 detik — kirim pageActive agar
           interval berhenti saat halaman disembunyikan */}
       <PageSlot id="sesi" activePage={activePage}>
@@ -101,6 +107,10 @@ function AllPages({ activePage, onNav }) {
 
       <PageSlot id="logbook" activePage={activePage}>
         <LogbookPage />
+      </PageSlot>
+
+      <PageSlot id="communication" activePage={activePage}>
+        <CommunicationHub />
       </PageSlot>
     </>
   )

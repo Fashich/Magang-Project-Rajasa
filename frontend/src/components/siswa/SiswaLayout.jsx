@@ -1,411 +1,294 @@
 /**
- * SiswaLayout.jsx
+ * SiswaLayout.jsx — revisi
  *
- * Root layout component for the student (siswa) dashboard.
- * Renders:
- *   - Fixed top header  → Level 2 navigation (Dashboard Siswa, Presensi)
- *   - Collapsible sidebar → Level 3 menu items (dynamic per active tab)
- *   - Logout button      → bottom of sidebar
- *   - Slot for page content (children)
+ * Upgrade dari arsitektur 2-level (header tab + sidebar) ke
+ * sidebar tunggal seperti GuruLayout/AdminLayout.
  *
- * Architecture reference: HTA-Magang-SMK-Rajasa-Siswa.png
- * Font: Poppins 16.5 / 19.5 (per FigJam spec)
+ * Menu:
+ *   Overview  : Dashboard (PresensiCounter + ringkasan)
+ *   Presensi  : Rekap Presensi (TablePresensi), Kalender Akademik
+ *   Kegiatan  : E-Izin, Logbook PKL
  *
- * @module components/siswa/SiswaLayout
- * @author fashich/dashboard-siswa-page
+ * Komponen lama (PresensiCounter, KalenderAkademik, TablePresensi)
+ * tetap dipakai tanpa perubahan.
+ *
+ * @author development
  */
 
-import { useState, useEffect, useCallback } from 'preact/hooks'
+import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
 import { authApi } from '../../utils/api'
-import auth from '../../utils/auth'
 import './SiswaLayout.css'
 
-// ─── Theme key ────────────────────────────────────────────────────────────────
 const THEME_KEY = 'rajasa-presensi-theme'
 
-// ─── SVG Icon Primitives ─────────────────────────────────────────────────────
-
-/** Grid / Dashboard icon */
-function IconDashboard() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z" />
-    </svg>
-  )
+// ── Icons ─────────────────────────────────────────────────────────────────────
+const I = {
+  menu:    <svg viewBox="0 0 24 24"><path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/></svg>,
+  dash:    <svg viewBox="0 0 24 24"><path d="M3 13h8V3H3v10zm0 8h8v-6H3v6zm10 0h8V11h-8v10zm0-18v6h8V3h-8z"/></svg>,
+  rekap:   <svg viewBox="0 0 24 24"><path d="M19 3h-4.18A3 3 0 0 0 9.18 3H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 18H5V5h2v3h10V5h2v16z"/></svg>,
+  kalender:<svg viewBox="0 0 24 24"><path d="M20 3h-1V1h-2v2H7V1H5v2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 18H4V8h16v13z"/></svg>,
+  izin:    <svg viewBox="0 0 24 24"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>,
+  logbook: <svg viewBox="0 0 24 24"><path d="M17 12h-5v5h5v-5zM16 1v2H8V1H6v2H5c-1.11 0-1.99.9-1.99 2L3 19c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2h-1V1h-2zm3 18H5V8h14v11z"/></svg>,
+  logout:  <svg viewBox="0 0 24 24"><path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zM4 5h8V3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8v-2H4V5z"/></svg>,
+  bell:    <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>,
+  theme:   <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>,
+  school:  <svg viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>,
 }
 
-/** Clipboard / Presensi icon */
-function IconClipboard() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M19 3h-4.18A3 3 0 0 0 9.18 3H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 18H5V5h2v3h10V5h2v16z" />
-    </svg>
-  )
-}
-
-/** Chart bar — counter presensi icon */
-function IconBarChart() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zM16 13h3v6h-3v-6z" />
-    </svg>
-  )
-}
-
-/** Calendar / Kalender Akademik icon */
-function IconCalendar() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M20 3h-1V1h-2v2H7V1H5v2H4a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm0 18H4V8h16v13z" />
-    </svg>
-  )
-}
-
-/** Logout / sign-out icon */
-function IconLogout() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zM4 5h8V3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8v-2H4V5z" />
-    </svg>
-  )
-}
-
-/** Hamburger menu toggle icon */
-function IconMenu() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z" />
-    </svg>
-  )
-}
-
-/** Theme toggle icon */
-function IconTheme() {
-  return (
-    <img
-      src="/icon/circle-half-stroke-solid-full.svg"
-      alt=""
-      style={{ width: 20, height: 20, display: 'block', filter: 'var(--theme-toggle-icon-filter, none)' }}
-    />
-  )
-}
-
-/** School / brand icon */
-function IconSchool() {
-  return (
-    <svg viewBox="0 0 24 24" aria-hidden="true">
-      <path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z" />
-    </svg>
-  )
-}
-
-// ─── Navigation Configuration ────────────────────────────────────────────────
-
-/**
- * Level 2 header tabs configuration.
- * Each tab defines which Level 3 sidebar items it exposes.
- *
- * @type {Array<{id: string, label: string, icon: preact.VNode, sidebar: Array}>}
- */
-const NAV_TABS = [
+// ── Nav config ────────────────────────────────────────────────────────────────
+const NAV_SECTIONS = [
   {
-    id: 'dashboard',
-    label: 'Dashboard Siswa',
-    icon: <IconDashboard />,
-    /** Level 3 sidebar items shown when this tab is active */
-    sidebar: [
-      {
-        id: 'presensi',
-        label: 'Presensi',
-        icon: <IconBarChart />,
-      },
-      {
-        id: 'kalender',
-        label: 'Kalender Akademik',
-        icon: <IconCalendar />,
-      },
+    label: 'Overview',
+    items: [
+      { id: 'dashboard', label: 'Dashboard', icon: I.dash },
     ],
   },
   {
-    id: 'halaman-presensi',
-    label: 'Halaman Presensi',
-    icon: <IconClipboard />,
-    /** No specific sidebar items — content rendered directly */
-    sidebar: [],
+    label: 'Presensi',
+    items: [
+      { id: 'rekap',    label: 'Rekap Presensi',    icon: I.rekap },
+      { id: 'kalender', label: 'Kalender Akademik', icon: I.kalender },
+    ],
+  },
+  {
+    label: 'Kegiatan',
+    items: [
+      { id: 'izin',    label: 'E-Izin',      icon: I.izin },
+      { id: 'logbook', label: 'Logbook PKL', icon: I.logbook },
+    ],
   },
 ]
 
-// ─── Sub-components ──────────────────────────────────────────────────────────
-
-/**
- * Top fixed header bar containing the sidebar toggle, brand mark,
- * Level 2 navigation tabs, and logged-in user info.
- *
- * @param {{ activeTab: string, onTabChange: Function, onToggleSidebar: Function, user: Object }} props
- */
-function SiswaHeader({ activeTab, onTabChange, onToggleSidebar, onToggleTheme, theme, user }) {
-  // Derive initials from nama_lengkap or username for the avatar
-  const initials = (user?.nama_lengkap || user?.username || 'S')
-    .charAt(0)
-    .toUpperCase()
-
-  return (
-    <header className="siswa-header" role="banner">
-      {/* Sidebar toggle */}
-      <button
-        className="header-toggle-btn"
-        onClick={onToggleSidebar}
-        aria-label="Toggle sidebar"
-        type="button"
-      >
-        <IconMenu />
-      </button>
-
-      {/* Brand */}
-      <div className="header-brand" aria-label="Sistem Presensi Lab SMK Rajasa">
-        <div className="header-brand-icon" aria-hidden="true">
-          <IconSchool />
-        </div>
-        <span className="header-brand-text">Presensi Lab</span>
-      </div>
-
-      {/* Level 2 navigation tabs */}
-      <nav className="header-nav" role="navigation" aria-label="Menu utama siswa">
-        {NAV_TABS.map((tab) => (
-          <button
-            key={tab.id}
-            type="button"
-            className={`header-nav-item${activeTab === tab.id ? ' active' : ''}`}
-            onClick={() => onTabChange(tab.id)}
-            aria-current={activeTab === tab.id ? 'page' : undefined}
-          >
-            <span className="nav-icon" aria-hidden="true">{tab.icon}</span>
-            {tab.label}
-          </button>
-        ))}
-      </nav>
-
-      {/* Theme toggle */}
-      <button
-        type="button"
-        className="header-toggle-btn"
-        onClick={onToggleTheme}
-        aria-label={theme === 'light' ? 'Aktifkan mode gelap' : 'Aktifkan mode terang'}
-        style={{ marginLeft: 'auto' }}
-      >
-        <IconTheme />
-      </button>
-
-      {/* User info */}
-      <div className="header-user" aria-label={`Pengguna: ${user?.nama_lengkap || user?.username}`}>
-        <div className="header-user-avatar" aria-hidden="true">
-          {initials}
-        </div>
-        <div className="header-user-info">
-          <span className="header-user-name">
-            {user?.nama_lengkap || user?.username || 'Siswa'}
-          </span>
-          <span className="header-user-role">Siswa</span>
-        </div>
-      </div>
-    </header>
-  )
+const PAGE_TITLES = {
+  dashboard: 'Dashboard',
+  rekap:     'Rekap Presensi',
+  kalender:  'Kalender Akademik',
+  izin:      'E-Izin',
+  logbook:   'Logbook PKL',
 }
 
-/**
- * Collapsible sidebar displaying Level 3 menu items based on the
- * currently active Level 2 header tab, plus the logout button at the bottom.
- *
- * @param {{ collapsed: boolean, activeTab: string, activePage: string, onPageChange: Function, onLogout: Function, isLoggingOut: boolean }} props
- */
-function SiswaSidebar({ collapsed, activeTab, activePage, onPageChange, onLogout, isLoggingOut }) {
-  // Find the sidebar items for the current active tab
-  const currentTab = NAV_TABS.find((t) => t.id === activeTab)
-  const sidebarItems = currentTab?.sidebar ?? []
-
+// ── Sidebar ───────────────────────────────────────────────────────────────────
+function SiswaSidebar({ collapsed, activePage, onPageChange, onLogout }) {
   return (
-    <aside
-      className="siswa-sidebar"
-      aria-label="Sidebar navigasi siswa"
-    >
-      {/* Brand inside sidebar (visible when sidebar is open) */}
-      <div className="sidebar-brand" aria-hidden={collapsed}>
-        <div className="sidebar-brand-icon">
-          <IconSchool />
-        </div>
+    <aside className={`siswa-sidebar-new${collapsed ? ' collapsed' : ''}`}>
+      <div className="siswa-brand">
+        <div className="siswa-brand-icon">{I.school}</div>
         {!collapsed && (
-          <div className="sidebar-brand-text">
-            <strong>SMK Rajasa</strong>
-            <span>Sistem Presensi</span>
+          <div className="siswa-brand-text">
+            <strong>Presensi Lab</strong>
+            <span>SMK Rajasa Surabaya</span>
           </div>
         )}
       </div>
 
-      {/* Level 3 nav items */}
-      <nav className="sidebar-nav" role="navigation" aria-label="Menu sidebar">
-        {sidebarItems.length > 0 ? (
-          <div className="sidebar-nav-section">
+      <nav className="siswa-nav">
+        {NAV_SECTIONS.map(section => (
+          <div key={section.label}>
             {!collapsed && (
-              <div className="sidebar-nav-label" aria-hidden="true">
-                Menu
-              </div>
+              <div className="siswa-nav-section-label">{section.label}</div>
             )}
-            {sidebarItems.map((item) => (
+            {section.items.map(item => (
               <button
                 key={item.id}
                 type="button"
-                className={`sidebar-nav-item${activePage === item.id ? ' active' : ''}`}
+                className={`siswa-nav-item${activePage === item.id ? ' active' : ''}`}
                 onClick={() => onPageChange(item.id)}
-                aria-current={activePage === item.id ? 'page' : undefined}
                 title={collapsed ? item.label : undefined}
               >
-                <span className="nav-icon" aria-hidden="true">{item.icon}</span>
-                {!collapsed && <span className="nav-label">{item.label}</span>}
+                <span className="siswa-nav-icon">{item.icon}</span>
+                {!collapsed && <span>{item.label}</span>}
               </button>
             ))}
           </div>
-        ) : (
-          /* Empty state when a tab has no sidebar items */
-          !collapsed && (
-            <p className="sidebar-empty">
-              Tidak ada menu tambahan.
-            </p>
-          )
-        )}
+        ))}
       </nav>
 
-      {/* Logout — always at bottom of sidebar */}
-      <div className="sidebar-footer">
-        <button
-          type="button"
-          className="sidebar-logout-btn"
-          onClick={onLogout}
-          disabled={isLoggingOut}
-          title={collapsed ? 'Keluar' : undefined}
-          aria-label="Keluar dari sistem"
-        >
-          <span className="nav-icon" aria-hidden="true">
-            <IconLogout />
-          </span>
-          {!collapsed && (
-            <span>{isLoggingOut ? 'Keluar...' : 'Keluar'}</span>
-          )}
+      <div className="siswa-sidebar-footer">
+        <button type="button" className="siswa-logout-btn" onClick={onLogout}
+          title={collapsed ? 'Keluar' : undefined}>
+          <span className="siswa-nav-icon">{I.logout}</span>
+          {!collapsed && <span>Keluar</span>}
         </button>
       </div>
     </aside>
   )
 }
 
-// ─── Main Export ─────────────────────────────────────────────────────────────
+// ── Header ────────────────────────────────────────────────────────────────────
+function SiswaHeader({ activePage, onToggle, onToggleTheme, user }) {
+  const initials = (user?.nama_lengkap || user?.username || 'S').charAt(0).toUpperCase()
 
-/**
- * SiswaLayout
- *
- * Top-level layout wrapper for all student pages.
- * Manages active header tab (Level 2) and active sidebar page (Level 3),
- * then renders the matching page content via the `renderPage` render-prop.
- *
- * Usage in app.jsx:
- * ```jsx
- * <SiswaLayout
- *   user={authUser}
- *   onLogout={handleLogout}
- *   renderPage={(activeTab, activePage) => (
- *     <DashboardContent tab={activeTab} page={activePage} />
- *   )}
- * />
- * ```
- *
- * @param {{ user: Object, onLogout: Function, renderPage: Function }} props
- */
-export default function SiswaLayout({ user, onLogout, renderPage }) {
-  // Level 2 active tab — defaults to 'dashboard'
-  const [activeTab, setActiveTab] = useState('dashboard')
+  return (
+    <header className="siswa-header-new">
+      <button type="button" className="siswa-header-toggle" onClick={onToggle}>
+        {I.menu}
+      </button>
 
-  // Level 3 active sidebar page — defaults to 'presensi'
-  const [activePage, setActivePage] = useState('presensi')
+      <div>
+        <div className="siswa-header-title">{PAGE_TITLES[activePage] ?? 'Siswa'}</div>
+        <div className="siswa-header-breadcrumb">
+          Siswa / {PAGE_TITLES[activePage] ?? activePage}
+        </div>
+      </div>
 
-  // Sidebar collapsed state
-  const [collapsed, setCollapsed] = useState(false)
+      <div style={{ flex: 1 }} />
 
-  // Loading state for logout
-  const [isLoggingOut, setIsLoggingOut] = useState(false)
-
-  // Theme state
-  const [theme, setTheme] = useState(() =>
-    localStorage.getItem(THEME_KEY) || 'light'
+      <div className="siswa-header-actions">
+        <button type="button" className="siswa-header-btn" onClick={onToggleTheme}>
+          {I.theme}
+        </button>
+        <button type="button" className="siswa-header-btn">
+          {I.bell}
+        </button>
+        <div className="siswa-header-user">
+          <div className="siswa-user-avatar">{initials}</div>
+          <div>
+            <div className="siswa-user-name">{user?.nama_lengkap || user?.username || 'Siswa'}</div>
+            <div className="siswa-user-role">Siswa</div>
+          </div>
+        </div>
+      </div>
+    </header>
   )
+}
 
-  // Apply theme to <html> on mount and change
+// ── Logout Overlay ────────────────────────────────────────────────────────────
+function LogoutOverlay({ state, onConfirm, onCancel }) {
+  if (state === 'idle') return null
+  return (
+    <div style={{
+      position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)',
+      display: 'flex', alignItems: 'center', justifyContent: 'center',
+      zIndex: 9999, padding: '1rem', backdropFilter: 'blur(3px)',
+      fontFamily: "'Poppins', sans-serif",
+    }} onClick={state === 'confirming' ? onCancel : undefined}>
+      <div style={{
+        background: '#fff', borderRadius: '16px',
+        boxShadow: '0 20px 60px rgba(0,0,0,.25)',
+        width: '100%', maxWidth: '360px', overflow: 'hidden',
+      }} onClick={e => e.stopPropagation()}>
+
+        {state === 'confirming' && (
+          <>
+            <div style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+              <div style={{
+                width: 44, height: 44, borderRadius: 12, background: '#fef2f2',
+                display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
+              }}>
+                <svg viewBox="0 0 24 24" style={{ width: 22, height: 22, fill: '#dc2626' }}>
+                  <path d="M17 7l-1.41 1.41L18.17 11H8v2h10.17l-2.58 2.58L17 17l5-5-5-5zM4 5h8V3H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h8v-2H4V5z"/>
+                </svg>
+              </div>
+              <div>
+                <p style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>
+                  Keluar dari sistem?
+                </p>
+                <p style={{ margin: '0.2rem 0 0', fontSize: '0.8rem', color: '#64748b' }}>
+                  Sesi aktif akan diakhiri.
+                </p>
+              </div>
+            </div>
+            <div style={{
+              display: 'flex', justifyContent: 'flex-end', gap: '0.5rem',
+              padding: '0.875rem 1.5rem 1.25rem', borderTop: '1px solid #e2e8f0',
+            }}>
+              <button onClick={onCancel} style={{
+                padding: '0.45rem 1rem', borderRadius: 8, cursor: 'pointer',
+                border: '1px solid #e2e8f0', background: 'transparent',
+                fontFamily: "'Poppins', sans-serif", fontSize: '0.82rem', fontWeight: 600, color: '#475569',
+              }}>Batal</button>
+              <button onClick={onConfirm} style={{
+                padding: '0.45rem 1.125rem', borderRadius: 8, cursor: 'pointer',
+                border: '1px solid #dc2626', background: '#dc2626',
+                fontFamily: "'Poppins', sans-serif", fontSize: '0.82rem', fontWeight: 600, color: '#fff',
+              }}>Ya, Keluar</button>
+            </div>
+          </>
+        )}
+
+        {state === 'loading' && (
+          <div style={{
+            padding: '2.25rem 1.5rem 1.75rem',
+            display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem',
+          }}>
+            <div style={{
+              width: 40, height: 40, border: '3px solid #e2e8f0',
+              borderTopColor: '#0284c7', borderRadius: '50%',
+              animation: 'sSpin 0.75s linear infinite',
+            }} />
+            <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>
+              Sedang keluar…
+            </p>
+            <button onClick={onCancel} style={{
+              padding: '0.4rem 1.25rem', borderRadius: 8, cursor: 'pointer',
+              border: '1px solid #e2e8f0', background: 'transparent',
+              fontFamily: "'Poppins', sans-serif", fontSize: '0.78rem', fontWeight: 600, color: '#64748b',
+            }}>Batalkan</button>
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ── Main Export ───────────────────────────────────────────────────────────────
+export default function SiswaLayout({ user, onLogout, renderPage }) {
+  const [activePage,  setActivePage]  = useState('dashboard')
+  const [collapsed,   setCollapsed]   = useState(false)
+  const [theme,       setTheme]       = useState(() => localStorage.getItem(THEME_KEY) || 'light')
+  const [logoutState, setLogoutState] = useState('idle')
+  const abortRef = useRef(null)
+
   useEffect(() => {
     document.documentElement.dataset.theme = theme
     localStorage.setItem(THEME_KEY, theme)
   }, [theme])
 
-  const handleToggleTheme = useCallback(() => {
-    setTheme((t) => (t === 'light' ? 'dark' : 'light'))
-  }, [])
+  const handleToggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), [])
 
-  /**
-   * When the active header tab changes, reset the sidebar to the first
-   * available item for that tab (or null if no items).
-   */
-  const handleTabChange = useCallback((tabId) => {
-    setActiveTab(tabId)
-    const tab = NAV_TABS.find((t) => t.id === tabId)
-    setActivePage(tab?.sidebar[0]?.id ?? null)
-  }, [])
-
-  const handleToggleSidebar = useCallback(() => {
-    setCollapsed((prev) => !prev)
-  }, [])
-
-  /**
-   * Perform logout: call the API, then propagate to parent (app.jsx).
-   */
-  const handleLogout = useCallback(async () => {
-    if (isLoggingOut) return
-    setIsLoggingOut(true)
+  const handleLogoutConfirm = useCallback(async () => {
+    setLogoutState('loading')
+    const controller = new AbortController()
+    abortRef.current = controller
+    let cancelled = false
     try {
       await authApi.logout()
-    } catch (error) {
-      console.error('[SiswaLayout] Logout error:', error)
-    } finally {
-      setIsLoggingOut(false)
-      if (typeof onLogout === 'function') onLogout()
+    } catch (err) {
+      if (err?.name === 'AbortError') cancelled = true
     }
-  }, [isLoggingOut, onLogout])
+    if (cancelled) return
+    setLogoutState('idle')
+    if (typeof onLogout === 'function') onLogout()
+  }, [onLogout])
+
+  const handleLogoutCancel = useCallback(() => {
+    abortRef.current?.abort()
+    abortRef.current = null
+    setLogoutState('idle')
+  }, [])
 
   return (
-    <div className={`siswa-layout${collapsed ? ' sidebar-collapsed' : ''}`}>
-      {/* ── Level 2: Header ── */}
-      <SiswaHeader
-        activeTab={activeTab}
-        onTabChange={handleTabChange}
-        onToggleSidebar={handleToggleSidebar}
-        onToggleTheme={handleToggleTheme}
-        theme={theme}
-        user={user}
-      />
-
-      {/* ── Level 3: Sidebar ── */}
+    <div className={`siswa-layout-new${collapsed ? ' collapsed' : ''}`}>
       <SiswaSidebar
         collapsed={collapsed}
-        activeTab={activeTab}
         activePage={activePage}
         onPageChange={setActivePage}
-        onLogout={handleLogout}
-        isLoggingOut={isLoggingOut}
+        onLogout={() => setLogoutState('confirming')}
       />
-
-      {/* ── Level 4+: Page content (injected by parent) ── */}
-      <main className="siswa-content" id="main-content">
-        <div className="siswa-page-content">
-          {typeof renderPage === 'function'
-            ? renderPage(activeTab, activePage)
-            : null}
-        </div>
+      <SiswaHeader
+        activePage={activePage}
+        onToggle={() => setCollapsed(p => !p)}
+        onToggleTheme={handleToggleTheme}
+        user={user}
+      />
+      <main className="siswa-content-new">
+        {typeof renderPage === 'function' ? renderPage(activePage) : null}
       </main>
+      <LogoutOverlay
+        state={logoutState}
+        onConfirm={handleLogoutConfirm}
+        onCancel={handleLogoutCancel}
+      />
     </div>
   )
 }

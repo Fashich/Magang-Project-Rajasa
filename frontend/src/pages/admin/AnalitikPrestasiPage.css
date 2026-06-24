@@ -1,0 +1,427 @@
+/**
+ * AnalitikPrestasiPage.css
+ * Analitik Prestasi — mengikuti design token AdminLayout.css
+ */
+
+.ap-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.ap-page-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.ap-page-title {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: var(--admin-text);
+}
+
+.ap-page-sub {
+  margin: 0.25rem 0 0;
+  font-size: 0.8125rem;
+  color: var(--admin-text-muted);
+}
+
+/* ── Buttons ── */
+.ap-btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.5rem 1rem;
+  background: var(--admin-primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-family: var(--admin-font);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: opacity 0.15s;
+  white-space: nowrap;
+}
+.ap-btn-primary:hover    { opacity: 0.88; }
+.ap-btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+.ap-btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.875rem;
+  background: transparent;
+  color: var(--admin-text-muted);
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  font-family: var(--admin-font);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.ap-btn-ghost:hover {
+  background: var(--admin-primary-light);
+  color: var(--admin-primary);
+  border-color: var(--admin-primary);
+}
+
+/* ── Filter bar ── */
+.ap-filter-bar {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  padding: 0.875rem 1rem;
+  display: flex;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  align-items: center;
+  box-shadow: var(--admin-shadow);
+}
+
+.ap-filter-bar select,
+.ap-filter-bar input {
+  padding: 0.45rem 0.75rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  font-family: var(--admin-font);
+  font-size: 0.8125rem;
+  color: var(--admin-text);
+  background: var(--admin-bg);
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.ap-filter-bar select:focus,
+.ap-filter-bar input:focus { border-color: var(--admin-primary); }
+
+/* ── Stat cards ── */
+.ap-stats-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.875rem;
+}
+
+.ap-stat-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-left: 3px solid var(--accent, var(--admin-primary));
+  border-radius: var(--admin-radius);
+  padding: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  box-shadow: var(--admin-shadow);
+}
+
+.ap-stat-icon  { font-size: 1.375rem; flex-shrink: 0; }
+.ap-stat-value { font-size: 1.5rem; font-weight: 700; color: var(--admin-text); line-height: 1; }
+.ap-stat-label { font-size: 0.75rem; color: var(--admin-text-muted); margin-top: 0.2rem; }
+.ap-stat-sub   { font-size: 0.7rem; color: var(--admin-text-muted); margin-top: 0.1rem; }
+
+/* ── Tab bar ── */
+.ap-tab-bar {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 2px solid var(--admin-border);
+  flex-wrap: wrap;
+}
+
+.ap-tab-btn {
+  padding: 0.5rem 1.25rem;
+  border: none;
+  background: transparent;
+  font-family: var(--admin-font);
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--admin-text-muted);
+  cursor: pointer;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  transition: color 0.15s, border-color 0.15s;
+}
+.ap-tab-btn:hover { color: var(--admin-primary); }
+.ap-tab-btn.active {
+  color: var(--admin-primary);
+  border-bottom-color: var(--admin-primary);
+  font-weight: 600;
+}
+
+/* ── Tab content ── */
+.ap-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Meta row (korelasi) ── */
+.ap-meta-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.875rem;
+}
+
+.ap-meta-item {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  padding: 1rem;
+  text-align: center;
+  box-shadow: var(--admin-shadow);
+}
+
+.ap-meta-value {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: var(--admin-text);
+  line-height: 1;
+}
+
+.ap-meta-label {
+  font-size: 0.75rem;
+  color: var(--admin-text-muted);
+  margin-top: 0.3rem;
+}
+
+/* ── Kuadran cards ── */
+.ap-kuadran-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.875rem;
+}
+
+@media (max-width: 700px) {
+  .ap-kuadran-row { grid-template-columns: repeat(2, 1fr); }
+}
+
+.ap-kuadran-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--kclr, var(--admin-border));
+  border-top: 3px solid var(--kclr, var(--admin-primary));
+  border-radius: var(--admin-radius);
+  padding: 1rem;
+  text-align: center;
+  box-shadow: var(--admin-shadow);
+}
+
+.ap-kuadran-icon  { font-size: 1.5rem; }
+.ap-kuadran-count { font-size: 2rem; font-weight: 700; color: var(--kclr, var(--admin-text)); margin: 0.25rem 0; }
+.ap-kuadran-label { font-size: 0.8125rem; font-weight: 600; color: var(--admin-text); }
+.ap-kuadran-desc  { font-size: 0.7rem; color: var(--admin-text-muted); margin-top: 0.2rem; }
+
+/* ── Card ── */
+.ap-card {
+  background: var(--admin-surface);
+  border: 1px solid var(--admin-border);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow);
+  overflow: hidden;
+}
+
+.ap-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.ap-card-title {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--admin-text);
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.ap-card-body { padding: 1.25rem; }
+
+/* ── Table ── */
+.ap-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.ap-table th {
+  padding: 0.625rem 1rem;
+  text-align: left;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--admin-text-muted);
+  background: var(--admin-bg);
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.ap-table td {
+  padding: 0.75rem 1rem;
+  color: var(--admin-text);
+  border-bottom: 1px solid var(--admin-border-light);
+  vertical-align: middle;
+}
+
+.ap-table tr:last-child td { border-bottom: none; }
+.ap-table tbody tr:hover   { background: var(--admin-bg); }
+
+/* ── Progress bar ── */
+.ap-progress-wrap {
+  height: 5px;
+  background: var(--admin-border);
+  border-radius: 999px;
+  width: 80px;
+  overflow: hidden;
+  display: inline-block;
+  vertical-align: middle;
+  margin-right: 4px;
+}
+
+.ap-progress-bar {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.3s;
+}
+
+/* ── Badge ── */
+.ap-badge {
+  display: inline-block;
+  padding: 0.2rem 0.625rem;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #fff;
+  white-space: nowrap;
+}
+
+/* ── Loading / empty ── */
+.ap-loading {
+  text-align: center;
+  padding: 3rem;
+  color: var(--admin-text-muted);
+  font-size: 0.875rem;
+}
+
+.ap-empty {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: var(--admin-text-muted);
+}
+
+.ap-empty-icon {
+  font-size: 2.5rem;
+  margin-bottom: 0.5rem;
+}
+
+/* ── Modal ── */
+.ap-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.ap-modal {
+  background: var(--admin-surface);
+  border-radius: var(--admin-radius);
+  box-shadow: var(--admin-shadow-md);
+  width: 100%;
+  max-width: 580px;
+  max-height: 90vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.ap-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1.25rem 1.5rem 1rem;
+  border-bottom: 1px solid var(--admin-border);
+}
+
+.ap-modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--admin-text);
+  margin: 0;
+}
+
+.ap-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  color: var(--admin-text-muted);
+  line-height: 1;
+  padding: 0.25rem;
+}
+
+.ap-modal-close:hover { color: var(--admin-danger); }
+
+.ap-modal-body {
+  padding: 1.25rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.ap-modal-footer {
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--admin-border);
+}
+
+/* ── Form fields ── */
+.ap-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.ap-field label {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--admin-text);
+}
+
+.ap-req { color: var(--admin-danger); margin-left: 2px; }
+
+.ap-field input,
+.ap-field textarea,
+.ap-field select {
+  padding: 0.55rem 0.75rem;
+  border: 1px solid var(--admin-border);
+  border-radius: 8px;
+  font-family: var(--admin-font);
+  font-size: 0.875rem;
+  color: var(--admin-text);
+  background: var(--admin-bg);
+  outline: none;
+  transition: border-color 0.15s;
+  resize: vertical;
+}
+
+.ap-field input:focus,
+.ap-field textarea:focus,
+.ap-field select:focus { border-color: var(--admin-primary); }
+
+.ap-field-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}

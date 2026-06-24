@@ -50,6 +50,9 @@ use Rajasa\PresensiSiswa\Http\Controllers\LogbookCreateController;
 use Rajasa\PresensiSiswa\Http\Controllers\LogbookUpdateController;
 use Rajasa\PresensiSiswa\Http\Controllers\LogbookDeleteController;
 use Rajasa\PresensiSiswa\Http\Controllers\LogbookPenilaianController;
+use Rajasa\PresensiSiswa\Http\Controllers\NilaiController;
+use Rajasa\PresensiSiswa\Http\Controllers\AnalitikPrestasiController;
+use Rajasa\PresensiSiswa\Http\Controllers\TiketController;
 
 return function (RouteCollector $route): void {
     $route->get('/api/health', HealthController::class);
@@ -106,6 +109,24 @@ return function (RouteCollector $route): void {
     $route->get('/api/logbook/penilaian',                   LogbookPenilaianController::class);
     $route->post('/api/logbook/penilaian',                  LogbookPenilaianController::class);
     $route->patch('/api/logbook/penilaian/{id:\d+}',        LogbookPenilaianController::class);
+
+    // ── Nilai Akademik ────────────────────────────────────────────────────────
+    $route->get('/api/nilai/mapel',                         NilaiController::class);
+    $route->get('/api/nilai',                               NilaiController::class);
+    $route->post('/api/nilai',                              NilaiController::class);
+    $route->patch('/api/nilai/{id:\d+}',                    NilaiController::class);
+    $route->delete('/api/nilai/{id:\d+}',                   NilaiController::class);
+
+    // ── Analitik Prestasi ─────────────────────────────────────────────────────
+    $route->get('/api/analitik/prestasi',                   AnalitikPrestasiController::class);
+
+    // ── Communication Hub (Tiket) ─────────────────────────────────────────────
+    $route->get('/api/tiket',                               TiketController::class);
+    $route->post('/api/tiket',                              TiketController::class);
+    $route->get('/api/tiket/{id:\d+}',                      TiketController::class);
+    $route->patch('/api/tiket/{id:\d+}',                    TiketController::class);
+    $route->delete('/api/tiket/{id:\d+}',                   TiketController::class);
+    $route->post('/api/tiket/{id:\d+}/balas',               TiketController::class);
 
     // ── Presensi Sesi ─────────────────────────────────────────────────────────
     $route->post('/api/presensi/sesi',                              PresensiSesiCreateController::class);

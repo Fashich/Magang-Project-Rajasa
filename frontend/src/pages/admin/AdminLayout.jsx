@@ -16,6 +16,7 @@ const I = {
   users:    <svg viewBox="0 0 24 24"><path d="M16 11c1.66 0 2.99-1.34 2.99-3S17.66 5 16 5c-1.66 0-3 1.34-3 3s1.34 3 3 3zm-8 0c1.66 0 2.99-1.34 2.99-3S9.66 5 8 5C6.34 5 5 6.34 5 8s1.34 3 3 3zm0 2c-2.33 0-7 1.17-7 3.5V19h14v-2.5c0-2.33-4.67-3.5-7-3.5zm8 0c-.29 0-.62.02-.97.05 1.16.84 1.97 1.97 1.97 3.45V19h6v-2.5c0-2.33-4.67-3.5-7-3.5z"/></svg>,
   sesi:     <svg viewBox="0 0 24 24"><path d="M19 3h-4.18A3 3 0 0 0 9.18 3H5a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 0a1 1 0 1 1 0 2 1 1 0 0 1 0-2zm7 18H5V5h2v3h10V5h2v16z"/></svg>,
   chart:    <svg viewBox="0 0 24 24"><path d="M5 9.2h3V19H5V9.2zM10.6 5h2.8v14h-2.8V5zM16 13h3v6h-3v-6z"/></svg>,
+  chartpie: <svg viewBox="0 0 24 24"><path d="M11 2v20c-5.07-.5-9-4.79-9-10s3.93-9.5 9-10zm2.03 0v8.99H22c-.47-4.74-4.24-8.52-8.97-8.99zm0 11.01V22c4.74-.47 8.5-4.25 8.97-8.99h-8.97z"/></svg>,
   alert:    <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>,
   report:   <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8l-6-6zm4 18H6V4h7v5h5v11z"/></svg>,
   izin:     <svg viewBox="0 0 24 24"><path d="M9 11H7v2h2v-2zm4 0h-2v2h2v-2zm4 0h-2v2h2v-2zm2-7h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20a2 2 0 0 0 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V9h14v11z"/></svg>,
@@ -26,6 +27,7 @@ const I = {
   theme:    <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>,
   school:   <svg viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>,
   logbook:  <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>,
+  chat:     <svg viewBox="0 0 24 24"><path d="M20 2H4c-1.1 0-2 .9-2 2v18l4-4h14c1.1 0 2-.9 2-2V4c0-1.1-.9-2-2-2zm0 14H6l-2 2V4h16v12z"/></svg>,
 }
 
 // ─── Nav config ──────────────────────────────────────────────────────────────
@@ -34,8 +36,9 @@ const NAV_SECTIONS = [
   {
     label: 'Overview',
     items: [
-      { id: 'dashboard', label: 'Dashboard',          icon: I.dash },
-      { id: 'analitik',  label: 'Analitik Kehadiran', icon: I.chart },
+      { id: 'dashboard',         label: 'Dashboard',           icon: I.dash },
+      { id: 'analitik',          label: 'Analitik Kehadiran',  icon: I.chart },
+      { id: 'analitik-prestasi', label: 'Analitik Prestasi',   icon: I.chartpie },
     ],
   },
   {
@@ -44,7 +47,8 @@ const NAV_SECTIONS = [
       { id: 'sesi',      label: 'Sesi Presensi',   icon: I.sesi },
       { id: 'e-izin',    label: 'E-Izin',           icon: I.izin, badge: null },
       { id: 'peringatan',label: 'Early Warning',    icon: I.alert },
-      { id: 'logbook',   label: 'Logbook Praktik',  icon: I.logbook },
+      { id: 'logbook',       label: 'Logbook Praktik',    icon: I.logbook },
+      { id: 'communication', label: 'Communication Hub',  icon: I.chat },
     ],
   },
   {
@@ -64,8 +68,6 @@ const NAV_SECTIONS = [
 ]
 
 // ─── Logout Overlay ───────────────────────────────────────────────────────────
-// Ditampilkan sebagai portal di atas semua konten.
-// state: 'idle' | 'confirming' | 'loading'
 
 function LogoutOverlay({ state, onConfirm, onCancel }) {
   if (state === 'idle') return null
@@ -92,11 +94,8 @@ function LogoutOverlay({ state, onConfirm, onCancel }) {
         }}
         onClick={e => e.stopPropagation()}
       >
-
-        {/* ── State: konfirmasi ── */}
         {state === 'confirming' && (
           <>
-            {/* Header */}
             <div style={{ padding: '1.5rem 1.5rem 1.125rem', display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
               <div style={{
                 width: 44, height: 44, borderRadius: 12, flexShrink: 0,
@@ -116,48 +115,30 @@ function LogoutOverlay({ state, onConfirm, onCancel }) {
                 </p>
               </div>
             </div>
-
-            {/* Footer buttons */}
             <div style={{
               display: 'flex', justifyContent: 'flex-end', gap: '0.5rem',
               padding: '0.875rem 1.5rem 1.25rem',
               borderTop: '1px solid #e2e8f0',
             }}>
-              <button
-                type="button"
-                onClick={onCancel}
-                style={{
-                  padding: '0.45rem 1rem', borderRadius: 8, cursor: 'pointer',
-                  border: '1px solid #e2e8f0', background: 'transparent',
-                  fontFamily: "'Poppins', sans-serif", fontSize: '0.82rem', fontWeight: 600,
-                  color: '#475569',
-                }}
-              >
-                Batal
-              </button>
-              <button
-                type="button"
-                onClick={onConfirm}
-                style={{
-                  padding: '0.45rem 1.125rem', borderRadius: 8, cursor: 'pointer',
-                  border: '1px solid #dc2626', background: '#dc2626',
-                  fontFamily: "'Poppins', sans-serif", fontSize: '0.82rem', fontWeight: 600,
-                  color: '#fff',
-                }}
-              >
-                Ya, Keluar
-              </button>
+              <button type="button" onClick={onCancel} style={{
+                padding: '0.45rem 1rem', borderRadius: 8, cursor: 'pointer',
+                border: '1px solid #e2e8f0', background: 'transparent',
+                fontFamily: "'Poppins', sans-serif", fontSize: '0.82rem', fontWeight: 600, color: '#475569',
+              }}>Batal</button>
+              <button type="button" onClick={onConfirm} style={{
+                padding: '0.45rem 1.125rem', borderRadius: 8, cursor: 'pointer',
+                border: '1px solid #dc2626', background: '#dc2626',
+                fontFamily: "'Poppins', sans-serif", fontSize: '0.82rem', fontWeight: 600, color: '#fff',
+              }}>Ya, Keluar</button>
             </div>
           </>
         )}
 
-        {/* ── State: loading ── */}
         {state === 'loading' && (
           <div style={{
             padding: '2.25rem 1.5rem 1.75rem',
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem',
           }}>
-            {/* Spinner pakai CSS animation dari AdminLayout.css (adminSpin sudah ada) */}
             <div style={{
               width: 40, height: 40,
               border: '3px solid #e2e8f0',
@@ -173,22 +154,14 @@ function LogoutOverlay({ state, onConfirm, onCancel }) {
                 Menghapus sesi, harap tunggu.
               </p>
             </div>
-            <button
-              type="button"
-              onClick={onCancel}
-              style={{
-                marginTop: '0.25rem',
-                padding: '0.4rem 1.25rem', borderRadius: 8, cursor: 'pointer',
-                border: '1px solid #e2e8f0', background: 'transparent',
-                fontFamily: "'Poppins', sans-serif", fontSize: '0.78rem', fontWeight: 600,
-                color: '#64748b',
-              }}
-            >
-              Batalkan
-            </button>
+            <button type="button" onClick={onCancel} style={{
+              marginTop: '0.25rem',
+              padding: '0.4rem 1.25rem', borderRadius: 8, cursor: 'pointer',
+              border: '1px solid #e2e8f0', background: 'transparent',
+              fontFamily: "'Poppins', sans-serif", fontSize: '0.78rem', fontWeight: 600, color: '#64748b',
+            }}>Batalkan</button>
           </div>
         )}
-
       </div>
     </div>
   )
@@ -199,7 +172,6 @@ function LogoutOverlay({ state, onConfirm, onCancel }) {
 function AdminSidebar({ collapsed, activePage, onPageChange, onLogout, user }) {
   return (
     <aside className="admin-sidebar">
-      {/* Logo */}
       <div className="admin-sidebar-logo">
         <div className="admin-sidebar-logo-icon">
           {window.__RAJASA_LOGO__
@@ -214,7 +186,6 @@ function AdminSidebar({ collapsed, activePage, onPageChange, onLogout, user }) {
         )}
       </div>
 
-      {/* Navigation */}
       <nav className="admin-sidebar-nav">
         {NAV_SECTIONS.map((section) => (
           <div key={section.label}>
@@ -240,7 +211,6 @@ function AdminSidebar({ collapsed, activePage, onPageChange, onLogout, user }) {
         ))}
       </nav>
 
-      {/* Footer */}
       <div className="admin-sidebar-footer">
         <button type="button" className="admin-logout-btn" onClick={onLogout} title={collapsed ? 'Keluar' : undefined}>
           {I.logout}
@@ -255,16 +225,17 @@ function AdminSidebar({ collapsed, activePage, onPageChange, onLogout, user }) {
 
 function AdminHeader({ onToggle, activePage, onToggleTheme, theme, user }) {
   const PAGE_TITLES = {
-    dashboard:  'Dashboard',
-    analitik:   'Analitik Kehadiran',
-    sesi:       'Sesi Presensi',
-    'e-izin':   'Portal E-Izin',
-    peringatan: 'Early Warning',
-    logbook:    'Logbook Praktik',
-    users:      'Manajemen Pengguna',
-    laporan:    'Laporan',
-    audit:      'Audit Trail',
-    settings:   'Pengaturan',
+    dashboard:           'Dashboard',
+    analitik:            'Analitik Kehadiran',
+    'analitik-prestasi': 'Analitik Prestasi',
+    sesi:                'Sesi Presensi',
+    'e-izin':            'Portal E-Izin',
+    peringatan:          'Early Warning',
+    logbook:             'Logbook Praktik',
+    users:               'Manajemen Pengguna',
+    laporan:             'Laporan',
+    audit:               'Audit Trail',
+    settings:            'Pengaturan',
   }
 
   const initials = (user?.nama_lengkap || user?.username || 'A').charAt(0).toUpperCase()
@@ -310,7 +281,7 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
   const [activePage,  setActivePage]  = useState('dashboard')
   const [collapsed,   setCollapsed]   = useState(false)
   const [theme,       setTheme]       = useState(() => localStorage.getItem(THEME_KEY) || 'light')
-  const [logoutState, setLogoutState] = useState('idle') // 'idle' | 'confirming' | 'loading'
+  const [logoutState, setLogoutState] = useState('idle')
   const abortRef = useRef(null)
 
   useEffect(() => {
@@ -320,20 +291,15 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
 
   const handleToggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), [])
 
-  // Step 1 — klik tombol "Keluar" di sidebar → tampilkan dialog konfirmasi
   const handleLogoutClick = useCallback(() => {
     setLogoutState('confirming')
   }, [])
 
-  // Step 2 — klik "Ya, Keluar" → tampilkan loading, jalankan API, lalu redirect
   const handleLogoutConfirm = useCallback(async () => {
     setLogoutState('loading')
-
     const controller = new AbortController()
     abortRef.current = controller
-
     let cancelled = false
-
     try {
       const token = localStorage.getItem('presensi_lab_rajasa:auth_token')
         || localStorage.getItem('auth_token')
@@ -346,26 +312,17 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
         },
       })
     } catch (err) {
-      // Jika user klik "Batalkan" saat loading → abort error → keluar dari handler
-      if (err && err.name === 'AbortError') {
-        cancelled = true
-      }
-      // Error lain (network, dll) diabaikan — tetap lanjut logout
+      if (err && err.name === 'AbortError') cancelled = true
     }
-
     if (cancelled) return
-
-    // Bersihkan semua auth storage
     localStorage.removeItem('presensi_lab_rajasa:auth_token')
     localStorage.removeItem('presensi_lab_rajasa:auth_user')
     localStorage.removeItem('auth_token')
     localStorage.removeItem('user_data')
-
     setLogoutState('idle')
     if (typeof onLogout === 'function') onLogout()
   }, [onLogout])
 
-  // Step X — klik "Batal" / "Batalkan" → tutup overlay, batalkan fetch jika sedang berjalan
   const handleLogoutCancel = useCallback(() => {
     if (abortRef.current) {
       abortRef.current.abort()
@@ -395,8 +352,6 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
           {typeof renderPage === 'function' ? renderPage(activePage, setActivePage) : null}
         </div>
       </main>
-
-      {/* Logout overlay — selalu di-render di sini, muncul saat state bukan 'idle' */}
       <LogoutOverlay
         state={logoutState}
         onConfirm={handleLogoutConfirm}
