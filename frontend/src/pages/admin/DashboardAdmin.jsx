@@ -8,6 +8,7 @@ import AnalitikPage from './AnalitikPage'
 import PengaturanPage from './PengaturanPage'
 import EarlyWarningPage from './EarlyWarningPage'
 import EIzinPage from './EIzinPage'
+import LogbookPage from './LogbookPage'
 
 // ─── ComingSoon placeholder ───────────────────────────────────────────────────
 
@@ -96,6 +97,10 @@ function AllPages({ activePage, onNav }) {
 
       <PageSlot id="e-izin" activePage={activePage}>
         <EIzinPage />
+      </PageSlot>
+
+      <PageSlot id="logbook" activePage={activePage}>
+        <LogbookPage />
       </PageSlot>
     </>
   )

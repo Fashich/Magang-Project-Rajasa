@@ -25,6 +25,7 @@ const I = {
   bell:     <svg viewBox="0 0 24 24"><path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/></svg>,
   theme:    <svg viewBox="0 0 24 24"><path d="M12 3a9 9 0 0 0 0 18c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c2.76 0 5-2.24 5-5 0-4.42-4.03-8-9-8zm-5.5 9c-.83 0-1.5-.67-1.5-1.5S5.67 9 6.5 9 8 9.67 8 10.5 7.33 12 6.5 12zm3-4C8.67 8 8 7.33 8 6.5S8.67 5 9.5 5s1.5.67 1.5 1.5S10.33 8 9.5 8zm5 0c-.83 0-1.5-.67-1.5-1.5S13.67 5 14.5 5s1.5.67 1.5 1.5S15.33 8 14.5 8zm3 4c-.83 0-1.5-.67-1.5-1.5S16.67 9 17.5 9s1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/></svg>,
   school:   <svg viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>,
+  logbook:  <svg viewBox="0 0 24 24"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2zm-7 14H7v-2h5v2zm5-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>,
 }
 
 // ─── Nav config ──────────────────────────────────────────────────────────────
@@ -33,30 +34,31 @@ const NAV_SECTIONS = [
   {
     label: 'Overview',
     items: [
-      { id: 'dashboard', label: 'Dashboard', icon: I.dash },
+      { id: 'dashboard', label: 'Dashboard',          icon: I.dash },
       { id: 'analitik',  label: 'Analitik Kehadiran', icon: I.chart },
     ],
   },
   {
     label: 'Manajemen',
     items: [
-      { id: 'sesi',      label: 'Sesi Presensi',  icon: I.sesi },
-      { id: 'e-izin',    label: 'E-Izin',          icon: I.izin, badge: null },
-      { id: 'peringatan',label: 'Early Warning',   icon: I.alert },
+      { id: 'sesi',      label: 'Sesi Presensi',   icon: I.sesi },
+      { id: 'e-izin',    label: 'E-Izin',           icon: I.izin, badge: null },
+      { id: 'peringatan',label: 'Early Warning',    icon: I.alert },
+      { id: 'logbook',   label: 'Logbook Praktik',  icon: I.logbook },
     ],
   },
   {
     label: 'Data',
     items: [
-      { id: 'users',     label: 'Pengguna',        icon: I.users },
-      { id: 'laporan',   label: 'Laporan',          icon: I.report },
-      { id: 'audit',     label: 'Audit Trail',      icon: I.audit },
+      { id: 'users',     label: 'Pengguna',         icon: I.users },
+      { id: 'laporan',   label: 'Laporan',           icon: I.report },
+      { id: 'audit',     label: 'Audit Trail',       icon: I.audit },
     ],
   },
   {
     label: 'Sistem',
     items: [
-      { id: 'settings',  label: 'Pengaturan',      icon: I.setting },
+      { id: 'settings',  label: 'Pengaturan',       icon: I.setting },
     ],
   },
 ]
@@ -253,10 +255,16 @@ function AdminSidebar({ collapsed, activePage, onPageChange, onLogout, user }) {
 
 function AdminHeader({ onToggle, activePage, onToggleTheme, theme, user }) {
   const PAGE_TITLES = {
-    dashboard: 'Dashboard', analitik: 'Analitik Kehadiran',
-    sesi: 'Sesi Presensi', 'e-izin': 'Portal E-Izin',
-    peringatan: 'Early Warning', users: 'Manajemen Pengguna',
-    laporan: 'Laporan', audit: 'Audit Trail', settings: 'Pengaturan',
+    dashboard:  'Dashboard',
+    analitik:   'Analitik Kehadiran',
+    sesi:       'Sesi Presensi',
+    'e-izin':   'Portal E-Izin',
+    peringatan: 'Early Warning',
+    logbook:    'Logbook Praktik',
+    users:      'Manajemen Pengguna',
+    laporan:    'Laporan',
+    audit:      'Audit Trail',
+    settings:   'Pengaturan',
   }
 
   const initials = (user?.nama_lengkap || user?.username || 'A').charAt(0).toUpperCase()
