@@ -28,10 +28,15 @@ final class GamifikasiController
         private readonly Request        $request,
     ) {}
 
-    public function __invoke(string $sub = ''): void
+    public function __invoke(): void
     {
         $user   = $this->auth->user();
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+        $path   = $_SERVER['PATH_INFO'] ?? $_SERVER['REQUEST_URI'] ?? '';
+
+        // Resolve sub-route dari path: /api/gamifikasi/profil → 'profil'
+        $parts = explode('/', trim($path, '/'));
+        $sub   = end($parts); // ambil segment terakhir
 
         match ($sub) {
             'profil'      => $this->profil($user),
@@ -52,8 +57,12 @@ final class GamifikasiController
         // Resolve siswa_id
         if ($type === 'siswa') {
             $siswaId = (int) $user->siswa_id;
-        } elseif (!empty($_GET['siswa_id']) && in_array($type, ['guru','staff','admin','super_admin'], true)) {
+        } elseif (!empty($_GET['siswa_id'])) {
             $siswaId = (int) $_GET['siswa_id'];
+        } elseif (in_array($type, ['admin', 'super_admin', 'guru', 'staff'], true)) {
+            // Admin/guru tanpa siswa_id → tampilkan ringkasan statistik global
+            $this->profilGlobal();
+            return;
         } else {
             Response::error('siswa_id diperlukan untuk role ini.', [], 422);
             return;
@@ -420,6 +429,55 @@ final class GamifikasiController
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private function profilGlobal(): void
+    {
+        $bulan = Carbon::now()->format('Y-m');
+
+        // Top 5 siswa bulan ini
+        $top = DB::table('gamifikasi_poin AS gp')
+            ->join('siswa AS s', 's.siswa_id', '=', 'gp.siswa_id')
+            ->leftJoin('rombel AS r', 'r.rombel_id', '=', 's.rombel_id_aktif')
+            ->where('s.status', 'aktif')
+            ->whereRaw("DATE_FORMAT(gp.tanggal, '%Y-%m') = ?", [$bulan])
+            ->selectRaw("
+                gp.siswa_id, s.nama_lengkap, s.nis, r.label_rombel,
+                SUM(gp.poin) AS total_poin
+            ")
+            ->groupBy('gp.siswa_id', 's.nama_lengkap', 's.nis', 'r.label_rombel')
+            ->orderByDesc(DB::raw('SUM(gp.poin)'))
+            ->limit(5)
+            ->get();
+
+        // Total badge yang diraih bulan ini
+        $totalBadge = DB::table('gamifikasi_badge_siswa')
+            ->where('periode', $bulan)->count();
+
+        // Total poin yang dibagikan bulan ini
+        $totalPoin = DB::table('gamifikasi_poin')
+            ->whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [$bulan])
+            ->sum('poin');
+
+        // Total siswa yang sudah punya poin
+        $totalSiswaAktif = DB::table('gamifikasi_poin')
+            ->whereRaw("DATE_FORMAT(tanggal, '%Y-%m') = ?", [$bulan])
+            ->distinct('siswa_id')->count('siswa_id');
+
+        Response::success('Statistik gamifikasi global.', [
+            'is_global'         => true,
+            'bulan'             => $bulan,
+            'total_poin_bulan'  => (int) $totalPoin,
+            'total_badge_bulan' => (int) $totalBadge,
+            'total_siswa_aktif' => (int) $totalSiswaAktif,
+            'top_siswa'         => $top->map(fn ($r) => [
+                'siswa_id'    => (int) $r->siswa_id,
+                'nama_siswa'  => $r->nama_lengkap,
+                'nis'         => $r->nis,
+                'rombel'      => $r->label_rombel ?? '—',
+                'total_poin'  => (int) $r->total_poin,
+            ])->values()->all(),
+        ]);
+    }
 
     private function getRankingRombel(int $siswaId, ?string $rombel): array
     {

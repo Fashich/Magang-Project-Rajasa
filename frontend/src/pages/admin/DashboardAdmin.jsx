@@ -1,3 +1,4 @@
+import { useState } from 'preact/hooks'
 import AdminLayout from './AdminLayout'
 import AdminDashboardPage from './AdminDashboardPage'
 import UsersPage from './UsersPage'
@@ -46,13 +47,21 @@ function ComingSoon({ title, desc, icon }) {
 // ─── PageSlot — tampilkan/sembunyikan tanpa unmount ───────────────────────────
 
 function PageSlot({ id, activePage, children }) {
+  // Render children hanya setelah pertama kali aktif (lazy mount)
+  // Setelah mount, tetap di-render tapi disembunyikan (preserve state)
+  const [hasMounted, setHasMounted] = useState(false)
+  const isActive = activePage === id
+
+  if (isActive && !hasMounted) setHasMounted(true)
+  if (!hasMounted) return null
+
   return (
     <div
       style={{
-        display: activePage === id ? '' : 'none',
-        minHeight: activePage === id ? '100%' : undefined,
+        display: isActive ? '' : 'none',
+        minHeight: isActive ? '100%' : undefined,
       }}
-      aria-hidden={activePage !== id}
+      aria-hidden={!isActive}
     >
       {children}
     </div>

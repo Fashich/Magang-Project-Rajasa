@@ -117,6 +117,69 @@ function TabProfil({ userType, siswaId }) {
   if (err)     return <div class="gm-alert gm-alert-error">{err}</div>
   if (!data)   return <div class="gm-empty">Data tidak tersedia.</div>
 
+  // Admin/guru tanpa siswa_id → tampilkan statistik global
+  if (data.is_global) {
+    return (
+      <div class="gm-tab-content">
+        <div class="gm-stats-row">
+          <div class="gm-stat-card">
+            <div class="gm-stat-icon">🏅</div>
+            <div class="gm-stat-value">{data.total_siswa_aktif}</div>
+            <div class="gm-stat-label">Siswa Aktif</div>
+          </div>
+          <div class="gm-stat-card">
+            <div class="gm-stat-icon">⭐</div>
+            <div class="gm-stat-value">{data.total_poin_bulan.toLocaleString('id-ID')}</div>
+            <div class="gm-stat-label">Total Poin Bulan Ini</div>
+          </div>
+          <div class="gm-stat-card">
+            <div class="gm-stat-icon">🎖️</div>
+            <div class="gm-stat-value">{data.total_badge_bulan}</div>
+            <div class="gm-stat-label">Badge Diraih</div>
+          </div>
+        </div>
+        <div class="gm-section">
+          <h3 class="gm-section-title">🏆 Top 5 Siswa Bulan Ini</h3>
+          <div class="gm-card">
+            {data.top_siswa.length === 0 ? (
+              <div class="gm-empty">
+                Belum ada data poin. Jalankan kalkulasi poin terlebih dahulu.
+              </div>
+            ) : (
+              <table class="gm-table">
+                <thead><tr><th>#</th><th>Siswa</th><th>Rombel</th><th>Poin</th></tr></thead>
+                <tbody>
+                  {data.top_siswa.map((s, i) => (
+                    <tr key={s.siswa_id}>
+                      <td style={{ textAlign: 'center' }}>
+                        {['🥇','🥈','🥉','4','5'][i]}
+                      </td>
+                      <td>
+                        <div style={{ fontWeight: 600 }}>{s.nama_siswa}</div>
+                        <div style={{ fontSize: '0.7rem', color: 'var(--gm-text-muted)' }}>{s.nis}</div>
+                      </td>
+                      <td>{s.rombel}</td>
+                      <td style={{ fontWeight: 700, color: 'var(--gm-primary)' }}>
+                        {s.total_poin.toLocaleString('id-ID')}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </div>
+        <div style={{
+          padding: '0.875rem 1.25rem', background: 'var(--gm-primary-light)',
+          border: '1px solid var(--gm-primary)', borderRadius: 'var(--gm-radius)',
+          fontSize: '0.8125rem', color: 'var(--gm-text)',
+        }}>
+          💡 Untuk lihat profil poin siswa tertentu, masukkan siswa_id di kolom pencarian di atas.
+        </div>
+      </div>
+    )
+  }
+
   const { siswa, total_poin, poin_bulan_ini, ranking_rombel, streak_saat_ini, badge, riwayat_poin } = data
 
   // Level berdasarkan total poin
