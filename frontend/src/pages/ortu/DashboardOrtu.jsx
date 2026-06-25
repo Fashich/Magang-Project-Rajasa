@@ -19,7 +19,7 @@ const API     = import.meta.env.VITE_API_URL || '/api'
 const NIS_KEY = 'rajasa_ortu_nis'
 const LANG_KEY = 'rajasa_ortu_lang'
 const SIMPLE_KEY = 'rajasa_ortu_simple'
-const THEME_KEY  = 'presensi_lab_rajasa:theme'
+const THEME_KEY  = 'rajasa-presensi-theme'
 
 function getToken() {
   return localStorage.getItem('presensi_lab_rajasa:auth_token')
@@ -932,6 +932,12 @@ export default function DashboardOrtu({ user, onLogout }) {
         display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1.5rem',
         zIndex: 90, boxShadow: '0 1px 3px rgba(0,0,0,.06)',
       }}>
+        {/* Logo */}
+        <img
+          src="/images/logo/Rajasa-Logo.png"
+          alt="SMK Rajasa"
+          style={{ width: 32, height: 32, objectFit: 'contain', borderRadius: 6, flexShrink: 0 }}
+        />
         <div style={{ flex: 1 }} />
 
         {/* Toggle mode sederhana */}

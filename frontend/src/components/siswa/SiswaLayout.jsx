@@ -76,7 +76,11 @@ function SiswaSidebar({ collapsed, activePage, onPageChange, onLogout }) {
   return (
     <aside className={`siswa-sidebar-new${collapsed ? ' collapsed' : ''}`}>
       <div className="siswa-brand">
-        <div className="siswa-brand-icon">{I.school}</div>
+        <img
+          src="/images/logo/Rajasa-Logo.png"
+          alt="SMK Rajasa"
+          className="siswa-brand-img"
+        />
         {!collapsed && (
           <div className="siswa-brand-text">
             <strong>Presensi Lab</strong>

@@ -177,7 +177,7 @@ function AdminSidebar({ collapsed, activePage, onPageChange, onLogout, user }) {
       <div className="admin-sidebar-logo">
         <div className="admin-sidebar-logo-icon">
           {window.__RAJASA_LOGO__
-            ? <img src="/images/RajasaLogo.png" alt="Logo SMK Rajasa" />
+            ? <img src="/images/logo/Rajasa-Logo.png" alt="Logo SMK Rajasa" />
             : I.school}
         </div>
         {!collapsed && (

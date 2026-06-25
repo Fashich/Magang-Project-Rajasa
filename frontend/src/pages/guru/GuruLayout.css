@@ -651,3 +651,13 @@
 @keyframes guruSpin {
   to { transform: rotate(360deg); }
 }
+
+/* ── Logo image (Phase 0) ─────────────────────────────────────────────────── */
+.guru-sidebar-brand-img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  border-radius: 8px;
+  flex-shrink: 0;
+  background: var(--guru-surface);
+}

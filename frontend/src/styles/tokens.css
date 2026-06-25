@@ -1,0 +1,206 @@
+/**
+ * tokens.css — Rajasa Presensi Design System
+ * Single source of truth untuk semua layout (admin, guru, siswa, ortu)
+ *
+ * Import di main.jsx sebelum semua CSS lain.
+ * Branch: feature/prd-0-design-system
+ */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
+
+/* ─── Brand Colors ──────────────────────────────────────────────────────────── */
+:root {
+  /* Admin (biru) */
+  --rjs-admin:          #1e40af;
+  --rjs-admin-light:    #dbeafe;
+  --rjs-admin-mid:      #3b82f6;
+
+  /* Guru (teal) */
+  --rjs-guru:           #0f766e;
+  --rjs-guru-light:     #ccfbf1;
+  --rjs-guru-mid:       #14b8a6;
+
+  /* Siswa (sky) */
+  --rjs-siswa:          #0284c7;
+  --rjs-siswa-light:    #e0f2fe;
+  --rjs-siswa-mid:      #38bdf8;
+
+  /* Ortu (hijau) */
+  --rjs-ortu:           #15803d;
+  --rjs-ortu-light:     #dcfce7;
+  --rjs-ortu-mid:       #22c55e;
+
+  /* ─── Semantics (light mode) ──────────────────────────────────────────────── */
+  --rjs-bg:             #f8fafc;
+  --rjs-surface:        #ffffff;
+  --rjs-surface-alt:    #f1f5f9;
+  --rjs-border:         #e2e8f0;
+  --rjs-border-light:   #f1f5f9;
+  --rjs-text:           #0f172a;
+  --rjs-text-muted:     #475569;
+  --rjs-text-subtle:    #94a3b8;
+  --rjs-overlay:        rgba(15, 23, 42, 0.55);
+
+  /* ─── Status ──────────────────────────────────────────────────────────────── */
+  --rjs-success:        #15803d;
+  --rjs-success-bg:     #dcfce7;
+  --rjs-warning:        #d97706;
+  --rjs-warning-bg:     #fef3c7;
+  --rjs-danger:         #dc2626;
+  --rjs-danger-bg:      #fee2e2;
+  --rjs-info:           #0284c7;
+  --rjs-info-bg:        #e0f2fe;
+
+  /* ─── Layout ──────────────────────────────────────────────────────────────── */
+  --rjs-sidebar-w:      260px;
+  --rjs-sidebar-coll:    72px;
+  --rjs-header-h:        64px;
+
+  /* ─── Design ──────────────────────────────────────────────────────────────── */
+  --rjs-radius:          12px;
+  --rjs-radius-sm:        8px;
+  --rjs-radius-xs:        6px;
+  --rjs-shadow:         0 1px 3px rgba(0,0,0,.06), 0 1px 2px rgba(0,0,0,.04);
+  --rjs-shadow-md:      0 4px 16px rgba(0,0,0,.08);
+  --rjs-shadow-lg:      0 8px 32px rgba(0,0,0,.12);
+  --rjs-transition:     0.2s ease;
+  --rjs-font:           'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+
+  /* localStorage key untuk tema */
+  /* 'rajasa-presensi-theme' → 'light' | 'dark' */
+}
+
+/* ─── Dark Mode ─────────────────────────────────────────────────────────────── */
+[data-theme='dark'] {
+  --rjs-bg:             #0f172a;
+  --rjs-surface:        #1e293b;
+  --rjs-surface-alt:    #0f172a;
+  --rjs-border:         #334155;
+  --rjs-border-light:   #1e293b;
+  --rjs-text:           #f1f5f9;
+  --rjs-text-muted:     #94a3b8;
+  --rjs-text-subtle:    #64748b;
+  --rjs-overlay:        rgba(0, 0, 0, 0.7);
+  --rjs-shadow:         0 1px 3px rgba(0,0,0,.3), 0 1px 2px rgba(0,0,0,.2);
+  --rjs-shadow-md:      0 4px 16px rgba(0,0,0,.4);
+  --rjs-shadow-lg:      0 8px 32px rgba(0,0,0,.5);
+}
+
+/* ─── Global Resets ─────────────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--rjs-font);
+  background: var(--rjs-bg);
+  color: var(--rjs-text);
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition: background var(--rjs-transition), color var(--rjs-transition);
+}
+
+img, svg {
+  display: block;
+  max-width: 100%;
+}
+
+button {
+  cursor: pointer;
+  font-family: inherit;
+  border: none;
+  background: none;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+/* ─── Scrollbar ─────────────────────────────────────────────────────────────── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb {
+  background: var(--rjs-border);
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover { background: var(--rjs-text-subtle); }
+
+/* ─── Sidebar Logo Component (shared) ──────────────────────────────────────── */
+.rjs-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 4px 0;
+  min-height: 52px;
+  overflow: hidden;
+}
+
+.rjs-brand img {
+  width: 38px;
+  height: 38px;
+  object-fit: contain;
+  border-radius: var(--rjs-radius-sm);
+  flex-shrink: 0;
+  /* fallback jika gambar belum load */
+  background: var(--rjs-surface-alt);
+}
+
+.rjs-brand-text {
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.rjs-brand-text strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--rjs-text);
+  line-height: 1.25;
+}
+
+.rjs-brand-text span {
+  display: block;
+  font-size: 11px;
+  color: var(--rjs-text-muted);
+  line-height: 1.4;
+}
+
+/* ─── Theme Toggle Button (shared) ─────────────────────────────────────────── */
+.rjs-theme-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: var(--rjs-radius-xs);
+  background: var(--rjs-surface-alt);
+  color: var(--rjs-text-muted);
+  border: 1px solid var(--rjs-border);
+  transition: all var(--rjs-transition);
+  flex-shrink: 0;
+}
+.rjs-theme-btn:hover {
+  background: var(--rjs-border);
+  color: var(--rjs-text);
+}
+
+/* ─── Responsive Breakpoints ────────────────────────────────────────────────── */
+/* Mobile  : max-width 639px   */
+/* Tablet  : 640px – 1023px   */
+/* Desktop : min-width 1024px */
+
+@media (max-width: 639px) {
+  :root {
+    --rjs-sidebar-w:    100%;
+    --rjs-header-h:     56px;
+  }
+}

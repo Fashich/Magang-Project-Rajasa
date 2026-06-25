@@ -15,7 +15,7 @@
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
 import './GuruLayout.css'
 
-const THEME_KEY = 'presensi_lab_rajasa:theme'
+const THEME_KEY = 'rajasa-presensi-theme'
 
 // ── Icons ─────────────────────────────────────────────────────────────────────
 const I = {
@@ -85,7 +85,11 @@ function GuruSidebar({ collapsed, activePage, onPageChange, onLogout }) {
   return (
     <aside class="guru-sidebar">
       <div class="guru-sidebar-brand">
-        <div class="guru-sidebar-brand-icon">{I.school}</div>
+        <img
+          src="/images/logo/Rajasa-Logo.png"
+          alt="SMK Rajasa"
+          class="guru-sidebar-brand-img"
+        />
         {!collapsed && (
           <div class="guru-sidebar-brand-text">
             <h1>Presensi Lab</h1>

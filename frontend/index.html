@@ -2,9 +2,41 @@
 <html lang="id">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Presensi Lab Rajasa</title>
+
+    <!-- PWA & Mobile -->
+    <meta name="theme-color" content="#1e40af" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="Presensi Rajasa" />
+
+    <!-- SEO -->
+    <meta name="description" content="Sistem Informasi Presensi Lab SMK Rajasa Surabaya — absensi QR berbasis web untuk siswa, guru, dan orang tua." />
+    <meta name="robots" content="noindex, nofollow" />
+
+    <!-- Icons -->
+    <link rel="icon" type="image/png" href="/images/logo/Rajasa-Logo.png" />
+    <link rel="apple-touch-icon" href="/images/logo/Rajasa-Logo.png" />
+
+    <!-- PWA Manifest (Phase 3) -->
+    <!-- <link rel="manifest" href="/manifest.json" /> -->
+
+    <title>Presensi Lab — SMK Rajasa Surabaya</title>
+
+    <!--
+      Anti-flash theme script.
+      Harus di <head> sebelum CSS dimuat agar tema langsung diterapkan
+      sebelum browser merender konten, menghindari flickering.
+    -->
+    <script>
+      (function () {
+        var THEME_KEY = 'rajasa-presensi-theme';
+        var saved = localStorage.getItem(THEME_KEY);
+        var theme = saved === 'dark' ? 'dark' : 'light';
+        document.documentElement.dataset.theme = theme;
+      })();
+    </script>
   </head>
   <body>
     <div id="app"></div>
