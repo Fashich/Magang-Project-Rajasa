@@ -34,7 +34,7 @@ final class EIzinCreateController
         // Tentukan siswa_id
         if ($user->user_type === 'siswa') {
             $siswaId = (int) $user->siswa_id;
-        } elseif (in_array($user->user_type, ['admin','super_admin','guru','staff'], true)) {
+        } elseif (in_array($user->user_type, ['admin','guru'], true)) {
             if (empty($body['siswa_id'])) {
                 Response::error('siswa_id wajib diisi.', [], 422); return;
             }
