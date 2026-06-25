@@ -80,8 +80,25 @@ const s = {
   },
 }
 
-const STATUS_CLR = { menunggu: '#d97706', disetujui: '#15803d', ditolak: '#dc2626' }
-const STATUS_LBL = { menunggu: 'Menunggu', disetujui: 'Disetujui', ditolak: 'Ditolak' }
+const STATUS_CLR = {
+  menunggu_ortu:  '#7c3aed',
+  pending:        '#d97706',
+  disetujui_wali: '#0284c7',
+  ditolak_wali:   '#dc2626',
+  disetujui:      '#15803d',
+  ditolak:        '#dc2626',
+  // backward compat
+  menunggu:       '#d97706',
+}
+const STATUS_LBL = {
+  menunggu_ortu:  '⏳ Menunggu Ortu',
+  pending:        '⏳ Menunggu Wali Kelas',
+  disetujui_wali: '🔄 Menunggu Admin',
+  ditolak_wali:   '❌ Ditolak Wali',
+  disetujui:      '✅ Disetujui',
+  ditolak:        '❌ Ditolak',
+  menunggu:       '⏳ Menunggu',
+}
 const TYPE_LBL   = { sakit: '🏥 Sakit', izin: '📋 Izin' }
 
 // ── Main Component ────────────────────────────────────────────────────────────

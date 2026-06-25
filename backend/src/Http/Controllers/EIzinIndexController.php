@@ -41,7 +41,7 @@ final class EIzinIndexController
         $page     = max(1, (int) ($_GET['page'] ?? 1));
         $perPage  = 20;
 
-        $validStatuses = ['pending','disetujui_wali','ditolak_wali','disetujui','ditolak'];
+        $validStatuses = ['menunggu_ortu','pending','disetujui_wali','ditolak_wali','disetujui','ditolak'];
         $validJenis    = ['sakit','izin','dispensasi'];
 
         $query = DB::table('e_izin AS ei')
@@ -72,6 +72,16 @@ final class EIzinIndexController
         // Scope per role
         if ($type === 'siswa') {
             $query->where('ei.siswa_id', (int) $user->siswa_id);
+        } elseif ($type === 'ortu') {
+            // Ortu hanya melihat izin siswa yang terhubung ke akunnya
+            $linkedSiswaId = $user->linked_siswa_id ?? null;
+            if (!$linkedSiswaId) {
+                Response::success('Tidak ada siswa yang terhubung ke akun ini.', [
+                    'data' => [], 'meta' => ['total'=>0,'last_page'=>1,'page'=>1]
+                ]);
+                return;
+            }
+            $query->where('ei.siswa_id', (int)$linkedSiswaId);
         } elseif (in_array($type, ['guru'], true) && !empty($user->guru_id)) {
             $rombelIds = RombelWaliKelas::where('guru_id', (int) $user->guru_id)
                 ->where('status', 'aktif')->pluck('rombel_id')->toArray();
@@ -101,6 +111,9 @@ final class EIzinIndexController
             ->join('siswa AS s', 's.siswa_id', '=', 'ei.siswa_id');
         if ($type === 'siswa') {
             $summaryQ->where('ei.siswa_id', (int) $user->siswa_id);
+        } elseif ($type === 'ortu') {
+            $linkedSiswaId = $user->linked_siswa_id ?? null;
+            if ($linkedSiswaId) $summaryQ->where('ei.siswa_id', (int)$linkedSiswaId);
         } elseif (in_array($type, ['guru'], true) && !empty($user->guru_id)) {
             $rombelIds = RombelWaliKelas::where('guru_id', (int)$user->guru_id)
                 ->where('status','aktif')->pluck('rombel_id')->toArray();
@@ -108,6 +121,7 @@ final class EIzinIndexController
         }
         $summary = $summaryQ->selectRaw("
             COUNT(*) AS total,
+            SUM(ei.status = 'menunggu_ortu') AS menunggu_ortu,
             SUM(ei.status = 'pending') AS pending,
             SUM(ei.status = 'disetujui_wali') AS menunggu_final,
             SUM(ei.status = 'disetujui') AS disetujui,

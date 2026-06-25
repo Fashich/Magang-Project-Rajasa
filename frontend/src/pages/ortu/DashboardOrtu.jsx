@@ -809,6 +809,7 @@ export default function DashboardOrtu({ user, onLogout }) {
 
   const navItems = [
     { id: 'dashboard',     label: t.dashboard,    icon: '🏠' },
+    { id: 'eizin',         label: 'E-Izin',         icon: '📋' },
     { id: 'riwayat',       label: t.riwayat,      icon: '📅' },
     { id: 'logbook',       label: t.logbook,       icon: '📒' },
     { id: 'communication', label: t.hubungi,       icon: '💬' },
@@ -988,9 +989,201 @@ export default function DashboardOrtu({ user, onLogout }) {
 
         {activePage === 'dashboard'     && <PageDashboard nis={nis} t={t} simple={simple} onSetPage={setActivePage} />}
         {activePage === 'riwayat'       && <PageRiwayat   nis={nis} t={t} simple={simple} />}
+        {activePage === 'eizin'         && <EIzinOrtuPage user={user} t={t} simple={simple} />}
         {activePage === 'logbook'       && <LogbookPage   nis={nis} t={t} simple={simple} />}
         {activePage === 'communication' && <CommunicationHub />}
       </main>
+    </div>
+  )
+}
+
+
+// ── E-Izin Ortu Page ─────────────────────────────────────────────────────────
+function EIzinOrtuPage({ t, simple, user }) {
+  const [items,    setItems]    = useState([])
+  const [loading,  setLoading]  = useState(false)
+  const [err,      setErr]      = useState('')
+  const [filter,   setFilter]   = useState('menunggu_ortu')
+  const [catatan,  setCatatan]  = useState({})
+  const [busy,     setBusy]     = useState({})
+
+  const fz  = simple ? '1rem'    : '0.8125rem'
+  const btnFz = simple ? '1rem'  : '0.8rem'
+
+  const load = useCallback(async () => {
+    setLoading(true); setErr('')
+    try {
+      const res = await apiFetch(`/e-izin?status=${filter}&per_page=20&page=1`)
+      setItems(res.data?.data ?? [])
+    } catch (e) { setErr(e.message) }
+    finally { setLoading(false) }
+  }, [filter])
+
+  useEffect(() => { load() }, [load])
+
+  async function handleAction(izinId, action) {
+    setBusy(b => ({ ...b, [izinId]: true }))
+    try {
+      await apiFetch(`/e-izin/${izinId}/approve`, {
+        method: 'PATCH',
+        body: JSON.stringify({ action, catatan: catatan[izinId] ?? '' }),
+      })
+      await load()
+      setCatatan(c => ({ ...c, [izinId]: '' }))
+    } catch (e) { alert(e.message) }
+    finally { setBusy(b => ({ ...b, [izinId]: false })) }
+  }
+
+  const hasLinked = !!user?.linked_siswa_id
+
+  const STATUS_LBL = {
+    menunggu_ortu: '⏳ Menunggu Persetujuan Anda',
+    pending: '⏳ Menunggu Wali Kelas',
+    disetujui_wali: '🔄 Menunggu Admin',
+    disetujui: '✅ Disetujui',
+    ditolak: '❌ Ditolak',
+    ditolak_wali: '❌ Ditolak Wali',
+  }
+  const STATUS_CLR = {
+    menunggu_ortu: '#7c3aed', pending: '#d97706',
+    disetujui_wali: '#0284c7', disetujui: '#15803d',
+    ditolak: '#dc2626', ditolak_wali: '#dc2626',
+  }
+
+  if (!hasLinked) return (
+    <div style={{ padding: '2rem', textAlign: 'center', color: '#64748b', fontSize: fz }}>
+      <div style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>🔗</div>
+      <p style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Akun belum terhubung ke siswa</p>
+      <p style={{ fontSize: '0.75rem' }}>Hubungi admin untuk menghubungkan akun Anda dengan data siswa.</p>
+    </div>
+  )
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {/* Filter bar */}
+      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        {[
+          { val: 'menunggu_ortu', label: '⏳ Perlu Disetujui' },
+          { val: 'semua',         label: '📋 Semua Riwayat' },
+          { val: 'disetujui',     label: '✅ Disetujui' },
+          { val: 'ditolak',       label: '❌ Ditolak' },
+        ].map(f => (
+          <button key={f.val} onClick={() => setFilter(f.val)} style={{
+            padding: '0.375rem 0.875rem', borderRadius: 999, fontSize: btnFz,
+            fontFamily: "'Poppins', sans-serif", fontWeight: 600, cursor: 'pointer',
+            border: filter === f.val ? '2px solid #0284c7' : '2px solid #e2e8f0',
+            background: filter === f.val ? '#e0f2fe' : '#fff',
+            color: filter === f.val ? '#0284c7' : '#64748b',
+          }}>{f.label}</button>
+        ))}
+      </div>
+
+      {loading && (
+        <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b', fontSize: fz }}>
+          ⏳ Memuat data...
+        </div>
+      )}
+
+      {err && (
+        <div style={{ padding: '1rem', background: '#fef2f2', border: '1px solid #fca5a5',
+          borderRadius: 10, color: '#dc2626', fontSize: fz }}>
+          ⚠️ {err}
+        </div>
+      )}
+
+      {!loading && items.length === 0 && (
+        <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b', fontSize: fz,
+          background: '#fff', borderRadius: 14, border: '1px solid #e2e8f0' }}>
+          <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📭</div>
+          <p>Tidak ada pengajuan izin</p>
+        </div>
+      )}
+
+      {items.map(item => (
+        <div key={item.izin_id} style={{
+          background: '#fff', border: '1px solid #e2e8f0',
+          borderLeft: `4px solid ${STATUS_CLR[item.status] ?? '#94a3b8'}`,
+          borderRadius: 14, padding: simple ? '1.25rem' : '1rem',
+          boxShadow: '0 1px 3px rgba(0,0,0,.04)',
+        }}>
+          {/* Header kartu */}
+          <div style={{ display: 'flex', justifyContent: 'space-between',
+            alignItems: 'flex-start', gap: '0.5rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
+            <div>
+              <div style={{ fontWeight: 700, fontSize: fz, color: '#0f172a' }}>
+                {item.nama_lengkap ?? '—'}
+              </div>
+              <div style={{ fontSize: '0.75rem', color: '#64748b', marginTop: 2 }}>
+                {item.jenis?.toUpperCase()} · {item.tanggal_mulai} s/d {item.tanggal_selesai}
+              </div>
+            </div>
+            <span style={{
+              padding: '0.25rem 0.75rem', borderRadius: 999, fontSize: '0.7rem',
+              fontWeight: 600, background: STATUS_CLR[item.status] ?? '#94a3b8', color: '#fff',
+            }}>
+              {STATUS_LBL[item.status] ?? item.status}
+            </span>
+          </div>
+
+          {/* Alasan */}
+          <p style={{ fontSize: fz, color: '#475569', margin: '0 0 0.75rem',
+            background: '#f8fafc', borderRadius: 8, padding: '0.5rem 0.75rem' }}>
+            📝 {item.alasan}
+          </p>
+
+          {/* Form approve/reject — hanya untuk menunggu_ortu */}
+          {item.status === 'menunggu_ortu' && (
+            <div style={{ marginTop: '0.5rem' }}>
+              <textarea
+                placeholder="Catatan untuk wali kelas (opsional)..."
+                value={catatan[item.izin_id] ?? ''}
+                onInput={e => setCatatan(p => ({ ...p, [item.izin_id]: e.currentTarget.value }))}
+                rows={2}
+                style={{
+                  width: '100%', padding: '0.5rem 0.75rem', borderRadius: 8,
+                  border: '1px solid #e2e8f0', fontFamily: "'Poppins', sans-serif",
+                  fontSize: '0.75rem', resize: 'vertical', marginBottom: '0.625rem',
+                  background: '#f8fafc', color: '#0f172a',
+                }}
+              />
+              <div style={{ display: 'flex', gap: '0.5rem' }}>
+                <button
+                  onClick={() => handleAction(item.izin_id, 'approve')}
+                  disabled={busy[item.izin_id]}
+                  style={{
+                    flex: 1, padding: '0.5rem', borderRadius: 8, border: 'none',
+                    background: busy[item.izin_id] ? '#e2e8f0' : '#15803d',
+                    color: '#fff', fontFamily: "'Poppins', sans-serif",
+                    fontSize: btnFz, fontWeight: 600, cursor: busy[item.izin_id] ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {busy[item.izin_id] ? '⏳' : '✅ Setujui'}
+                </button>
+                <button
+                  onClick={() => handleAction(item.izin_id, 'reject')}
+                  disabled={busy[item.izin_id]}
+                  style={{
+                    flex: 1, padding: '0.5rem', borderRadius: 8, border: 'none',
+                    background: busy[item.izin_id] ? '#e2e8f0' : '#dc2626',
+                    color: '#fff', fontFamily: "'Poppins', sans-serif",
+                    fontSize: btnFz, fontWeight: 600, cursor: busy[item.izin_id] ? 'not-allowed' : 'pointer',
+                  }}
+                >
+                  {busy[item.izin_id] ? '⏳' : '❌ Tolak'}
+                </button>
+              </div>
+            </div>
+          )}
+
+          {/* Catatan ortu jika sudah diproses */}
+          {item.ortu_catatan && item.status !== 'menunggu_ortu' && (
+            <div style={{ marginTop: '0.5rem', fontSize: '0.75rem', color: '#64748b',
+              background: '#f8fafc', borderRadius: 8, padding: '0.5rem 0.75rem' }}>
+              Catatan ortu: {item.ortu_catatan}
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   )
 }

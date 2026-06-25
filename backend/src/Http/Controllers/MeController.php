@@ -23,8 +23,14 @@ final class MeController
         $user = $this->auth->user();
         $userId = (int) $user->user_id;
 
+        $userData = $this->authService->formatUser($user);
+        // Tambah linked_siswa_id untuk role ortu
+        $userData['linked_siswa_id'] = isset($user->linked_siswa_id)
+            ? (int) $user->linked_siswa_id
+            : null;
+
         Response::success('Data user aktif.', [
-            'user' => $this->authService->formatUser($user),
+            'user' => $userData,
             'roles' => $this->permissionService->rolesForUser($userId),
             'permissions' => $this->permissionService->permissionsForUser($userId),
         ]);

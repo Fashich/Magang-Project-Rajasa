@@ -38,6 +38,7 @@ async function apiFetch(path, options = {}) {
 // ── Constants ─────────────────────────────────────────────────────────────────
 
 const STATUS_LABEL = {
+  menunggu_ortu:   'Menunggu Ortu',
   pending:         'Menunggu Wali',
   disetujui_wali:  'Menunggu Admin',
   ditolak_wali:    'Ditolak Wali',
@@ -46,6 +47,7 @@ const STATUS_LABEL = {
 }
 
 const STATUS_COLOR = {
+  menunggu_ortu:   '#7c3aed',
   pending:         'var(--eizin-badge-pending)',
   disetujui_wali:  'var(--eizin-badge-wali)',
   ditolak_wali:    'var(--eizin-badge-ditolak)',
@@ -287,7 +289,8 @@ function DaftarTab({ userType }) {
       {/* Stat cards */}
       <div class="eizin-stats">
         <StatCard label="Total Pengajuan"  value={summary.total}          color="var(--admin-primary)" icon="📋" />
-        <StatCard label="Menunggu Proses"  value={summary.pending}        color="#f59e0b" icon="⏳" />
+        <StatCard label="Menunggu Ortu"    value={summary.menunggu_ortu ?? 0} color="#7c3aed" icon="👨‍👩‍👧" />
+        <StatCard label="Menunggu Wali"     value={summary.pending}        color="#f59e0b" icon="⏳" />
         <StatCard label="Menunggu Admin"   value={summary.menunggu_final} color="#8b5cf6" icon="🔄" />
         <StatCard label="Disetujui"        value={summary.disetujui}      color="#10b981" icon="✅" />
         <StatCard label="Ditolak"          value={summary.ditolak}        color="#ef4444" icon="❌" />
@@ -298,6 +301,7 @@ function DaftarTab({ userType }) {
         <select class="eizin-select" value={filterStatus}
           onChange={e => { setFilterStatus(e.target.value); setPage(1) }}>
           <option value="semua">Semua Status</option>
+          <option value="menunggu_ortu">Menunggu Ortu</option>
           <option value="pending">Menunggu Wali</option>
           <option value="disetujui_wali">Menunggu Admin</option>
           <option value="disetujui">Disetujui</option>

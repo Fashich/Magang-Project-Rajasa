@@ -83,6 +83,12 @@ final class EIzinCreateController
             Response::error('Sudah ada pengajuan izin yang aktif pada rentang tanggal ini.', [], 409); return;
         }
 
+        // Siswa → menunggu_ortu (harus disetujui ortu dulu)
+        // Admin/guru → pending (langsung ke wali kelas, skip ortu)
+        $isSiswaSubmit = ($user->user_type === 'siswa');
+        $statusAwal    = $isSiswaSubmit ? 'menunggu_ortu' : 'pending';
+        $ortuStatus    = $isSiswaSubmit ? 'pending'       : 'approved';
+
         $id = DB::table('e_izin')->insertGetId([
             'siswa_id'             => $siswaId,
             'tanggal_mulai'        => $tanggalMulai,
@@ -91,15 +97,51 @@ final class EIzinCreateController
             'alasan'               => $alasan,
             'keterangan_tambahan'  => trim($body['keterangan_tambahan'] ?? '') ?: null,
             'lampiran_url'         => trim($body['lampiran_url'] ?? '') ?: null,
-            'status'               => 'pending',
+            'status'               => $statusAwal,
+            'ortu_status'          => $ortuStatus,
             'submitted_by'         => (int) $user->user_id,
             'submitted_at'         => Carbon::now()->toDateTimeString(),
         ]);
 
-        // Kirim notifikasi ke wali kelas siswa ini
-        $this->notifikasiWali($siswaId, $id, $jenis, $tanggalMulai, $tanggalSelesai);
+        if ($isSiswaSubmit) {
+            // Siswa submit → notifikasi ke ortu terlebih dahulu
+            $this->notifikasiOrtu($siswaId, $id, $jenis, $tanggalMulai, $tanggalSelesai);
+        } else {
+            // Admin/guru submit → langsung notif ke wali kelas
+            $this->notifikasiWali($siswaId, $id, $jenis, $tanggalMulai, $tanggalSelesai);
+        }
 
         Response::success('Pengajuan izin berhasil dikirim.', ['izin_id' => $id], 201);
+    }
+
+    private function notifikasiOrtu(int $siswaId, int $izinId, string $jenis, string $dari, string $sampai): void
+    {
+        $siswa = DB::table('siswa')->where('siswa_id', $siswaId)
+            ->select('nama_lengkap')->first();
+        if (!$siswa) return;
+
+        // Cari semua user ortu yang linked ke siswa ini
+        $ortus = DB::table('users')
+            ->where('linked_siswa_id', $siswaId)
+            ->where('status', 'aktif')
+            ->where('user_type', 'ortu')
+            ->pluck('user_id');
+
+        if ($ortus->isEmpty()) return;
+
+        $notifs = $ortus->map(fn($uid) => [
+            'user_id'       => $uid,
+            'tipe'          => 'warning',
+            'judul'         => "Persetujuan {$jenis}: {$siswa->nama_lengkap}",
+            'pesan'         => "{$siswa->nama_lengkap} mengajukan {$jenis} ({$dari} s/d {$sampai}). Mohon berikan persetujuan Anda.",
+            'related_table' => 'e_izin',
+            'related_id'    => $izinId,
+            'popup_until'   => Carbon::now()->addHours(72)->toDateTimeString(),
+            'is_read'       => 0,
+            'created_at'    => Carbon::now()->toDateTimeString(),
+        ])->all();
+
+        if (!empty($notifs)) DB::table('notifikasi_user')->insert($notifs);
     }
 
     private function notifikasiWali(int $siswaId, int $izinId, string $jenis, string $dari, string $sampai): void
