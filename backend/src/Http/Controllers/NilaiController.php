@@ -100,7 +100,7 @@ final class NilaiController
             if (!empty($rombelIds)) {
                 $query->whereIn('na.rombel_id', $rombelIds);
             }
-        } elseif (!in_array($type, ['guru', 'staff', 'admin', 'super_admin'], true)) {
+        } elseif (!in_array($type, ['guru', 'staff', 'admin'], true)) {
             Response::error('Akses ditolak.', [], 403);
             return;
         }
@@ -136,7 +136,7 @@ final class NilaiController
 
     private function handleCreate(object $user, string $type): void
     {
-        if (!in_array($type, ['guru', 'staff', 'admin', 'super_admin'], true)) {
+        if (!in_array($type, ['guru', 'staff', 'admin'], true)) {
             Response::error('Hanya guru/admin yang dapat menginput nilai.', [], 403);
             return;
         }
@@ -202,7 +202,7 @@ final class NilaiController
     {
         if (!$id) { Response::error('ID nilai diperlukan.', [], 400); return; }
 
-        if (!in_array($type, ['guru', 'staff', 'admin', 'super_admin'], true)) {
+        if (!in_array($type, ['guru', 'staff', 'admin'], true)) {
             Response::error('Akses ditolak.', [], 403); return;
         }
 
@@ -233,7 +233,7 @@ final class NilaiController
     private function handleDelete(object $user, string $type, ?int $id): void
     {
         if (!$id) { Response::error('ID nilai diperlukan.', [], 400); return; }
-        if (!in_array($type, ['admin', 'super_admin'], true)) {
+        if (!in_array($type, ['admin'], true)) {
             Response::error('Hanya admin yang dapat menghapus nilai.', [], 403); return;
         }
         $exists = DB::table('nilai_akademik')->where('nilai_id', $id)->exists();

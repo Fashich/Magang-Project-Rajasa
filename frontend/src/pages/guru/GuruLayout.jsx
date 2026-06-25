@@ -1,6 +1,6 @@
 /**
  * GuruLayout.jsx
- * Root layout untuk role guru/staff — SMK Rajasa Presensi
+ * Root layout untuk role guru — SMK Rajasa Presensi
  * Mengikuti pola AdminLayout/SiswaLayout: sidebar + header fixed + content slot
  *
  * Menu sidebar:

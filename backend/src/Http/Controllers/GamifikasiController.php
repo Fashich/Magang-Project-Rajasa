@@ -59,7 +59,7 @@ final class GamifikasiController
             $siswaId = (int) $user->siswa_id;
         } elseif (!empty($_GET['siswa_id'])) {
             $siswaId = (int) $_GET['siswa_id'];
-        } elseif (in_array($type, ['admin', 'super_admin', 'guru', 'staff'], true)) {
+        } elseif (in_array($type, ['admin', 'guru', 'staff'], true)) {
             // Admin/guru tanpa siswa_id → tampilkan ringkasan statistik global
             $this->profilGlobal();
             return;
@@ -244,7 +244,7 @@ final class GamifikasiController
 
     private function hitung(object $user): void
     {
-        if (!in_array($user->user_type, ['admin', 'super_admin'], true)) {
+        if (!in_array($user->user_type, ['admin'], true)) {
             Response::error('Hanya admin yang dapat menjalankan kalkulasi.', [], 403);
             return;
         }
@@ -401,7 +401,7 @@ final class GamifikasiController
 
     private function tambahPoin(object $user): void
     {
-        if (!in_array($user->user_type, ['admin', 'super_admin'], true)) {
+        if (!in_array($user->user_type, ['admin'], true)) {
             Response::error('Hanya admin yang dapat menambah poin manual.', [], 403);
             return;
         }

@@ -21,7 +21,7 @@ use Rajasa\PresensiSiswa\Http\Middleware\AuthMiddleware;
  *   rombel_id         opsional filter
  *   mapel_id          opsional filter (untuk korelasi per mapel)
  *
- * Role: admin, guru, super_admin
+ * Role: admin, guru
  *
  * @author feature/analitik-prestasi
  */
@@ -35,7 +35,7 @@ final class AnalitikPrestasiController
     {
         $user = $this->auth->user();
 
-        if (!in_array($user->user_type, ['admin', 'super_admin', 'guru', 'staff'], true)) {
+        if (!in_array($user->user_type, ['admin', 'guru', 'staff'], true)) {
             Response::error('Akses ditolak.', [], 403);
             return;
         }

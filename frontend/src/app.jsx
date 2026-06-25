@@ -222,7 +222,7 @@ export function App() {
       return <DashboardSiswa user={authUser} onLogout={handleLogout} />;
     }
 
-    if (role === 'guru' || role === 'guru_staff' || role === 'staff' || role === 'intern') {
+    if (role === 'guru') {
       return <DashboardGuru user={authUser} onLogout={handleLogout} />;
     }
 
@@ -230,7 +230,7 @@ export function App() {
       return <DashboardOrtu user={authUser} onLogout={handleLogout} />;
     }
 
-    if (role === 'admin' || role === 'super_admin') {
+    if (role === 'admin') {
       return <DashboardAdmin user={authUser} onLogout={handleLogout} />;
     }
 

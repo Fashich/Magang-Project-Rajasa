@@ -82,7 +82,7 @@ final class TiketController
                   ->orWhereNull('t.kepada_user_id');
             });
         }
-        // admin/super_admin lihat semua
+        // admin lihat semua
 
         // Filter
         if ($status && in_array($status, ['open','in_progress','waiting','resolved','closed'], true)) {
@@ -230,11 +230,11 @@ final class TiketController
 
         if (isset($body['prioritas']) && in_array($body['prioritas'],
             ['rendah','normal','tinggi','urgent'], true) &&
-            in_array($type, ['guru','staff','admin','super_admin'], true)) {
+            in_array($type, ['guru','staff','admin'], true)) {
             $update['prioritas'] = $body['prioritas'];
         }
 
-        if (isset($body['kepada_user_id']) && in_array($type, ['admin','super_admin'], true)) {
+        if (isset($body['kepada_user_id']) && in_array($type, ['admin'], true)) {
             $update['kepada_user_id'] = $body['kepada_user_id'] ? (int) $body['kepada_user_id'] : null;
         }
 
@@ -261,7 +261,7 @@ final class TiketController
             if ($tiket->status !== 'open') {
                 Response::error('Hanya tiket open yang dapat dihapus.', [], 409); return;
             }
-        } elseif (!in_array($type, ['admin','super_admin'], true)) {
+        } elseif (!in_array($type, ['admin'], true)) {
             Response::error('Akses ditolak.', [], 403); return;
         }
 
@@ -288,7 +288,7 @@ final class TiketController
         }
 
         $isInternal = !empty($body['is_internal']) &&
-                      in_array($user->user_type, ['guru','staff','admin','super_admin'], true)
+                      in_array($user->user_type, ['guru','staff','admin'], true)
                       ? 1 : 0;
 
         $now = Carbon::now()->toDateTimeString();
@@ -303,7 +303,7 @@ final class TiketController
 
         // Update tiket: reply_count, last_reply_at, status
         $newStatus = $tiket->status;
-        if (in_array($user->user_type, ['guru','staff','admin','super_admin'], true)) {
+        if (in_array($user->user_type, ['guru','staff','admin'], true)) {
             $newStatus = 'in_progress';
         } elseif ($tiket->status === 'resolved') {
             $newStatus = 'waiting'; // Siswa balas setelah resolved → reopen
@@ -410,7 +410,7 @@ final class TiketController
         } else {
             // Broadcast ke semua admin aktif
             $admins = DB::table('users')
-                ->whereIn('user_type', ['admin','super_admin'])
+                ->whereIn('user_type', ['admin'])
                 ->where('status', 'aktif')
                 ->pluck('user_id');
 
