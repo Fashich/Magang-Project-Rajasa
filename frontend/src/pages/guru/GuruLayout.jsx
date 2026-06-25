@@ -248,6 +248,7 @@ function LogoutOverlay({ state, onConfirm, onCancel }) {
 export default function GuruLayout({ user, onLogout, renderPage }) {
   const [activePage,  setActivePage]  = useState('dashboard')
   const [collapsed,   setCollapsed]   = useState(false)
+  const [mobileOpen,  setMobileOpen]  = useState(false)
   const [theme,       setTheme]       = useState(() => localStorage.getItem(THEME_KEY) || 'light')
   const [logoutState, setLogoutState] = useState('idle')
   const abortRef = useRef(null)
@@ -257,7 +258,17 @@ export default function GuruLayout({ user, onLogout, renderPage }) {
     localStorage.setItem(THEME_KEY, theme)
   }, [theme])
 
+  useEffect(() => { setMobileOpen(false) }, [activePage])
+
   const handleToggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), [])
+
+  const handleToggle = useCallback(() => {
+    if (window.innerWidth < 768) {
+      setMobileOpen(o => !o)
+    } else {
+      setCollapsed(o => !o)
+    }
+  }, [])
 
   const handleLogoutConfirm = useCallback(async () => {
     setLogoutState('loading')
@@ -289,7 +300,10 @@ export default function GuruLayout({ user, onLogout, renderPage }) {
   }, [])
 
   return (
-    <div class={`guru-layout${collapsed ? ' sidebar-collapsed' : ''}`}>
+    <div class={`guru-layout${collapsed ? ' sidebar-collapsed' : ''}${mobileOpen ? ' mobile-open' : ''}`}>
+      {mobileOpen && (
+        <div class="guru-mobile-overlay" onClick={() => setMobileOpen(false)} aria-hidden="true" />
+      )}
       <GuruSidebar
         collapsed={collapsed}
         activePage={activePage}
@@ -297,7 +311,7 @@ export default function GuruLayout({ user, onLogout, renderPage }) {
         onLogout={() => setLogoutState('confirming')}
       />
       <GuruHeader
-        onToggle={() => setCollapsed(p => !p)}
+        onToggle={handleToggle}
         activePage={activePage}
         onToggleTheme={handleToggleTheme}
         user={user}

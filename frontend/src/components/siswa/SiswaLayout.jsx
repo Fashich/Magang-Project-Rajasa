@@ -243,6 +243,7 @@ function LogoutOverlay({ state, onConfirm, onCancel }) {
 export default function SiswaLayout({ user, onLogout, renderPage }) {
   const [activePage,  setActivePage]  = useState('dashboard')
   const [collapsed,   setCollapsed]   = useState(false)
+  const [mobileOpen,  setMobileOpen]  = useState(false)
   const [theme,       setTheme]       = useState(() => localStorage.getItem(THEME_KEY) || 'light')
   const [logoutState, setLogoutState] = useState('idle')
   const abortRef = useRef(null)
@@ -252,7 +253,17 @@ export default function SiswaLayout({ user, onLogout, renderPage }) {
     localStorage.setItem(THEME_KEY, theme)
   }, [theme])
 
+  useEffect(() => { setMobileOpen(false) }, [activePage])
+
   const handleToggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), [])
+
+  const handleToggle = useCallback(() => {
+    if (window.innerWidth < 768) {
+      setMobileOpen(o => !o)
+    } else {
+      setCollapsed(o => !o)
+    }
+  }, [])
 
   const handleLogoutConfirm = useCallback(async () => {
     setLogoutState('loading')
@@ -276,7 +287,7 @@ export default function SiswaLayout({ user, onLogout, renderPage }) {
   }, [])
 
   return (
-    <div className={`siswa-layout-new${collapsed ? ' collapsed' : ''}`}>
+    <div className={`siswa-layout-new${collapsed ? ' collapsed' : ''}${mobileOpen ? ' mobile-open' : ''}`}>
       <SiswaSidebar
         collapsed={collapsed}
         activePage={activePage}

@@ -284,6 +284,7 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
   const [collapsed,   setCollapsed]   = useState(false)
   const [theme,       setTheme]       = useState(() => localStorage.getItem(THEME_KEY) || 'light')
   const [logoutState, setLogoutState] = useState('idle')
+  const [mobileOpen,  setMobileOpen]  = useState(false)
   const abortRef = useRef(null)
 
   useEffect(() => {
@@ -291,7 +292,17 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
     localStorage.setItem(THEME_KEY, theme)
   }, [theme])
 
+  useEffect(() => { setMobileOpen(false) }, [activePage])
+
   const handleToggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), [])
+
+  const handleToggle = useCallback(() => {
+    if (window.innerWidth < 768) {
+      setMobileOpen(o => !o)
+    } else {
+      setCollapsed(o => !o)
+    }
+  }, [])
 
   const handleLogoutClick = useCallback(() => {
     setLogoutState('confirming')
@@ -334,7 +345,10 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
   }, [])
 
   return (
-    <div className={`admin-layout${collapsed ? ' collapsed' : ''}`}>
+    <div className={`admin-layout${collapsed ? ' collapsed' : ''}${mobileOpen ? ' mobile-open' : ''}`}>
+      {mobileOpen && (
+        <div className="admin-mobile-overlay" onClick={() => setMobileOpen(false)} aria-hidden="true" />
+      )}
       <AdminSidebar
         collapsed={collapsed}
         activePage={activePage}
@@ -343,7 +357,7 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
         user={user}
       />
       <AdminHeader
-        onToggle={() => setCollapsed(p => !p)}
+        onToggle={handleToggle}
         activePage={activePage}
         onToggleTheme={handleToggleTheme}
         theme={theme}

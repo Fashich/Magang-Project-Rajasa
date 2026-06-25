@@ -800,12 +800,68 @@
   to { transform: rotate(360deg); }
 }
 
-/* ── Logo image (Phase 0) ─────────────────────────────────────────────────── */
-.siswa-brand-img {
-  width: 38px;
-  height: 38px;
-  object-fit: contain;
-  border-radius: 8px;
-  flex-shrink: 0;
-  background: var(--clr-white);
+
+/* ─── Responsive — Phase 1 ────────────────────────────────────────────────── */
+
+/* Overlay */
+.siswa-mobile-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.55);
+  z-index: 149;
+  animation: siswaFadeOverlay .2s ease;
+  backdrop-filter: blur(2px);
+}
+@keyframes siswaFadeOverlay { from { opacity: 0; } to { opacity: 1; } }
+
+/* Tablet (768–1023px): auto-collapse */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .siswa-layout-new {
+    --sidebar-width: var(--sidebar-collapsed, 72px);
+  }
+  .siswa-sidebar-new {
+    width: 72px !important;
+  }
+  .siswa-brand-text,
+  .siswa-nav .siswa-nav-section-label,
+  .siswa-nav .siswa-nav-item span,
+  .siswa-logout-btn span {
+    display: none !important;
+  }
+  .siswa-nav .siswa-nav-item { justify-content: center; }
+  .siswa-logout-btn { justify-content: center; }
+  .siswa-content-new { margin-left: 72px !important; }
+  .siswa-header-new { left: 72px !important; }
+}
+
+/* Mobile (<768px): sidebar jadi drawer */
+@media (max-width: 767px) {
+  .siswa-layout-new {
+    --sidebar-width: 0px;
+  }
+  .siswa-header-new {
+    left: 0 !important;
+    right: 0;
+  }
+  .siswa-content-new {
+    margin-left: 0 !important;
+    padding-top: var(--header-height, 64px);
+  }
+  .siswa-sidebar-new {
+    position: fixed !important;
+    top: 0; left: 0; bottom: 0;
+    width: 272px !important;
+    transform: translateX(-100%);
+    z-index: 150;
+    box-shadow: none;
+    transition: transform .3s cubic-bezier(.4,0,.2,1), box-shadow .3s ease;
+  }
+  .siswa-layout-new.mobile-open .siswa-sidebar-new {
+    transform: translateX(0);
+    box-shadow: 4px 0 32px rgba(0,0,0,.25);
+  }
+  
+  /* Header info hide on mobile */
+  .siswa-header-user-name,
+  .siswa-header-breadcrumb { display: none !important; }
 }
