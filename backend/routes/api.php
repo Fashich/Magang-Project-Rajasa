@@ -36,6 +36,7 @@ use Rajasa\PresensiSiswa\Http\Controllers\SesiIndexController;
 use Rajasa\PresensiSiswa\Http\Controllers\SesiForceFinishController;
 use Rajasa\PresensiSiswa\Http\Controllers\AuditTrailController;
 use Rajasa\PresensiSiswa\Http\Controllers\LaporanController;
+use Rajasa\PresensiSiswa\Http\Controllers\LaporanExportController;
 use Rajasa\PresensiSiswa\Http\Controllers\AnalitikController;
 use Rajasa\PresensiSiswa\Http\Controllers\PengaturanGetController;
 use Rajasa\PresensiSiswa\Http\Controllers\PengaturanTahunAjaranController;
@@ -82,6 +83,7 @@ return function (RouteCollector $route): void {
     // ── Audit Trail (admin) ──────────────────────────────────────────────────
     $route->get('/api/admin/audit',                         AuditTrailController::class);
     $route->get('/api/admin/laporan',                       LaporanController::class);
+    $route->get('/api/admin/laporan/export',               LaporanExportController::class);
     $route->get('/api/admin/analitik',                      AnalitikController::class);
 
     // ── Pengaturan Sistem (admin) ─────────────────────────────────────────────

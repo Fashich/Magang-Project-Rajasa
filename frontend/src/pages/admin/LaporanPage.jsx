@@ -61,6 +61,25 @@ function pctColor(rate) {
   return '#ef4444'
 }
 
+
+// ── File Export (Excel / PDF dari server) ────────────────────────────────────
+async function downloadFile(params, filename) {
+  try {
+    const token = localStorage.getItem('presensi_lab_rajasa:auth_token')
+      || localStorage.getItem('auth_token') || ''
+    const res = await fetch(`/api/admin/laporan/export?${params.toString()}`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+    if (!res.ok) { alert('Export gagal. Coba lagi.'); return }
+    const blob = await res.blob()
+    const url  = URL.createObjectURL(blob)
+    const a    = document.createElement('a')
+    a.href = url; a.download = filename
+    document.body.appendChild(a); a.click()
+    document.body.removeChild(a); URL.revokeObjectURL(url)
+  } catch (e) { alert('Export error: ' + e.message) }
+}
+
 // ── CSV Export ────────────────────────────────────────────────────────────────
 
 function downloadCSV(rows, headers, filename) {
@@ -172,13 +191,17 @@ function RekapRombelTab({ dari, sampai }) {
           <div class="lp-toolbar">
             <span class="lp-toolbar-info">{data.length} rombel aktif</span>
             <div class="lp-toolbar-right">
-              <button class="lp-btn lp-btn--outline" onClick={window.print}>
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
-                Print PDF
+              <button class="lp-btn lp-btn--outline" onClick={() => {
+                const p = new URLSearchParams({ format:'pdf', jenis:'rekap_rombel', tanggal_dari:dari, tanggal_sampai:sampai })
+                downloadFile(p, `rekap-rombel_${dari}_sd_${sampai}.pdf`)
+              }}>
+                📄 Export PDF
               </button>
-              <button class="lp-btn lp-btn--primary" onClick={handleExportCSV}>
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                Export CSV
+              <button class="lp-btn lp-btn--primary" onClick={() => {
+                const p = new URLSearchParams({ format:'excel', jenis:'rekap_rombel', tanggal_dari:dari, tanggal_sampai:sampai })
+                downloadFile(p, `rekap-rombel_${dari}_sd_${sampai}.xlsx`)
+              }}>
+                📊 Export Excel
               </button>
             </div>
           </div>
@@ -457,13 +480,17 @@ function RekapHarianTab({ dari, sampai }) {
           <div class="lp-toolbar">
             <span class="lp-toolbar-info">{data.length} hari data</span>
             <div class="lp-toolbar-right">
-              <button class="lp-btn lp-btn--outline" onClick={window.print}>
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M19 8H5c-1.66 0-3 1.34-3 3v6h4v4h12v-4h4v-6c0-1.66-1.34-3-3-3zm-3 11H8v-5h8v5zm3-7c-.55 0-1-.45-1-1s.45-1 1-1 1 .45 1 1-.45 1-1 1zm-1-9H6v4h12V3z"/></svg>
-                Print PDF
+              <button class="lp-btn lp-btn--outline" onClick={() => {
+                const p = new URLSearchParams({ format:'pdf', jenis:'rekap_rombel', tanggal_dari:dari, tanggal_sampai:sampai })
+                downloadFile(p, `rekap-rombel_${dari}_sd_${sampai}.pdf`)
+              }}>
+                📄 Export PDF
               </button>
-              <button class="lp-btn lp-btn--primary" onClick={handleExportCSV}>
-                <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-                Export CSV
+              <button class="lp-btn lp-btn--primary" onClick={() => {
+                const p = new URLSearchParams({ format:'excel', jenis:'rekap_rombel', tanggal_dari:dari, tanggal_sampai:sampai })
+                downloadFile(p, `rekap-rombel_${dari}_sd_${sampai}.xlsx`)
+              }}>
+                📊 Export Excel
               </button>
             </div>
           </div>

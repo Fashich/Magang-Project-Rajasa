@@ -32,7 +32,9 @@
     "nikic/fast-route": "^1.3",
     "illuminate/database": "^12.53",
     "vlucas/phpdotenv": "^5.6",
-    "phpoffice/phpspreadsheet": "^5.7"
+    "phpoffice/phpspreadsheet": "^5.7",
+    "dompdf/dompdf": "^3.1",
+    "carbon/carbon": "^3.9"
   },
   "require-dev": {
     "phpunit/phpunit": "^11.5"
