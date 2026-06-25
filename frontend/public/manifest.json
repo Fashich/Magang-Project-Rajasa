@@ -1,0 +1,41 @@
+{
+  "name": "Presensi Lab SMK Rajasa Surabaya",
+  "short_name": "Presensi Rajasa",
+  "description": "Sistem informasi presensi lab berbasis QR untuk siswa, guru, dan orang tua SMKS Rajasa Surabaya.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#1e40af",
+  "theme_color": "#1e40af",
+  "lang": "id",
+  "categories": ["education", "productivity"],
+  "icons": [
+    {
+      "src": "/images/logo/Rajasa-Logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/logo/Rajasa-Logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/images/logo/Rajasa-Logo.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "url": "/",
+      "description": "Buka dashboard utama"
+    }
+  ]
+}

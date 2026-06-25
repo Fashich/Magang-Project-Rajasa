@@ -1,0 +1,191 @@
+<!doctype html>
+<html lang="id" data-theme="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Tidak Ada Koneksi — Presensi Rajasa</title>
+  <link rel="icon" type="image/png" href="/images/logo/Rajasa-Logo.png" />
+  <script>
+    // Terapkan tema dari localStorage
+    (function () {
+      var t = localStorage.getItem('rajasa-presensi-theme') || 'light';
+      document.documentElement.dataset.theme = t;
+    })();
+  </script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #f8fafc;
+      --surface: #ffffff;
+      --border:  #e2e8f0;
+      --text:    #0f172a;
+      --muted:   #64748b;
+      --primary: #1e40af;
+      --primary-light: #dbeafe;
+      --radius:  16px;
+      --font:    'Poppins', -apple-system, sans-serif;
+    }
+    [data-theme='dark'] {
+      --bg:      #0f172a;
+      --surface: #1e293b;
+      --border:  #334155;
+      --text:    #f1f5f9;
+      --muted:   #94a3b8;
+    }
+
+    @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap');
+
+    body {
+      font-family: var(--font);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 1.5rem;
+      transition: background 0.2s, color 0.2s;
+    }
+
+    .card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 2.5rem 2rem;
+      max-width: 400px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 4px 24px rgba(0,0,0,.06);
+    }
+
+    .logo {
+      width: 72px;
+      height: 72px;
+      object-fit: contain;
+      border-radius: 14px;
+      margin: 0 auto 1.25rem;
+    }
+
+    .icon {
+      font-size: 3rem;
+      margin-bottom: 1rem;
+      display: block;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.5; }
+    }
+
+    h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 0.5rem;
+    }
+
+    p {
+      font-size: 0.875rem;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 1.5rem;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.625rem 1.5rem;
+      background: var(--primary);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      font-family: var(--font);
+      font-size: 0.875rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.15s;
+      width: 100%;
+      justify-content: center;
+    }
+
+    .btn:hover { opacity: 0.88; }
+    .btn:active { opacity: 0.75; }
+
+    .btn-sec {
+      margin-top: 0.625rem;
+      background: transparent;
+      color: var(--muted);
+      border: 1px solid var(--border);
+    }
+
+    .status-bar {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      justify-content: center;
+      font-size: 0.75rem;
+      color: var(--muted);
+      margin-top: 1.5rem;
+      padding-top: 1.25rem;
+      border-top: 1px solid var(--border);
+    }
+
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: #dc2626;
+      animation: blink 1.5s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.2; }
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img src="/images/logo/Rajasa-Logo.png" alt="SMK Rajasa" class="logo"
+      onerror="this.style.display='none'" />
+
+    <span class="icon">📡</span>
+
+    <h1>Tidak Ada Koneksi Internet</h1>
+    <p>
+      Presensi Rajasa membutuhkan koneksi internet untuk bekerja.<br />
+      Periksa WiFi atau data seluler Anda, lalu coba lagi.
+    </p>
+
+    <button class="btn" onclick="window.location.reload()">
+      🔄 Coba Lagi
+    </button>
+    <button class="btn btn-sec" onclick="history.back()">
+      ← Kembali
+    </button>
+
+    <div class="status-bar">
+      <div class="dot"></div>
+      <span id="status-text">Mendeteksi koneksi...</span>
+    </div>
+  </div>
+
+  <script>
+    // Auto-reload saat koneksi kembali
+    window.addEventListener('online', () => {
+      document.getElementById('status-text').textContent = 'Koneksi tersambung! Memuat ulang...';
+      setTimeout(() => window.location.href = '/', 1000);
+    });
+    window.addEventListener('offline', () => {
+      document.getElementById('status-text').textContent = 'Offline — tidak ada koneksi';
+    });
+    // Set status awal
+    document.getElementById('status-text').textContent = navigator.onLine
+      ? 'Koneksi tersambung — halaman tidak tersedia offline'
+      : 'Offline — tidak ada koneksi';
+  </script>
+</body>
+</html>
