@@ -73,7 +73,7 @@ final class LogbookIndexController
             }
             $query->where('lb.siswa_id', (int) $user->siswa_id);
 
-        } elseif (in_array($type, ['guru', 'staff'], true)) {
+        } elseif (in_array($type, ['guru'], true)) {
             if (empty($user->guru_id)) {
                 Response::error('Data guru tidak ditemukan.', [], 403);
                 return;
@@ -100,13 +100,13 @@ final class LogbookIndexController
                       ->orWhere('lb.status', 'menunggu_review');
                 });
 
-        } elseif (!in_array($type, ['admin', 'super_admin'], true)) {
+        } elseif (!in_array($type, ['admin'], true)) {
             Response::error('Akses ditolak.', [], 403);
             return;
         }
 
         // ── Filter opsional ───────────────────────────────────────────────────
-        if (!empty($_GET['siswa_id']) && in_array($type, ['guru', 'staff', 'admin', 'super_admin'], true)) {
+        if (!empty($_GET['siswa_id']) && in_array($type, ['guru', 'admin'], true)) {
             $query->where('lb.siswa_id', (int) $_GET['siswa_id']);
         }
 
@@ -173,7 +173,7 @@ final class LogbookIndexController
 
         if ($type === 'siswa') {
             $q->where('lb.siswa_id', (int) $user->siswa_id);
-        } elseif (in_array($type, ['guru', 'staff'], true)) {
+        } elseif (in_array($type, ['guru'], true)) {
             $q->where('lb.guru_id', (int) $user->guru_id);
         }
 

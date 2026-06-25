@@ -102,11 +102,11 @@ function DetailModal({ item, userType, onClose, onReview, onEdit, onDelete }) {
   const [loading, setLoading] = useState(false)
   const [reviewErr, setReviewErr] = useState('')
 
-  const isGuru = ['guru', 'staff', 'admin', 'super_admin'].includes(userType)
+  const isGuru = ['guru', 'admin'].includes(userType)
   const isSiswa = userType === 'siswa'
   const canReview = isGuru && item.status === 'menunggu_review'
   const canEdit = isSiswa && ['draft', 'ditolak'].includes(item.status)
-  const canDelete = (isSiswa && item.status === 'draft') || ['admin', 'super_admin'].includes(userType)
+  const canDelete = (isSiswa && item.status === 'draft') || ['admin'].includes(userType)
 
   async function handleReview(action) {
     setReviewErr('')
@@ -476,7 +476,7 @@ function TabDaftar({ userType, summary, onSummaryChange }) {
   })
 
   const isSiswa = userType === 'siswa'
-  const isGuru  = ['guru', 'staff'].includes(userType)
+  const isGuru  = ['guru'].includes(userType)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -623,7 +623,7 @@ function TabPenilaian({ userType }) {
   const [loading, setLoading] = useState(true)
   const [modal, setModal]   = useState(null) // { siswaId, namaSiswa, existing? }
 
-  const isGuru = ['guru', 'staff', 'admin', 'super_admin'].includes(userType)
+  const isGuru = ['guru', 'admin'].includes(userType)
   const isSiswa = userType === 'siswa'
 
   const load = useCallback(async () => {

@@ -64,7 +64,7 @@ final class LogbookUpdateController
         }
 
         // ── Guru: review ──────────────────────────────────────────────────────
-        if (in_array($type, ['guru', 'staff'], true)) {
+        if (in_array($type, ['guru'], true)) {
             if ($logbook->status !== 'menunggu_review') {
                 Response::error("Logbook status '{$logbook->status}' tidak perlu direview.", [], 409);
                 return;
@@ -79,7 +79,7 @@ final class LogbookUpdateController
         }
 
         // ── Admin: bisa edit apapun ───────────────────────────────────────────
-        if (in_array($type, ['admin', 'super_admin'], true)) {
+        if (in_array($type, ['admin'], true)) {
             if (isset($body['action'])) {
                 $this->guruReview($id, $logbook, $body, $user);
             } else {

@@ -57,7 +57,7 @@ final class EIzinApproveController
         $catatan = trim($body['catatan'] ?? '');
 
         // ── Approval level 1: Wali Kelas ──────────────────────────────────────
-        if ($type === 'guru') {
+        if (in_array($type, ['guru'], true)) {
             if ($izin->status !== 'pending') {
                 Response::error('Izin ini sudah tidak bisa diproses (status: '.$izin->status.').', [], 409); return;
             }
@@ -94,7 +94,7 @@ final class EIzinApproveController
         }
 
         // ── Approval level 2: Admin ───────────────────────────────────────────
-        if ($type === 'admin') {
+        if (in_array($type, ['admin'], true)) {
             // Admin bisa approve dari disetujui_wali atau langsung dari pending
             if (!in_array($izin->status, ['pending','disetujui_wali'], true)) {
                 Response::error('Izin ini sudah tidak bisa diproses (status: '.$izin->status.').', [], 409); return;
@@ -148,7 +148,7 @@ final class EIzinApproveController
     private function notifikasiAdmin(int $izinId, string $namaSiswa, string $jenis): void
     {
         $admins = DB::table('users')
-            ->where('user_type', 'admin')
+            ->whereIn('user_type', ['admin'])
             ->where('status','aktif')
             ->pluck('user_id')->all();
 

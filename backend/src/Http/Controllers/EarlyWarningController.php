@@ -57,7 +57,7 @@ final class EarlyWarningController
 
         $options = ['days' => $days, 'min_absences' => $minAbsences];
 
-        if (in_array($userType, ['guru', 'staff'], true) && !empty($user->guru_id)) {
+        if (in_array($userType, ['guru'], true) && !empty($user->guru_id)) {
             // Guru: filter ke rombel yang dia jadi wali kelas
             $rombelIds = RombelWaliKelas::query()
                 ->where('guru_id', (int) $user->guru_id)
@@ -72,13 +72,13 @@ final class EarlyWarningController
         } elseif ($userType === 'siswa') {
             $options['siswa_id'] = (int) $user->siswa_id;
 
-        } elseif (!in_array($userType, ['admin', 'super_admin'], true)) {
+        } elseif (!in_array($userType, ['admin'], true)) {
             Response::error('Role tidak didukung.', [], 403);
             return;
         }
 
         // Filter rombel_id dari query param (admin only)
-        if (in_array($userType, ['admin', 'super_admin'], true)
+        if (in_array($userType, ['admin'], true)
             && isset($_GET['rombel_id']) && $_GET['rombel_id'] !== '') {
             $options['rombel_ids'] = [(int) $_GET['rombel_id']];
         }
@@ -96,7 +96,7 @@ final class EarlyWarningController
 
     private function handleNotify(object $user): void
     {
-        if (!in_array($user->user_type, ['admin', 'super_admin'], true)) {
+        if (!in_array($user->user_type, ['admin'], true)) {
             Response::error('Hanya admin yang dapat mengirim notifikasi.', [], 403);
             return;
         }

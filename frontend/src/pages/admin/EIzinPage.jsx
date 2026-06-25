@@ -183,8 +183,8 @@ function ApproveModal({ izin, onClose, onDone }) {
 
 function DetailModal({ izin, onClose, onAct, userType }) {
   const canAct =
-    (izin.status === 'pending'        && ['guru','staff'].includes(userType)) ||
-    (izin.status === 'disetujui_wali' && ['admin','super_admin'].includes(userType))
+    (izin.status === 'pending'        && ['guru'].includes(userType)) ||
+    (izin.status === 'disetujui_wali' && ['admin'].includes(userType))
 
   return (
     <div class="eizin-modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
@@ -279,8 +279,8 @@ function DaftarTab({ userType }) {
   }
 
   const canAct = (izin) =>
-    (izin.status === 'pending'        && ['guru','staff'].includes(userType)) ||
-    (izin.status === 'disetujui_wali' && ['admin','super_admin'].includes(userType))
+    (izin.status === 'pending'        && ['guru'].includes(userType)) ||
+    (izin.status === 'disetujui_wali' && ['admin'].includes(userType))
 
   return (
     <div class="eizin-tab-content">

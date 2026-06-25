@@ -850,7 +850,7 @@ function ModalInputNilai({ onClose, onSaved }) {
 export default function AnalitikPrestasiPage() {
   const user     = getUser()
   const userType = user?.user_type ?? 'admin'
-  const canInput = ['admin', 'super_admin', 'guru', 'staff'].includes(userType)
+  const canInput = ['admin', 'guru'].includes(userType)
 
   const [tab,           setTab]           = useState('korelasi')
   const [showInputNilai, setShowInputNilai] = useState(false)

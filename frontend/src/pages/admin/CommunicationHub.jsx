@@ -195,7 +195,7 @@ function PanelDetail({ tiket, user, userType, onClose, onUpdated }) {
   const [err,      setErr]      = useState('')
   const bottomRef = useRef(null)
 
-  const isGuru  = ['guru','staff','admin','super_admin'].includes(userType)
+  const isGuru  = ['guru','admin'].includes(userType)
   const canReply = !['resolved','closed'].includes(tiket.status)
 
   const loadBalasan = useCallback(async () => {
@@ -510,7 +510,7 @@ export default function CommunicationHub() {
 
               {/* Tombol delete (untuk pemilik + open, atau admin) */}
               {(item.is_own && item.status === 'open') ||
-               ['admin','super_admin'].includes(userType) ? (
+               ['admin'].includes(userType) ? (
                 <button
                   class="ch-delete-btn"
                   onClick={e => { e.stopPropagation(); handleDelete(item.tiket_id) }}

@@ -42,7 +42,7 @@ final class LogbookDeleteController
                 Response::error('Hanya entri berstatus draft yang dapat dihapus.', [], 409);
                 return;
             }
-        } elseif (!in_array($type, ['admin', 'super_admin'], true)) {
+        } elseif (!in_array($type, ['admin'], true)) {
             Response::error('Akses ditolak.', [], 403);
             return;
         }

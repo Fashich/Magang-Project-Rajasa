@@ -77,7 +77,6 @@ function userTypeBadge(type) {
     staff:      { label: 'Staff',    cls: 'at-badge at-badge--staff'  },
     siswa:      { label: 'Siswa',    cls: 'at-badge at-badge--siswa'  },
     intern:     { label: 'Intern',   cls: 'at-badge at-badge--intern' },
-    super_admin:{ label: 'Super',    cls: 'at-badge at-badge--admin'  },
   }
   const { label, cls } = map[type] || { label: type, cls: 'at-badge' }
   return <span class={cls}>{label}</span>

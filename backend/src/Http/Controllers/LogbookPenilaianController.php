@@ -63,9 +63,9 @@ final class LogbookPenilaianController
 
         if ($type === 'siswa') {
             $query->where('lp.siswa_id', (int) $user->siswa_id);
-        } elseif (in_array($type, ['guru', 'staff'], true)) {
+        } elseif (in_array($type, ['guru'], true)) {
             $query->where('lp.guru_id', (int) $user->guru_id);
-        } elseif (!in_array($type, ['admin', 'super_admin'], true)) {
+        } elseif (!in_array($type, ['admin'], true)) {
             Response::error('Akses ditolak.', [], 403);
             return;
         }
@@ -84,7 +84,7 @@ final class LogbookPenilaianController
 
     private function handleCreate(object $user): void
     {
-        if (!in_array($user->user_type, ['guru', 'staff', 'admin', 'super_admin'], true)) {
+        if (!in_array($user->user_type, ['guru', 'admin'], true)) {
             Response::error('Hanya guru/admin yang dapat memberi penilaian.', [], 403);
             return;
         }
@@ -167,7 +167,7 @@ final class LogbookPenilaianController
     {
         if (!$id) { Response::error('ID penilaian diperlukan.', [], 400); return; }
 
-        if (!in_array($user->user_type, ['guru', 'staff', 'admin', 'super_admin'], true)) {
+        if (!in_array($user->user_type, ['guru', 'admin'], true)) {
             Response::error('Akses ditolak.', [], 403); return;
         }
 
@@ -175,7 +175,7 @@ final class LogbookPenilaianController
         if (!$penilaian) { Response::error('Penilaian tidak ditemukan.', [], 404); return; }
 
         // Guru hanya bisa edit penilaian miliknya
-        if (in_array($user->user_type, ['guru', 'staff'], true) &&
+        if (in_array($user->user_type, ['guru'], true) &&
             (int) $penilaian->guru_id !== (int) $user->guru_id) {
             Response::error('Penilaian ini bukan milik Anda.', [], 403); return;
         }

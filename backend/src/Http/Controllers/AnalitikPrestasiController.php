@@ -35,7 +35,7 @@ final class AnalitikPrestasiController
     {
         $user = $this->auth->user();
 
-        if (!in_array($user->user_type, ['admin', 'guru', 'staff'], true)) {
+        if (!in_array($user->user_type, ['admin', 'guru'], true)) {
             Response::error('Akses ditolak.', [], 403);
             return;
         }

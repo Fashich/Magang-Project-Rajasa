@@ -567,8 +567,8 @@ function AdminPanel() {
 export default function GamifikasiPage() {
   const user     = getUser()
   const userType = user?.user_type ?? 'siswa'
-  const isAdmin  = ['admin', 'super_admin'].includes(userType)
-  const isGuru   = ['guru', 'staff'].includes(userType)
+  const isAdmin  = ['admin'].includes(userType)
+  const isGuru   = ['guru'].includes(userType)
 
   const [tab,     setTab]     = useState('profil')
   const [siswaId, setSiswaId] = useState('')

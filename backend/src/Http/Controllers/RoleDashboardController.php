@@ -86,7 +86,7 @@ final class RoleDashboardController
         }
 
         // Guru: aggregate by rombel(s) that teacher is wali kelas for
-        if ($userType === 'guru' || $userType === 'guru_staff') {
+        if ($userType === 'guru') {
             if (empty($user->guru_id)) {
                 throw new HttpException('Akses ditolak. Guru belum dikonfigurasi.', 403);
             }
@@ -164,7 +164,7 @@ final class RoleDashboardController
         }
 
         // Admin / Super admin — school level
-        if (in_array($userType, ['admin', 'super_admin', 'staff'], true)) {
+        if (in_array($userType, ['admin'], true)) {
             $counts = PresensiJamSiswa::query()
                 ->selectRaw(
                     "

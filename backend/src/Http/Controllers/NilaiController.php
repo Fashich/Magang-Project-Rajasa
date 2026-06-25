@@ -90,7 +90,7 @@ final class NilaiController
         // Role-based filter
         if ($type === 'siswa') {
             $query->where('na.siswa_id', (int) $user->siswa_id);
-        } elseif (in_array($type, ['guru', 'staff'], true) && !empty($_GET['guru_filter'])) {
+        } elseif (in_array($type, ['guru'], true) && !empty($_GET['guru_filter'])) {
             // Guru hanya lihat nilai siswa di rombel yang dia ajar
             $guruId = (int) $user->guru_id;
             $rombelIds = DB::table('rombel_wali_kelas')
@@ -100,7 +100,7 @@ final class NilaiController
             if (!empty($rombelIds)) {
                 $query->whereIn('na.rombel_id', $rombelIds);
             }
-        } elseif (!in_array($type, ['guru', 'staff', 'admin'], true)) {
+        } elseif (!in_array($type, ['guru', 'admin'], true)) {
             Response::error('Akses ditolak.', [], 403);
             return;
         }
@@ -136,7 +136,7 @@ final class NilaiController
 
     private function handleCreate(object $user, string $type): void
     {
-        if (!in_array($type, ['guru', 'staff', 'admin'], true)) {
+        if (!in_array($type, ['guru', 'admin'], true)) {
             Response::error('Hanya guru/admin yang dapat menginput nilai.', [], 403);
             return;
         }
@@ -202,7 +202,7 @@ final class NilaiController
     {
         if (!$id) { Response::error('ID nilai diperlukan.', [], 400); return; }
 
-        if (!in_array($type, ['guru', 'staff', 'admin'], true)) {
+        if (!in_array($type, ['guru', 'admin'], true)) {
             Response::error('Akses ditolak.', [], 403); return;
         }
 

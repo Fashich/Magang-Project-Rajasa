@@ -59,7 +59,7 @@ final class GamifikasiController
             $siswaId = (int) $user->siswa_id;
         } elseif (!empty($_GET['siswa_id'])) {
             $siswaId = (int) $_GET['siswa_id'];
-        } elseif (in_array($type, ['admin', 'guru', 'staff'], true)) {
+        } elseif (in_array($type, ['admin', 'guru'], true)) {
             // Admin/guru tanpa siswa_id → tampilkan ringkasan statistik global
             $this->profilGlobal();
             return;
@@ -281,8 +281,7 @@ final class GamifikasiController
                 ->whereIn('tipe', [
                     'hadir_tepat_waktu', 'hadir_terlambat', 'izin_surat',
                     'streak_7', 'streak_30', 'perfect_month', 'early_bird',
-                    'submit_logbook', 'logbook_approved',
-                ])
+                    'submit_logbook', 'logbook_approved'])
                 ->delete();
 
             // Hitung poin kehadiran harian

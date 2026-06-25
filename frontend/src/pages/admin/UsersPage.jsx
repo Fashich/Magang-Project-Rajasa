@@ -36,7 +36,6 @@ const USER_TYPE_LABELS = {
   guru:       'Guru',
   staff:      'Staff',
   admin:      'Admin',
-  super_admin:'Super Admin',
   intern:     'Intern',
 }
 

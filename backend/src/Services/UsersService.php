@@ -23,8 +23,7 @@ final class UsersService
         $query = DB::table('users')
             ->select([
                 'user_id', 'username', 'email', 'user_type',
-                'status', 'last_login_at', 'created_at',
-            ])
+                'status', 'last_login_at', 'created_at'])
             ->orderBy('created_at', 'desc');
 
         if (!empty($params['search'])) {
@@ -70,7 +69,7 @@ final class UsersService
         $userType  = $data['user_type'];
         $status    = $data['status'] ?? 'aktif';
 
-        $allowedTypes   = ['siswa', 'guru', 'staff', 'admin', 'super_admin', 'intern'];
+        $allowedTypes   = ['siswa', 'guru', 'admin'];
         $allowedStatuses = ['aktif', 'nonaktif', 'suspended'];
 
         if (!in_array($userType, $allowedTypes, true)) {
@@ -150,7 +149,7 @@ final class UsersService
         }
 
         if (isset($data['user_type'])) {
-            $allowedTypes = ['siswa', 'guru', 'staff', 'admin', 'super_admin', 'intern'];
+            $allowedTypes = ['siswa', 'guru', 'admin'];
             if (!in_array($data['user_type'], $allowedTypes, true)) {
                 throw new \InvalidArgumentException("user_type '{$data['user_type']}' tidak valid.");
             }

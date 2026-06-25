@@ -72,7 +72,7 @@ final class EIzinIndexController
         // Scope per role
         if ($type === 'siswa') {
             $query->where('ei.siswa_id', (int) $user->siswa_id);
-        } elseif (in_array($type, ['guru', 'staff'], true) && !empty($user->guru_id)) {
+        } elseif (in_array($type, ['guru'], true) && !empty($user->guru_id)) {
             $rombelIds = RombelWaliKelas::where('guru_id', (int) $user->guru_id)
                 ->where('status', 'aktif')->pluck('rombel_id')->toArray();
             if (empty($rombelIds)) {
@@ -80,7 +80,7 @@ final class EIzinIndexController
                 return;
             }
             $query->whereIn('s.rombel_id_aktif', $rombelIds);
-        } elseif (!in_array($type, ['admin','super_admin'], true)) {
+        } elseif (!in_array($type, ['admin'], true)) {
             Response::error('Akses ditolak.', [], 403); return;
         }
 
@@ -101,7 +101,7 @@ final class EIzinIndexController
             ->join('siswa AS s', 's.siswa_id', '=', 'ei.siswa_id');
         if ($type === 'siswa') {
             $summaryQ->where('ei.siswa_id', (int) $user->siswa_id);
-        } elseif (in_array($type, ['guru','staff'], true) && !empty($user->guru_id)) {
+        } elseif (in_array($type, ['guru'], true) && !empty($user->guru_id)) {
             $rombelIds = RombelWaliKelas::where('guru_id', (int)$user->guru_id)
                 ->where('status','aktif')->pluck('rombel_id')->toArray();
             if (!empty($rombelIds)) $summaryQ->whereIn('s.rombel_id_aktif', $rombelIds);

@@ -75,7 +75,7 @@ final class TiketController
         // Role-based visibility
         if ($type === 'siswa') {
             $query->where('t.dari_user_id', (int) $user->user_id);
-        } elseif (in_array($type, ['guru', 'staff'], true)) {
+        } elseif (in_array($type, ['guru'], true)) {
             // Guru lihat tiket yang ditujukan ke dia + tiket dari siswanya
             $query->where(function ($q) use ($user) {
                 $q->where('t.kepada_user_id', (int) $user->user_id)
@@ -230,7 +230,7 @@ final class TiketController
 
         if (isset($body['prioritas']) && in_array($body['prioritas'],
             ['rendah','normal','tinggi','urgent'], true) &&
-            in_array($type, ['guru','staff','admin'], true)) {
+            in_array($type, ['guru','admin'], true)) {
             $update['prioritas'] = $body['prioritas'];
         }
 
@@ -288,7 +288,7 @@ final class TiketController
         }
 
         $isInternal = !empty($body['is_internal']) &&
-                      in_array($user->user_type, ['guru','staff','admin'], true)
+                      in_array($user->user_type, ['guru','admin'], true)
                       ? 1 : 0;
 
         $now = Carbon::now()->toDateTimeString();
@@ -303,7 +303,7 @@ final class TiketController
 
         // Update tiket: reply_count, last_reply_at, status
         $newStatus = $tiket->status;
-        if (in_array($user->user_type, ['guru','staff','admin'], true)) {
+        if (in_array($user->user_type, ['guru','admin'], true)) {
             $newStatus = 'in_progress';
         } elseif ($tiket->status === 'resolved') {
             $newStatus = 'waiting'; // Siswa balas setelah resolved → reopen
@@ -366,7 +366,7 @@ final class TiketController
         $q = DB::table('tiket AS t');
         if ($type === 'siswa') {
             $q->where('t.dari_user_id', (int) $user->user_id);
-        } elseif (in_array($type, ['guru','staff'], true)) {
+        } elseif (in_array($type, ['guru'], true)) {
             $q->where(function ($qb) use ($user) {
                 $qb->where('t.kepada_user_id', (int) $user->user_id)
                    ->orWhereNull('t.kepada_user_id');
