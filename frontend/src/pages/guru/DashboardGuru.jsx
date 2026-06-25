@@ -65,12 +65,21 @@ function PageDashboard({ onNav }) {
   useEffect(() => {
     let mounted = true
     Promise.allSettled([
-      apiFetch('/dashboard'),
+      apiFetch('/presensi/jam-siswa?per_page=1'),
       apiFetch('/presensi/sesi/aktif'),
       apiFetch('/early-warnings?limit=5'),
     ]).then(([d, s, w]) => {
       if (!mounted) return
-      if (d.status === 'fulfilled') setStats(d.value.data ?? d.value)
+      if (d.status === 'fulfilled') {
+        const sm = d.value.data?.summary ?? {}
+        setStats({ totals: {
+          tepat_waktu: sm.hadir ?? 0,
+          terlambat:   sm.terlambat ?? 0,
+          alpha:       sm.alpha ?? 0,
+          sakit:       sm.sakit ?? 0,
+          izin:        sm.izin ?? 0,
+        }})
+      }
       if (s.status === 'fulfilled') setSesi(s.value.data?.sesi ?? null)
       if (w.status === 'fulfilled') setWarnings(w.value.data?.warnings ?? [])
       setLoading(false)

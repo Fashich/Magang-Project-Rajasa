@@ -222,7 +222,7 @@ export function App() {
       return <DashboardSiswa user={authUser} onLogout={handleLogout} />;
     }
 
-    if (role === 'guru' || role === 'guru_staff' || role === 'staff') {
+    if (role === 'guru' || role === 'guru_staff' || role === 'staff' || role === 'intern') {
       return <DashboardGuru user={authUser} onLogout={handleLogout} />;
     }
 
