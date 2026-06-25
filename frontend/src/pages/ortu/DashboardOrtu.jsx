@@ -1,28 +1,25 @@
 /**
- * DashboardOrtu.jsx
- * Dashboard untuk role ortu/wali_murid
+ * DashboardOrtu.jsx — with Accessibility Features
  *
- * Karena tidak ada relasi ortu↔siswa di database,
- * orang tua input NIS anak untuk memantau kehadiran.
- *
- * Fitur:
- *   - Input NIS anak → simpan di localStorage
- *   - Ringkasan kehadiran anak
- *   - Riwayat presensi 30 hari terakhir
- *   - Status logbook PKL anak
- *   - Communication Hub (bisa kirim tiket ke guru/admin)
+ * Fitur aksesibilitas:
+ *   1. Mode Sederhana — tampilkan 1 info utama (hadir/tidak hadir hari ini)
+ *      font besar, tombol besar, kontras tinggi
+ *   2. QR Scan — scan kartu siswa sebagai alternatif input NIS
+ *   3. Multi-bahasa — Indonesia / Jawa / Madura
  *
  * @author development
  */
 
-import { useState, useEffect, useCallback } from 'preact/hooks'
+import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
 import CommunicationHub from '../admin/CommunicationHub'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-const API = import.meta.env.VITE_API_URL || '/api'
+const API     = import.meta.env.VITE_API_URL || '/api'
 const NIS_KEY = 'rajasa_ortu_nis'
-const THEME_KEY = 'presensi_lab_rajasa:theme'
+const LANG_KEY = 'rajasa_ortu_lang'
+const SIMPLE_KEY = 'rajasa_ortu_simple'
+const THEME_KEY  = 'presensi_lab_rajasa:theme'
 
 function getToken() {
   return localStorage.getItem('presensi_lab_rajasa:auth_token')
@@ -45,241 +42,434 @@ async function apiFetch(path, opts = {}) {
 
 function fmtDate(d) {
   if (!d) return '—'
-  return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
+  return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'long', year: 'numeric' })
 }
 
-// ── Styles inline ─────────────────────────────────────────────────────────────
-const colors = {
-  primary:  '#0284c7',
-  pLight:   '#e0f2fe',
-  success:  '#15803d',
-  warning:  '#d97706',
-  danger:   '#dc2626',
-  muted:    '#64748b',
-  surface:  '#ffffff',
-  bg:       '#f0f9ff',
-  border:   '#e2e8f0',
-  text:     '#0f172a',
+// ── Terjemahan ────────────────────────────────────────────────────────────────
+
+const T = {
+  id: {
+    appName:        'Portal Orang Tua',
+    inputNis:       'Masukkan NIS Anak',
+    inputNisHint:   'Contoh: 12345 — atau scan kartu siswa',
+    cari:           'Cari',
+    scanQR:         'Scan Kartu',
+    modeSederhana:  'Mode Sederhana',
+    modeDetail:     'Mode Detail',
+    hariIni:        'Kehadiran Hari Ini',
+    hadir:          'HADIR ✅',
+    tidakHadir:     'TIDAK HADIR ❌',
+    terlambat:      'TERLAMBAT ⏰',
+    sakit:          'SAKIT 🏥',
+    izin:           'IZIN 📋',
+    belumAda:       'Belum ada data hari ini',
+    riwayat:        'Riwayat Presensi',
+    logbook:        'Logbook PKL',
+    hubungi:        'Hubungi Guru',
+    dashboard:      'Beranda',
+    keluar:         'Keluar',
+    loading:        'Memuat...',
+    gantiNis:       'Ganti',
+    errorNis:       'NIS tidak boleh kosong',
+    errorTidakDitemukan: 'Siswa tidak ditemukan. Periksa NIS.',
+    nisDisimpan:    'Memantau:',
+    scanPetunjuk:   'Arahkan kamera ke QR Code pada kartu siswa',
+    scanBerhasil:   'NIS berhasil dibaca!',
+    scanGagal:      'QR tidak terbaca, coba lagi',
+    totalHadir:     'Total Hadir',
+    totalAlpha:     'Total Alpha',
+    bulanIni:       'Bulan Ini',
+    rateHadir:      'Tingkat Kehadiran',
+    perhatian:      '⚠️ Tingkat kehadiran rendah. Mohon diperhatikan.',
+    baik:           '✅ Kehadiran dalam kondisi baik.',
+  },
+  jv: {
+    appName:        'Portal Wong Tuwo',
+    inputNis:       'Lebokno NIS Anakmu',
+    inputNisHint:   'Tulis NIS — utowo scan kartune siswa',
+    cari:           'Goleki',
+    scanQR:         'Scan Kartu',
+    modeSederhana:  'Mode Prasojo',
+    modeDetail:     'Mode Jangkep',
+    hariIni:        'Kehadiran Dinten Iki',
+    hadir:          'RAWUH ✅',
+    tidakHadir:     'ORA RAWUH ❌',
+    terlambat:      'TELAT ⏰',
+    sakit:          'LARA 🏥',
+    izin:           'IZIN 📋',
+    belumAda:       'Durung ono data dinten iki',
+    riwayat:        'Catetan Presensi',
+    logbook:        'Logbook PKL',
+    hubungi:        'Ngomong Gurune',
+    dashboard:      'Ngarep',
+    keluar:         'Metu',
+    loading:        'Sabar...',
+    gantiNis:       'Ganti',
+    errorNis:       'NIS ora oleh kosong',
+    errorTidakDitemukan: 'Siswa ora ketemu. Cek NIS maneh.',
+    nisDisimpan:    'Ndelok:',
+    scanPetunjuk:   'Arahno kamera menyang QR Code ing kartune siswa',
+    scanBerhasil:   'NIS kasil diwaca!',
+    scanGagal:      'QR ora terbaca, coba maneh',
+    totalHadir:     'Cacah Rawuh',
+    totalAlpha:     'Cacah Alpha',
+    bulanIni:       'Wulan Iki',
+    rateHadir:      'Persentase Rawuh',
+    perhatian:      '⚠️ Kehadiran sithik. Tulung digatekno.',
+    baik:           '✅ Kehadiran apik.',
+  },
+  md: {
+    appName:        'Portal Oreng Towa',
+    inputNis:       'Masokan NIS Anakah',
+    inputNisHint:   'Noles NIS — ataoh scan kartu siswa',
+    cari:           'Pare',
+    scanQR:         'Scan Kartu',
+    modeSederhana:  'Mode Saderhana',
+    modeDetail:     'Mode Lengkap',
+    hariIni:        'Kaadiran Areh Jiah',
+    hadir:          'HADIR ✅',
+    tidakHadir:     'TADHA HADIR ❌',
+    terlambat:      'TELAT ⏰',
+    sakit:          'SAKET 🏥',
+    izin:           'IZIN 📋',
+    belumAda:       'Tadha data areh jiah',
+    riwayat:        'Catetan Presensi',
+    logbook:        'Logbook PKL',
+    hubungi:        'Obi\' Gurune',
+    dashboard:      'Beranda',
+    keluar:         'Keluar',
+    loading:        'Sabar...',
+    gantiNis:       'Ganti',
+    errorNis:       'NIS tadha oleh kosong',
+    errorTidakDitemukan: 'Siswa tadha ketemo. Periksa NIS.',
+    nisDisimpan:    'Nenggu:',
+    scanPetunjuk:   'Arahagi kamera ka QR Code e kartuna siswa',
+    scanBerhasil:   'NIS hasellah terbaca!',
+    scanGagal:      'QR tadha terbaca, coba pole',
+    totalHadir:     'Jumlah Hadir',
+    totalAlpha:     'Jumlah Alpha',
+    bulanIni:       'Bulan Jiah',
+    rateHadir:      'Tingkat Hadir',
+    perhatian:      '⚠️ Kaadiran redheh. Mohon diperhatekagi.',
+    baik:           '✅ Kaadiran bagus.',
+  },
 }
 
-const STATUS_CLR = {
-  hadir:    colors.success,
-  terlambat:colors.warning,
-  alpha:    colors.danger,
-  sakit:    '#0284c7',
-  izin:     '#7c3aed',
-}
+// ── QR Scanner Component ──────────────────────────────────────────────────────
 
-const STATUS_LBL = {
-  hadir: 'Hadir', terlambat: 'Terlambat', alpha: 'Alpha', sakit: 'Sakit', izin: 'Izin',
-}
-
-// ── Layout Shell ──────────────────────────────────────────────────────────────
-
-function OrtuLayout({ user, onLogout, children, activePage, setActivePage }) {
-  const [theme, setTheme] = useState(() => localStorage.getItem(THEME_KEY) || 'light')
-  const [collapsed, setCollapsed] = useState(false)
+function QRScanner({ onResult, onClose, t }) {
+  const videoRef = useRef(null)
+  const streamRef = useRef(null)
+  const [err, setErr] = useState('')
+  const [scanning, setScanning] = useState(false)
 
   useEffect(() => {
-    document.documentElement.dataset.theme = theme
-    localStorage.setItem(THEME_KEY, theme)
-  }, [theme])
+    let stopped = false
 
-  const initials = (user?.nama_lengkap || user?.username || 'O').charAt(0).toUpperCase()
+    async function startCamera() {
+      try {
+        const stream = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment' }
+        })
+        streamRef.current = stream
+        if (videoRef.current && !stopped) {
+          videoRef.current.srcObject = stream
+          videoRef.current.play()
+          setScanning(true)
+          scanFrame()
+        }
+      } catch (e) {
+        setErr('Kamera tidak dapat diakses. Pastikan izin kamera sudah diberikan.')
+      }
+    }
 
-  const navItems = [
-    { id: 'dashboard',     label: 'Dashboard',         icon: '🏠' },
-    { id: 'presensi',      label: 'Riwayat Presensi',  icon: '📅' },
-    { id: 'logbook',       label: 'Logbook PKL',       icon: '📒' },
-    { id: 'communication', label: 'Communication Hub', icon: '💬' },
-  ]
+    async function scanFrame() {
+      if (stopped || !videoRef.current) return
+
+      // Pakai BarcodeDetector API jika tersedia (Chrome 83+)
+      if ('BarcodeDetector' in window) {
+        try {
+          const detector = new window.BarcodeDetector({ formats: ['qr_code'] })
+          const detect = async () => {
+            if (stopped || !videoRef.current) return
+            try {
+              const barcodes = await detector.detect(videoRef.current)
+              if (barcodes.length > 0) {
+                const raw = barcodes[0].rawValue
+                // Ambil NIS dari QR — format bisa "NIS:12345" atau langsung "12345"
+                const nis = raw.includes(':') ? raw.split(':')[1].trim() : raw.trim()
+                stopCamera()
+                onResult(nis, true)
+                return
+              }
+            } catch {}
+            if (!stopped) requestAnimationFrame(detect)
+          }
+          detect()
+        } catch {}
+      } else {
+        // Fallback: tampilkan pesan manual
+        setErr('Browser ini tidak mendukung scan QR otomatis. Silakan ketik NIS secara manual.')
+      }
+    }
+
+    function stopCamera() {
+      stopped = true
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop())
+        streamRef.current = null
+      }
+    }
+
+    startCamera()
+    return () => {
+      stopped = true
+      if (streamRef.current) {
+        streamRef.current.getTracks().forEach(t => t.stop())
+      }
+    }
+  }, [])
 
   return (
     <div style={{
-      display: 'flex', minHeight: '100vh',
-      background: colors.bg, fontFamily: "'Poppins', sans-serif",
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.85)',
+      display: 'flex', flexDirection: 'column', alignItems: 'center',
+      justifyContent: 'center', zIndex: 2000, padding: '1.5rem',
     }}>
-      {/* Sidebar */}
-      <aside style={{
-        position: 'fixed', top: 0, left: 0, bottom: 0,
-        width: collapsed ? 72 : 240,
-        background: colors.surface, borderRight: `1px solid ${colors.border}`,
-        display: 'flex', flexDirection: 'column', zIndex: 100,
-        transition: 'width 0.2s ease', overflow: 'hidden',
-        boxShadow: '0 1px 3px rgba(0,0,0,.06)',
+      <div style={{
+        background: '#fff', borderRadius: 16, overflow: 'hidden',
+        width: '100%', maxWidth: 380, boxShadow: '0 20px 60px rgba(0,0,0,.4)',
       }}>
-        {/* Brand */}
         <div style={{
-          display: 'flex', alignItems: 'center', gap: '0.75rem',
-          padding: '0 1rem', height: 64, borderBottom: `1px solid ${colors.border}`,
-          flexShrink: 0,
+          background: '#0284c7', padding: '1rem 1.25rem',
+          display: 'flex', alignItems: 'center', justifyContent: 'space-between',
         }}>
+          <span style={{ color: '#fff', fontWeight: 700, fontSize: '1rem' }}>
+            📷 {t.scanQR}
+          </span>
+          <button onClick={onClose} style={{
+            background: 'rgba(255,255,255,0.2)', border: 'none', color: '#fff',
+            borderRadius: 8, padding: '0.4rem 0.75rem', cursor: 'pointer',
+            fontFamily: "'Poppins', sans-serif", fontSize: '0.875rem',
+          }}>✕</button>
+        </div>
+
+        <div style={{ padding: '1.25rem' }}>
+          <p style={{
+            margin: '0 0 1rem', fontSize: '0.9rem', textAlign: 'center',
+            color: '#475569', lineHeight: 1.6,
+          }}>
+            {t.scanPetunjuk}
+          </p>
+
+          {/* Video viewfinder */}
           <div style={{
-            width: 36, height: 36, borderRadius: 10, background: colors.primary,
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            flexShrink: 0, fontSize: '1.125rem',
-          }}>🏫</div>
-          {!collapsed && (
-            <div>
-              <div style={{ fontWeight: 700, fontSize: '0.875rem', color: colors.text, whiteSpace: 'nowrap' }}>
-                Presensi Lab
-              </div>
-              <div style={{ fontSize: '0.7rem', color: colors.muted, whiteSpace: 'nowrap' }}>
-                Portal Orang Tua
-              </div>
+            position: 'relative', width: '100%', paddingBottom: '100%',
+            background: '#0f172a', borderRadius: 12, overflow: 'hidden',
+          }}>
+            <video ref={videoRef} style={{
+              position: 'absolute', inset: 0, width: '100%', height: '100%',
+              objectFit: 'cover',
+            }} playsInline muted />
+            {/* Scan frame overlay */}
+            {scanning && !err && (
+              <div style={{
+                position: 'absolute', inset: '20%',
+                border: '3px solid #0284c7', borderRadius: 12,
+                boxShadow: '0 0 0 999px rgba(0,0,0,0.4)',
+              }} />
+            )}
+          </div>
+
+          {err && (
+            <div style={{
+              marginTop: '1rem', padding: '0.75rem', background: '#fef2f2',
+              border: '1px solid #fca5a5', borderRadius: 8,
+              color: '#dc2626', fontSize: '0.875rem', textAlign: 'center',
+            }}>
+              {err}
             </div>
           )}
+
+          {!err && scanning && (
+            <p style={{
+              margin: '1rem 0 0', textAlign: 'center',
+              fontSize: '0.8rem', color: '#64748b',
+            }}>
+              🔍 Sedang memindai...
+            </p>
+          )}
         </div>
-
-        {/* Nav */}
-        <nav style={{ flex: 1, padding: '0.75rem 0', overflowY: 'auto' }}>
-          {navItems.map(item => (
-            <button key={item.id} onClick={() => setActivePage(item.id)}
-              title={collapsed ? item.label : undefined}
-              style={{
-                display: 'flex', alignItems: 'center', gap: '0.75rem',
-                width: '100%', padding: '0.625rem 1rem', border: 'none',
-                background: activePage === item.id ? colors.pLight : 'transparent',
-                color: activePage === item.id ? colors.primary : colors.muted,
-                fontFamily: "'Poppins', sans-serif", fontSize: '0.8125rem',
-                fontWeight: activePage === item.id ? 600 : 500,
-                cursor: 'pointer', textAlign: 'left', whiteSpace: 'nowrap',
-                borderLeft: activePage === item.id ? `3px solid ${colors.primary}` : '3px solid transparent',
-                transition: 'all 0.15s',
-              }}>
-              <span style={{ fontSize: '1rem', flexShrink: 0 }}>{item.icon}</span>
-              {!collapsed && <span>{item.label}</span>}
-            </button>
-          ))}
-        </nav>
-
-        {/* Footer */}
-        <div style={{ padding: '0.75rem', borderTop: `1px solid ${colors.border}`, flexShrink: 0 }}>
-          <button onClick={onLogout}
-            style={{
-              display: 'flex', alignItems: 'center', gap: '0.75rem',
-              width: '100%', padding: '0.625rem 0.75rem', border: 'none',
-              background: 'transparent', fontFamily: "'Poppins', sans-serif",
-              fontSize: '0.8125rem', fontWeight: 500, color: colors.muted,
-              cursor: 'pointer', borderRadius: 8, transition: 'all 0.15s', whiteSpace: 'nowrap',
-            }}
-            onMouseEnter={e => { e.currentTarget.style.background = '#fee2e2'; e.currentTarget.style.color = colors.danger }}
-            onMouseLeave={e => { e.currentTarget.style.background = 'transparent'; e.currentTarget.style.color = colors.muted }}>
-            <span style={{ flexShrink: 0 }}>🚪</span>
-            {!collapsed && <span>Keluar</span>}
-          </button>
-        </div>
-      </aside>
-
-      {/* Header */}
-      <header style={{
-        position: 'fixed', top: 0, left: collapsed ? 72 : 240, right: 0,
-        height: 64, background: colors.surface, borderBottom: `1px solid ${colors.border}`,
-        display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1.5rem 0 1rem',
-        zIndex: 90, transition: 'left 0.2s ease',
-        boxShadow: '0 1px 3px rgba(0,0,0,.06)',
-      }}>
-        <button onClick={() => setCollapsed(p => !p)} style={{
-          width: 36, height: 36, border: 'none', background: 'transparent',
-          borderRadius: 8, cursor: 'pointer', fontSize: '1.25rem',
-          display: 'flex', alignItems: 'center', justifyContent: 'center',
-        }}>☰</button>
-
-        <div>
-          <div style={{ fontWeight: 700, fontSize: '1rem', color: colors.text }}>
-            {{ dashboard: 'Dashboard', presensi: 'Riwayat Presensi',
-               logbook: 'Logbook PKL', communication: 'Communication Hub' }[activePage]}
-          </div>
-          <div style={{ fontSize: '0.75rem', color: colors.muted }}>
-            Orang Tua / {{ dashboard: 'Dashboard', presensi: 'Riwayat Presensi',
-               logbook: 'Logbook PKL', communication: 'Communication Hub' }[activePage]}
-          </div>
-        </div>
-
-        <div style={{ flex: 1 }} />
-
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
-          <div style={{
-            width: 34, height: 34, borderRadius: '50%', background: colors.primary,
-            color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-            fontSize: '0.875rem', fontWeight: 700, flexShrink: 0,
-          }}>
-            {initials}
-          </div>
-          <div>
-            <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: colors.text, whiteSpace: 'nowrap' }}>
-              {user?.nama_lengkap || user?.username || 'Orang Tua'}
-            </div>
-            <div style={{ fontSize: '0.7rem', color: colors.muted }}>Orang Tua / Wali</div>
-          </div>
-        </div>
-      </header>
-
-      {/* Content */}
-      <main style={{
-        marginLeft: collapsed ? 72 : 240, marginTop: 64,
-        minHeight: 'calc(100vh - 64px)', padding: '1.5rem',
-        transition: 'margin-left 0.2s ease',
-      }}>
-        {children}
-      </main>
+      </div>
     </div>
   )
 }
 
-// ── NIS Input Card ────────────────────────────────────────────────────────────
+// ── Mode Sederhana — 1 kartu besar ───────────────────────────────────────────
 
-function NisInputCard({ savedNis, onSave }) {
-  const [input, setInput] = useState(savedNis || '')
-  const [err,   setErr]   = useState('')
-
-  function handleSave() {
-    if (!input.trim()) { setErr('NIS tidak boleh kosong.'); return }
-    onSave(input.trim())
-    setErr('')
+function ModeSederhana({ siswa, statusHariIni, t, onKeluar }) {
+  const statusConfig = {
+    hadir:      { label: t.hadir,      bg: '#15803d', emoji: '✅' },
+    terlambat:  { label: t.terlambat,  bg: '#d97706', emoji: '⏰' },
+    sakit:      { label: t.sakit,      bg: '#0284c7', emoji: '🏥' },
+    izin:       { label: t.izin,       bg: '#7c3aed', emoji: '📋' },
+    alpha:      { label: t.tidakHadir, bg: '#dc2626', emoji: '❌' },
+    null:       { label: t.belumAda,   bg: '#64748b', emoji: '❓' },
   }
+
+  const cfg = statusConfig[statusHariIni] ?? statusConfig['null']
 
   return (
     <div style={{
-      background: colors.pLight, border: `1px solid ${colors.primary}`,
-      borderRadius: 12, padding: '1.25rem', marginBottom: '1.25rem',
+      minHeight: '100vh', background: cfg.bg,
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+      padding: '2rem', fontFamily: "'Poppins', sans-serif",
     }}>
-      <p style={{ margin: '0 0 0.75rem', fontSize: '0.875rem', fontWeight: 600, color: colors.primary }}>
-        👦 Masukkan NIS Anak untuk Memantau Kehadiran
-      </p>
-      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
-        <input type="text" placeholder="Contoh: 12345"
-          value={input} onInput={e => setInput(e.target.value)}
-          onKeyDown={e => e.key === 'Enter' && handleSave()}
-          style={{
-            padding: '0.55rem 0.75rem', border: `1px solid ${colors.border}`,
-            borderRadius: 8, fontFamily: "'Poppins', sans-serif", fontSize: '0.875rem',
-            color: colors.text, background: '#fff', flex: 1, minWidth: 160,
-          }} />
-        <button onClick={handleSave} style={{
-          padding: '0.55rem 1rem', background: colors.primary, color: '#fff',
-          border: 'none', borderRadius: 8, fontFamily: "'Poppins', sans-serif",
-          fontSize: '0.8125rem', fontWeight: 600, cursor: 'pointer',
-        }}>🔍 Cari</button>
+      {/* Nama anak */}
+      <div style={{
+        background: 'rgba(255,255,255,0.15)', borderRadius: 20,
+        padding: '1.25rem 2rem', marginBottom: '2rem', textAlign: 'center',
+      }}>
+        <div style={{ fontSize: '1rem', color: 'rgba(255,255,255,0.8)', marginBottom: '0.25rem' }}>
+          {t.hariIni}
+        </div>
+        <div style={{ fontSize: '1.5rem', fontWeight: 700, color: '#fff' }}>
+          {siswa?.nama_lengkap || '—'}
+        </div>
+        <div style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.75)', marginTop: '0.2rem' }}>
+          {new Date().toLocaleDateString('id-ID', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' })}
+        </div>
       </div>
-      {err && <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: colors.danger }}>{err}</p>}
-      {savedNis && (
-        <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: colors.muted }}>
-          Saat ini memantau NIS: <strong>{savedNis}</strong>
-          <button onClick={() => onSave('')}
-            style={{ marginLeft: '0.5rem', background: 'none', border: 'none',
-              color: colors.danger, cursor: 'pointer', fontSize: '0.75rem' }}>
-            (Ganti)
-          </button>
-        </p>
-      )}
+
+      {/* Status besar */}
+      <div style={{
+        fontSize: '8rem', lineHeight: 1, marginBottom: '1.5rem',
+        filter: 'drop-shadow(0 4px 8px rgba(0,0,0,0.3))',
+      }}>
+        {cfg.emoji}
+      </div>
+
+      <div style={{
+        fontSize: '2.5rem', fontWeight: 800, color: '#fff',
+        textShadow: '0 2px 8px rgba(0,0,0,0.3)', textAlign: 'center',
+        marginBottom: '3rem',
+      }}>
+        {cfg.label.replace(/[✅❌⏰🏥📋]/g, '').trim()}
+      </div>
+
+      {/* Tombol keluar besar */}
+      <button onClick={onKeluar} style={{
+        padding: '1.25rem 3rem', background: 'rgba(255,255,255,0.2)',
+        border: '3px solid rgba(255,255,255,0.6)', borderRadius: 16,
+        color: '#fff', fontFamily: "'Poppins', sans-serif",
+        fontSize: '1.25rem', fontWeight: 700, cursor: 'pointer',
+        transition: 'background 0.15s',
+      }}>
+        🚪 {t.keluar}
+      </button>
     </div>
   )
 }
 
-// ── Page: Dashboard ───────────────────────────────────────────────────────────
+// ── NIS Input ─────────────────────────────────────────────────────────────────
 
-function PageDashboard({ nis, onSetPage }) {
+function NisInput({ savedNis, onSave, t, simple }) {
+  const [input, setInput] = useState(savedNis || '')
+  const [err, setErr] = useState('')
+  const [showScanner, setShowScanner] = useState(false)
+
+  function handleSave() {
+    if (!input.trim()) { setErr(t.errorNis); return }
+    onSave(input.trim()); setErr('')
+  }
+
+  function handleQRResult(nis, success) {
+    setShowScanner(false)
+    if (success) { setInput(nis); onSave(nis) }
+    else setErr(t.scanGagal)
+  }
+
+  const fontSize = simple ? '1.125rem' : '0.875rem'
+  const btnPad   = simple ? '0.875rem 1.5rem' : '0.55rem 1rem'
+
+  return (
+    <>
+      {showScanner && (
+        <QRScanner t={t} onResult={handleQRResult} onClose={() => setShowScanner(false)} />
+      )}
+
+      <div style={{
+        background: '#e0f2fe', border: '2px solid #0284c7',
+        borderRadius: 16, padding: simple ? '1.5rem' : '1.25rem',
+        marginBottom: simple ? '1.75rem' : '1.25rem',
+      }}>
+        {savedNis ? (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+            flexWrap: 'wrap', gap: '0.5rem',
+          }}>
+            <div>
+              <span style={{ fontSize: simple ? '1rem' : '0.8125rem', color: '#0284c7', fontWeight: 600 }}>
+                {t.nisDisimpan}
+              </span>
+              <strong style={{ fontSize: simple ? '1.25rem' : '1rem', color: '#0f172a', marginLeft: '0.5rem' }}>
+                {savedNis}
+              </strong>
+            </div>
+            <button onClick={() => onSave('')} style={{
+              padding: '0.4rem 1rem', background: '#fff', border: '2px solid #0284c7',
+              borderRadius: 8, color: '#0284c7', fontFamily: "'Poppins', sans-serif",
+              fontSize: simple ? '1rem' : '0.8rem', fontWeight: 600, cursor: 'pointer',
+            }}>
+              {t.gantiNis}
+            </button>
+          </div>
+        ) : (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <label style={{ fontSize: simple ? '1.125rem' : '0.875rem', fontWeight: 700, color: '#0284c7' }}>
+              👦 {t.inputNis}
+            </label>
+            <p style={{ margin: 0, fontSize: simple ? '1rem' : '0.8rem', color: '#475569' }}>
+              {t.inputNisHint}
+            </p>
+            <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+              <input type="text" placeholder="NIS..."
+                value={input} onInput={e => setInput(e.target.value)}
+                onKeyDown={e => e.key === 'Enter' && handleSave()}
+                style={{
+                  padding: simple ? '0.875rem' : '0.55rem 0.75rem',
+                  border: '2px solid #0284c7', borderRadius: 10,
+                  fontFamily: "'Poppins', sans-serif", fontSize,
+                  color: '#0f172a', background: '#fff', flex: 1, minWidth: 120,
+                  outline: 'none',
+                }} />
+              <button onClick={handleSave} style={{
+                padding: btnPad, background: '#0284c7', color: '#fff',
+                border: 'none', borderRadius: 10, fontFamily: "'Poppins', sans-serif",
+                fontSize, fontWeight: 700, cursor: 'pointer',
+              }}>
+                🔍 {t.cari}
+              </button>
+              <button onClick={() => setShowScanner(true)} style={{
+                padding: btnPad, background: '#fff', color: '#0284c7',
+                border: '2px solid #0284c7', borderRadius: 10, fontFamily: "'Poppins', sans-serif",
+                fontSize, fontWeight: 700, cursor: 'pointer',
+              }}>
+                📷 {t.scanQR}
+              </button>
+            </div>
+            {err && <p style={{ margin: 0, fontSize: '0.875rem', color: '#dc2626' }}>{err}</p>}
+          </div>
+        )}
+      </div>
+    </>
+  )
+}
+
+// ── Page Dashboard (mode detail) ──────────────────────────────────────────────
+
+function PageDashboard({ nis, t, simple, onSetPage }) {
   const [data,    setData]    = useState(null)
   const [loading, setLoading] = useState(false)
   const [err,     setErr]     = useState('')
@@ -296,136 +486,161 @@ function PageDashboard({ nis, onSetPage }) {
 
   useEffect(() => { load() }, [load])
 
-  const card = (label, value, icon, color) => (
-    <div style={{
-      background: colors.surface, border: `1px solid ${colors.border}`,
-      borderLeft: `3px solid ${color}`, borderRadius: 12, padding: '1rem 1.25rem',
-      display: 'flex', alignItems: 'center', gap: '1rem',
-      boxShadow: '0 1px 3px rgba(0,0,0,.06)',
-    }}>
-      <div style={{ fontSize: '1.5rem' }}>{icon}</div>
-      <div>
-        <div style={{ fontSize: '1.75rem', fontWeight: 700, color: colors.text, lineHeight: 1 }}>
-          {value ?? 0}
-        </div>
-        <div style={{ fontSize: '0.75rem', color: colors.muted, marginTop: '0.2rem' }}>{label}</div>
-      </div>
-    </div>
-  )
-
   if (!nis) return (
-    <div style={{ textAlign: 'center', padding: '3rem', color: colors.muted }}>
+    <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b' }}>
       <div style={{ fontSize: '3rem', marginBottom: '0.75rem' }}>👦</div>
-      <p style={{ fontWeight: 600 }}>Masukkan NIS anak di atas untuk melihat data kehadiran.</p>
+      <p style={{ fontWeight: 600, fontSize: simple ? '1.25rem' : '1rem' }}>
+        {t.inputNis}
+      </p>
     </div>
   )
 
-  if (loading) return <div style={{ textAlign: 'center', padding: '2rem', color: colors.muted }}>Memuat data…</div>
+  if (loading) return (
+    <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b', fontSize: simple ? '1.25rem' : '1rem' }}>
+      ⏳ {t.loading}
+    </div>
+  )
+
   if (err) return (
     <div style={{ padding: '1rem', background: '#fef2f2', border: '1px solid #fca5a5',
-      borderRadius: 10, color: colors.danger, fontSize: '0.875rem' }}>
-      {err} — Pastikan NIS yang dimasukkan benar.
+      borderRadius: 12, color: '#dc2626', fontSize: simple ? '1.125rem' : '0.875rem' }}>
+      {t.errorTidakDitemukan}
     </div>
   )
+
   if (!data) return null
 
-  const totals = data.totals ?? {}
-  const siswa  = data.siswa ?? {}
+  const totals  = data.totals ?? {}
+  const siswa   = data.siswa  ?? {}
+  const statHariIni = data.status_hari_ini ?? null
+
+  const fz = simple ? '1.125rem' : '0.8125rem'
+  const statCards = [
+    { label: t.totalHadir,  value: totals.tepat_waktu ?? 0, color: '#15803d', icon: '✅' },
+    { label: 'Terlambat',   value: totals.terlambat   ?? 0, color: '#d97706', icon: '⏰' },
+    { label: t.totalAlpha,  value: totals.alpha        ?? 0, color: '#dc2626', icon: '❌' },
+    { label: 'Sakit/Izin',  value: (totals.sakit ?? 0) + (totals.izin ?? 0), color: '#0284c7', icon: '📋' },
+  ]
+
+  const statusLbl = {
+    hadir: t.hadir, terlambat: t.terlambat, alpha: t.tidakHadir, sakit: t.sakit, izin: t.izin,
+  }
+  const statusBg = { hadir:'#15803d', terlambat:'#d97706', alpha:'#dc2626', sakit:'#0284c7', izin:'#7c3aed' }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: simple ? '1.5rem' : '1.25rem' }}>
+
       {/* Info siswa */}
       <div style={{
-        background: colors.pLight, border: `1px solid ${colors.primary}`,
-        borderRadius: 12, padding: '1.25rem',
+        background: '#e0f2fe', border: '1px solid #0284c7', borderRadius: 14,
+        padding: simple ? '1.5rem' : '1.25rem',
         display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap',
       }}>
         <div style={{
-          width: 48, height: 48, borderRadius: '50%', background: colors.primary,
-          color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
-          fontSize: '1.25rem', fontWeight: 700, flexShrink: 0,
+          width: simple ? 56 : 48, height: simple ? 56 : 48, borderRadius: '50%',
+          background: '#0284c7', color: '#fff', display: 'flex',
+          alignItems: 'center', justifyContent: 'center',
+          fontSize: simple ? '1.5rem' : '1.25rem', fontWeight: 700, flexShrink: 0,
         }}>
           {(siswa.nama_lengkap || '?').charAt(0)}
         </div>
         <div>
-          <div style={{ fontWeight: 700, fontSize: '1rem', color: colors.text }}>
+          <div style={{ fontWeight: 700, fontSize: simple ? '1.25rem' : '1rem', color: '#0f172a' }}>
             {siswa.nama_lengkap || '—'}
           </div>
-          <div style={{ fontSize: '0.8rem', color: colors.muted }}>
-            NIS: {siswa.nis || nis} · {siswa.kelas_aktif || siswa.rombel || '—'}
+          <div style={{ fontSize: simple ? '1rem' : '0.8rem', color: '#475569' }}>
+            NIS: {siswa.nis || nis} · {siswa.kelas_aktif || '—'}
           </div>
         </div>
+        {/* Status hari ini */}
+        {statHariIni && (
+          <div style={{
+            marginLeft: 'auto', padding: '0.5rem 1.25rem',
+            background: statusBg[statHariIni] ?? '#64748b', color: '#fff',
+            borderRadius: 999, fontWeight: 700, fontSize: simple ? '1rem' : '0.875rem',
+            whiteSpace: 'nowrap',
+          }}>
+            {statusLbl[statHariIni] ?? statHariIni}
+          </div>
+        )}
       </div>
 
-      {/* Stat cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.875rem' }}>
-        {card('Hadir Tepat Waktu', totals.tepat_waktu, '✅', colors.success)}
-        {card('Terlambat',         totals.terlambat,   '⏰', colors.warning)}
-        {card('Alpha',             totals.alpha,       '❌', colors.danger)}
-        {card('Sakit',             totals.sakit,       '🏥', '#0284c7')}
-        {card('Izin',              totals.izin,        '📋', '#7c3aed')}
-      </div>
-
-      {/* Tingkat kehadiran */}
+      {/* Rate hadir */}
       {totals.rate_hadir !== undefined && (
         <div style={{
-          background: colors.surface, border: `1px solid ${colors.border}`,
-          borderRadius: 12, padding: '1.25rem',
-          boxShadow: '0 1px 3px rgba(0,0,0,.06)',
+          background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14,
+          padding: simple ? '1.5rem' : '1.25rem',
         }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-            <span style={{ fontSize: '0.875rem', fontWeight: 600 }}>Tingkat Kehadiran</span>
+          <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.625rem' }}>
+            <span style={{ fontSize: simple ? '1.125rem' : '0.875rem', fontWeight: 600 }}>
+              {t.rateHadir}
+            </span>
             <span style={{
-              fontWeight: 700, fontSize: '1.125rem',
-              color: totals.rate_hadir >= 75 ? colors.success : colors.danger,
+              fontWeight: 800, fontSize: simple ? '1.5rem' : '1.125rem',
+              color: totals.rate_hadir >= 75 ? '#15803d' : '#dc2626',
             }}>
               {totals.rate_hadir}%
             </span>
           </div>
-          <div style={{ height: 8, background: colors.border, borderRadius: 999, overflow: 'hidden' }}>
+          <div style={{ height: simple ? 12 : 8, background: '#e2e8f0', borderRadius: 999, overflow: 'hidden' }}>
             <div style={{
-              height: '100%', borderRadius: 999, transition: 'width 0.5s',
-              width: `${totals.rate_hadir ?? 0}%`,
-              background: totals.rate_hadir >= 75 ? colors.success : colors.danger,
+              height: '100%', borderRadius: 999,
+              width: `${totals.rate_hadir}%`,
+              background: totals.rate_hadir >= 75 ? '#15803d' : '#dc2626',
+              transition: 'width 0.5s',
             }} />
           </div>
-          {totals.rate_hadir < 75 && (
-            <p style={{ margin: '0.5rem 0 0', fontSize: '0.75rem', color: colors.danger }}>
-              ⚠️ Tingkat kehadiran di bawah 75%. Harap perhatikan kehadiran anak.
-            </p>
-          )}
+          <p style={{
+            margin: '0.625rem 0 0', fontSize: simple ? '1rem' : '0.8rem',
+            color: totals.rate_hadir < 75 ? '#dc2626' : '#15803d',
+          }}>
+            {totals.rate_hadir < 75 ? t.perhatian : t.baik}
+          </p>
         </div>
       )}
 
-      {/* Quick links */}
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.875rem' }}>
-        {[
-          { icon: '📅', label: 'Lihat Riwayat Presensi', page: 'presensi', color: colors.primary },
-          { icon: '📒', label: 'Lihat Logbook PKL', page: 'logbook', color: '#7c3aed' },
-          { icon: '💬', label: 'Hubungi Guru/Admin', page: 'communication', color: '#0891b2' },
-        ].map(item => (
-          <button key={item.page} onClick={() => onSetPage(item.page)} style={{
-            display: 'flex', alignItems: 'center', gap: '0.75rem',
-            padding: '1rem', background: colors.surface, border: `1px solid ${colors.border}`,
-            borderRadius: 12, cursor: 'pointer', fontFamily: "'Poppins', sans-serif",
-            fontSize: '0.875rem', fontWeight: 600, color: item.color,
-            boxShadow: '0 1px 3px rgba(0,0,0,.06)', transition: 'box-shadow 0.15s',
+      {/* Stat grid */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: simple ? '1rem' : '0.875rem' }}>
+        {statCards.map(s => (
+          <div key={s.label} style={{
+            background: '#fff', border: `1px solid #e2e8f0`,
+            borderLeft: `4px solid ${s.color}`, borderRadius: 14,
+            padding: simple ? '1.25rem' : '1rem',
           }}>
-            <span style={{ fontSize: '1.25rem' }}>{item.icon}</span>
-            {item.label}
-          </button>
+            <div style={{ fontSize: simple ? '2rem' : '1.5rem', marginBottom: '0.25rem' }}>{s.icon}</div>
+            <div style={{ fontSize: simple ? '2rem' : '1.5rem', fontWeight: 800, color: '#0f172a', lineHeight: 1 }}>
+              {s.value}
+            </div>
+            <div style={{ fontSize: simple ? '0.9rem' : '0.75rem', color: '#64748b', marginTop: '0.2rem' }}>
+              {s.label} · {t.bulanIni}
+            </div>
+          </div>
         ))}
       </div>
+
+      {/* Quick action */}
+      <button onClick={() => onSetPage('communication')} style={{
+        display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.75rem',
+        padding: simple ? '1.25rem' : '0.875rem', background: '#0284c7', color: '#fff',
+        border: 'none', borderRadius: 14, fontFamily: "'Poppins', sans-serif",
+        fontSize: simple ? '1.125rem' : '0.875rem', fontWeight: 700, cursor: 'pointer',
+        width: '100%', transition: 'opacity 0.15s',
+      }}>
+        💬 {t.hubungi}
+      </button>
     </div>
   )
 }
 
-// ── Page: Presensi ────────────────────────────────────────────────────────────
+// ── Page Riwayat Presensi ─────────────────────────────────────────────────────
 
-function PagePresensi({ nis }) {
-  const [rows,    setRows]    = useState([])
+function PageRiwayat({ nis, t, simple }) {
+  const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
-  const [filter,  setFilter]  = useState('semua')
+  const [filter, setFilter] = useState('semua')
+
+  const statusLabels = { semua: 'Semua', hadir: 'Hadir', terlambat: 'Terlambat', alpha: 'Alpha', sakit: 'Sakit', izin: 'Izin' }
+  const statusBg     = { hadir:'#15803d', terlambat:'#d97706', alpha:'#dc2626', sakit:'#0284c7', izin:'#7c3aed' }
 
   const load = useCallback(async () => {
     if (!nis) return
@@ -439,183 +654,96 @@ function PagePresensi({ nis }) {
 
   useEffect(() => { load() }, [load])
 
-  if (!nis) return <div style={{ textAlign: 'center', padding: '3rem', color: colors.muted }}>
-    Masukkan NIS anak di atas terlebih dahulu.
-  </div>
+  const fz = simple ? '1rem' : '0.8125rem'
+
+  if (!nis) return (
+    <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b', fontSize: fz }}>
+      {t.inputNis}
+    </div>
+  )
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      <div style={{
-        background: colors.surface, border: `1px solid ${colors.border}`,
-        borderRadius: 12, padding: '0.875rem 1.25rem',
-        display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center',
-      }}>
-        {['semua','hadir','terlambat','alpha','sakit','izin'].map(f => (
-          <button key={f} onClick={() => setFilter(f)} style={{
-            padding: '0.35rem 0.875rem', border: `1px solid ${filter === f ? colors.primary : colors.border}`,
-            borderRadius: 999, background: filter === f ? colors.primary : 'transparent',
-            color: filter === f ? '#fff' : colors.muted, fontFamily: "'Poppins', sans-serif",
-            fontSize: '0.8rem', cursor: 'pointer', transition: 'all 0.15s',
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+      {/* Filter tombol */}
+      <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        {Object.entries(statusLabels).map(([k, v]) => (
+          <button key={k} onClick={() => setFilter(k)} style={{
+            padding: simple ? '0.625rem 1.25rem' : '0.35rem 0.875rem',
+            border: `2px solid ${filter === k ? '#0284c7' : '#e2e8f0'}`,
+            borderRadius: 999, background: filter === k ? '#0284c7' : '#fff',
+            color: filter === k ? '#fff' : '#64748b',
+            fontFamily: "'Poppins', sans-serif", fontSize: fz,
+            fontWeight: filter === k ? 700 : 500, cursor: 'pointer',
           }}>
-            {f === 'semua' ? 'Semua' : STATUS_LBL[f] ?? f}
+            {v}
           </button>
         ))}
-        <button onClick={load} style={{
-          marginLeft: 'auto', padding: '0.35rem 0.875rem',
-          border: `1px solid ${colors.border}`, borderRadius: 8,
-          background: 'transparent', color: colors.muted, fontFamily: "'Poppins', sans-serif",
-          fontSize: '0.8rem', cursor: 'pointer',
-        }}>↺ Refresh</button>
       </div>
 
-      <div style={{
-        background: colors.surface, border: `1px solid ${colors.border}`,
-        borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,.06)',
-      }}>
+      {/* Tabel / cards */}
+      <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, overflow: 'hidden' }}>
         {loading ? (
-          <div style={{ textAlign: 'center', padding: '2.5rem', color: colors.muted }}>Memuat…</div>
+          <div style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b', fontSize: fz }}>
+            ⏳ {t.loading}
+          </div>
         ) : rows.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '2.5rem', color: colors.muted }}>
-            Tidak ada data presensi.
+          <div style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b', fontSize: fz }}>
+            {t.belumAda}
+          </div>
+        ) : simple ? (
+          // Mode sederhana: cards besar
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '0.75rem' }}>
+            {rows.map((r, i) => (
+              <div key={i} style={{
+                display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                padding: '0.875rem 1rem', background: '#f8fafc', borderRadius: 10,
+                border: `1px solid ${statusBg[r.status] ?? '#e2e8f0'}`,
+              }}>
+                <div>
+                  <div style={{ fontWeight: 700, fontSize: '1.0625rem', color: '#0f172a' }}>
+                    {fmtDate(r.tanggal)}
+                  </div>
+                  <div style={{ fontSize: '0.875rem', color: '#64748b', marginTop: '0.1rem' }}>
+                    {r.ruangan || '—'}
+                  </div>
+                </div>
+                <span style={{
+                  padding: '0.4rem 1rem', borderRadius: 999, fontWeight: 700,
+                  fontSize: '0.9rem', color: '#fff',
+                  background: statusBg[r.status] ?? '#64748b',
+                }}>
+                  {statusLabels[r.status] ?? r.status}
+                </span>
+              </div>
+            ))}
           </div>
         ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
+          // Mode detail: tabel
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: fz }}>
             <thead>
               <tr>
-                {['Tanggal','Ruangan','Jam Masuk','Status','Keterangan'].map(h => (
+                {['Tanggal','Ruangan','Status'].map(h => (
                   <th key={h} style={{
                     padding: '0.625rem 1rem', textAlign: 'left', fontSize: '0.7rem',
                     fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em',
-                    color: colors.muted, background: colors.bg, borderBottom: `1px solid ${colors.border}`,
+                    color: '#64748b', background: '#f8fafc', borderBottom: '1px solid #e2e8f0',
                   }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {rows.map((r, i) => (
-                <tr key={i} style={{ borderBottom: `1px solid ${colors.border}` }}>
+                <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '0.75rem 1rem', whiteSpace: 'nowrap' }}>{fmtDate(r.tanggal)}</td>
-                  <td style={{ padding: '0.75rem 1rem' }}>{r.ruangan || r.ruangan_nama || '—'}</td>
-                  <td style={{ padding: '0.75rem 1rem', fontSize: '0.8rem' }}>
-                    {r.jam_scan ? new Date(r.jam_scan).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' }) : '—'}
-                  </td>
+                  <td style={{ padding: '0.75rem 1rem' }}>{r.ruangan || '—'}</td>
                   <td style={{ padding: '0.75rem 1rem' }}>
                     <span style={{
                       display: 'inline-block', padding: '0.2rem 0.625rem',
-                      borderRadius: 999, fontSize: '0.7rem', fontWeight: 600, color: '#fff',
-                      background: STATUS_CLR[r.status] ?? '#64748b',
+                      borderRadius: 999, fontSize: '0.7rem', fontWeight: 600,
+                      color: '#fff', background: statusBg[r.status] ?? '#64748b',
                     }}>
-                      {STATUS_LBL[r.status] ?? r.status}
+                      {statusLabels[r.status] ?? r.status}
                     </span>
-                  </td>
-                  <td style={{ padding: '0.75rem 1rem', color: colors.muted, fontSize: '0.8rem' }}>
-                    {r.keterangan || '—'}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-      </div>
-    </div>
-  )
-}
-
-// ── Page: Logbook ─────────────────────────────────────────────────────────────
-
-function PageLogbook({ nis }) {
-  const [items,   setItems]   = useState([])
-  const [summary, setSummary] = useState({})
-  const [loading, setLoading] = useState(false)
-
-  const load = useCallback(async () => {
-    if (!nis) return
-    setLoading(true)
-    try {
-      // Cari siswa_id dari NIS dulu
-      const cari = await apiFetch(`/users?search=${encodeURIComponent(nis)}&user_type=siswa`)
-      const siswaId = cari.data?.items?.[0]?.siswa_id
-      if (!siswaId) throw new Error('Siswa tidak ditemukan')
-      const res = await apiFetch(`/logbook?siswa_id=${siswaId}&per_page=20`)
-      setItems(res.data?.items ?? [])
-      setSummary(res.data?.summary ?? {})
-    } catch (e) { console.error(e) }
-    finally { setLoading(false) }
-  }, [nis])
-
-  useEffect(() => { load() }, [load])
-
-  const STATUS_CLR_LB = { draft:'#64748b', menunggu_review:'#d97706', disetujui:'#15803d', ditolak:'#dc2626' }
-  const STATUS_LBL_LB = { draft:'Draft', menunggu_review:'Menunggu', disetujui:'Disetujui', ditolak:'Dikembalikan' }
-
-  if (!nis) return <div style={{ textAlign: 'center', padding: '3rem', color: colors.muted }}>
-    Masukkan NIS anak di atas terlebih dahulu.
-  </div>
-
-  return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-      {/* Summary */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: '0.875rem' }}>
-        {[
-          { label: 'Total',       value: summary.total,     color: colors.primary },
-          { label: 'Disetujui',   value: summary.disetujui, color: colors.success },
-          { label: 'Menunggu',    value: summary.menunggu,  color: colors.warning },
-          { label: 'Dikembalikan',value: summary.ditolak,   color: colors.danger },
-        ].map(s => (
-          <div key={s.label} style={{
-            background: colors.surface, border: `1px solid ${colors.border}`,
-            borderTop: `3px solid ${s.color}`, borderRadius: 12, padding: '1rem',
-            textAlign: 'center', boxShadow: '0 1px 3px rgba(0,0,0,.06)',
-          }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: s.color, lineHeight: 1 }}>
-              {s.value ?? 0}
-            </div>
-            <div style={{ fontSize: '0.75rem', color: colors.muted, marginTop: '0.25rem' }}>{s.label}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Tabel */}
-      <div style={{
-        background: colors.surface, border: `1px solid ${colors.border}`,
-        borderRadius: 12, overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,.06)',
-      }}>
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '2.5rem', color: colors.muted }}>Memuat logbook…</div>
-        ) : items.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '2.5rem', color: colors.muted }}>
-            Belum ada entri logbook.
-          </div>
-        ) : (
-          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
-            <thead>
-              <tr>
-                {['Tanggal','Lokasi','Status','Catatan Guru'].map(h => (
-                  <th key={h} style={{
-                    padding: '0.625rem 1rem', textAlign: 'left', fontSize: '0.7rem',
-                    fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em',
-                    color: colors.muted, background: colors.bg, borderBottom: `1px solid ${colors.border}`,
-                  }}>{h}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {items.map(item => (
-                <tr key={item.logbook_id} style={{ borderBottom: `1px solid ${colors.border}` }}>
-                  <td style={{ padding: '0.75rem 1rem', whiteSpace: 'nowrap' }}>{fmtDate(item.tanggal)}</td>
-                  <td style={{ padding: '0.75rem 1rem' }}>{item.lokasi || '—'}</td>
-                  <td style={{ padding: '0.75rem 1rem' }}>
-                    <span style={{
-                      display: 'inline-block', padding: '0.2rem 0.625rem',
-                      borderRadius: 999, fontSize: '0.7rem', fontWeight: 600, color: '#fff',
-                      background: STATUS_CLR_LB[item.status] ?? '#64748b',
-                    }}>
-                      {STATUS_LBL_LB[item.status] ?? item.status}
-                    </span>
-                  </td>
-                  <td style={{ padding: '0.75rem 1rem', color: colors.muted, fontSize: '0.8rem',
-                    maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                    {item.catatan_guru || '—'}
                   </td>
                 </tr>
               ))}
@@ -630,31 +758,323 @@ function PageLogbook({ nis }) {
 // ── Main Export ───────────────────────────────────────────────────────────────
 
 export default function DashboardOrtu({ user, onLogout }) {
-  const [activePage, setActivePage] = useState('dashboard')
-  const [nis,        setNis]        = useState(() => localStorage.getItem(NIS_KEY) || '')
+  const [activePage,  setActivePage]  = useState('dashboard')
+  const [nis,         setNis]         = useState(() => localStorage.getItem(NIS_KEY) || '')
+  const [lang,        setLang]        = useState(() => localStorage.getItem(LANG_KEY) || 'id')
+  const [simple,      setSimple]      = useState(() => localStorage.getItem(SIMPLE_KEY) === 'true')
+  const [siswaData,   setSiswaData]   = useState(null)
+  const [statusHariIni, setStatusHariIni] = useState(null)
+
+  const t = T[lang] ?? T.id
 
   function handleSetNis(val) {
     setNis(val)
     if (val) localStorage.setItem(NIS_KEY, val)
-    else localStorage.removeItem(NIS_KEY)
+    else { localStorage.removeItem(NIS_KEY); setSiswaData(null); setStatusHariIni(null) }
+  }
+
+  function toggleSimple() {
+    const next = !simple
+    setSimple(next)
+    localStorage.setItem(SIMPLE_KEY, String(next))
+  }
+
+  function toggleLang() {
+    const langs = ['id', 'jv', 'md']
+    const next = langs[(langs.indexOf(lang) + 1) % langs.length]
+    setLang(next)
+    localStorage.setItem(LANG_KEY, next)
+  }
+
+  function handleLogout() {
+    localStorage.removeItem('presensi_lab_rajasa:auth_token')
+    localStorage.removeItem('presensi_lab_rajasa:auth_user')
+    localStorage.removeItem('auth_token')
+    localStorage.removeItem('user_data')
+    if (typeof onLogout === 'function') onLogout()
+  }
+
+  // Load data siswa saat NIS berubah (untuk mode sederhana)
+  useEffect(() => {
+    if (!nis) return
+    apiFetch(`/siswa/dashboard?nis=${encodeURIComponent(nis)}`)
+      .then(r => {
+        setSiswaData(r.data?.siswa ?? r.siswa ?? null)
+        setStatusHariIni(r.data?.status_hari_ini ?? null)
+      }).catch(() => {})
+  }, [nis])
+
+  const langLabel = { id: '🇮🇩 ID', jv: '☕ JV', md: '🌊 MD' }
+  const initials  = (user?.nama_lengkap || user?.username || 'O').charAt(0).toUpperCase()
+
+  const navItems = [
+    { id: 'dashboard',     label: t.dashboard,    icon: '🏠' },
+    { id: 'riwayat',       label: t.riwayat,      icon: '📅' },
+    { id: 'logbook',       label: t.logbook,       icon: '📒' },
+    { id: 'communication', label: t.hubungi,       icon: '💬' },
+  ]
+
+  const fz      = simple ? '1.125rem' : '0.8125rem'
+  const btnFz   = simple ? '1rem'     : '0.8125rem'
+  const sidebarW = simple ? 260       : 240
+
+  // Mode sederhana full screen
+  if (simple && nis && siswaData) {
+    return (
+      <div style={{ fontFamily: "'Poppins', sans-serif" }}>
+        {/* Bar atas kecil */}
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, zIndex: 100,
+          background: 'rgba(0,0,0,0.3)', display: 'flex',
+          alignItems: 'center', justifyContent: 'space-between', padding: '0.625rem 1.25rem',
+        }}>
+          <button onClick={toggleSimple} style={{
+            padding: '0.4rem 1rem', background: 'rgba(255,255,255,0.2)',
+            border: 'none', borderRadius: 8, color: '#fff',
+            fontFamily: "'Poppins', sans-serif", fontSize: '0.875rem', cursor: 'pointer',
+          }}>
+            ← {t.modeDetail}
+          </button>
+          <div style={{ display: 'flex', gap: '0.5rem' }}>
+            <button onClick={toggleLang} style={{
+              padding: '0.4rem 0.875rem', background: 'rgba(255,255,255,0.2)',
+              border: 'none', borderRadius: 8, color: '#fff',
+              fontFamily: "'Poppins', sans-serif", fontSize: '0.875rem', cursor: 'pointer',
+            }}>
+              {langLabel[lang]}
+            </button>
+            <button onClick={handleLogout} style={{
+              padding: '0.4rem 1rem', background: 'rgba(255,255,255,0.2)',
+              border: 'none', borderRadius: 8, color: '#fff',
+              fontFamily: "'Poppins', sans-serif", fontSize: '0.875rem', cursor: 'pointer',
+            }}>
+              🚪
+            </button>
+          </div>
+        </div>
+
+        <ModeSederhana
+          siswa={siswaData}
+          statusHariIni={statusHariIni}
+          t={t}
+          onKeluar={handleLogout}
+        />
+      </div>
+    )
   }
 
   return (
-    <OrtuLayout
-      user={user}
-      onLogout={onLogout}
-      activePage={activePage}
-      setActivePage={setActivePage}
-    >
-      {/* NIS input — tampil di semua halaman kecuali communication */}
-      {activePage !== 'communication' && (
-        <NisInputCard savedNis={nis} onSave={handleSetNis} />
-      )}
+    <div style={{
+      display: 'flex', minHeight: '100vh',
+      background: '#f0f9ff', fontFamily: "'Poppins', sans-serif",
+      fontSize: fz,
+    }}>
+      {/* Sidebar */}
+      <aside style={{
+        position: 'fixed', top: 0, left: 0, bottom: 0,
+        width: sidebarW, background: '#fff',
+        borderRight: '1px solid #e2e8f0', display: 'flex',
+        flexDirection: 'column', zIndex: 100, overflow: 'hidden',
+        boxShadow: '0 1px 3px rgba(0,0,0,.06)',
+      }}>
+        <div style={{
+          display: 'flex', alignItems: 'center', gap: '0.75rem',
+          padding: '0 1rem', height: 64, borderBottom: '1px solid #e2e8f0', flexShrink: 0,
+        }}>
+          <div style={{
+            width: 36, height: 36, borderRadius: 10, background: '#0284c7',
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '1.125rem', flexShrink: 0,
+          }}>🏫</div>
+          <div>
+            <div style={{ fontWeight: 700, fontSize: fz, color: '#0f172a', whiteSpace: 'nowrap' }}>
+              {t.appName}
+            </div>
+          </div>
+        </div>
 
-      {activePage === 'dashboard'     && <PageDashboard  nis={nis} onSetPage={setActivePage} />}
-      {activePage === 'presensi'      && <PagePresensi   nis={nis} />}
-      {activePage === 'logbook'       && <PageLogbook    nis={nis} />}
-      {activePage === 'communication' && <CommunicationHub />}
-    </OrtuLayout>
+        <nav style={{ flex: 1, padding: '0.75rem 0', overflowY: 'auto' }}>
+          {navItems.map(item => (
+            <button key={item.id} onClick={() => setActivePage(item.id)} style={{
+              display: 'flex', alignItems: 'center', gap: '0.75rem',
+              width: '100%', padding: simple ? '1rem 1.25rem' : '0.625rem 1rem',
+              border: 'none',
+              background: activePage === item.id ? '#e0f2fe' : 'transparent',
+              color: activePage === item.id ? '#0284c7' : '#64748b',
+              fontFamily: "'Poppins', sans-serif", fontSize: fz,
+              fontWeight: activePage === item.id ? 700 : 500,
+              cursor: 'pointer', textAlign: 'left', whiteSpace: 'nowrap',
+              borderLeft: activePage === item.id ? '4px solid #0284c7' : '4px solid transparent',
+              transition: 'all 0.15s',
+            }}>
+              <span style={{ fontSize: simple ? '1.25rem' : '1rem', flexShrink: 0 }}>{item.icon}</span>
+              {item.label}
+            </button>
+          ))}
+        </nav>
+
+        <div style={{ padding: '0.75rem', borderTop: '1px solid #e2e8f0', flexShrink: 0 }}>
+          <button onClick={handleLogout} style={{
+            display: 'flex', alignItems: 'center', gap: '0.75rem',
+            width: '100%', padding: simple ? '0.875rem 0.75rem' : '0.625rem 0.75rem',
+            border: 'none', background: 'transparent', fontFamily: "'Poppins', sans-serif",
+            fontSize: btnFz, fontWeight: 500, color: '#64748b', cursor: 'pointer', borderRadius: 8,
+          }}>
+            <span>🚪</span> {t.keluar}
+          </button>
+        </div>
+      </aside>
+
+      {/* Header */}
+      <header style={{
+        position: 'fixed', top: 0, left: sidebarW, right: 0, height: 64,
+        background: '#fff', borderBottom: '1px solid #e2e8f0',
+        display: 'flex', alignItems: 'center', gap: '1rem', padding: '0 1.5rem',
+        zIndex: 90, boxShadow: '0 1px 3px rgba(0,0,0,.06)',
+      }}>
+        <div style={{ flex: 1 }} />
+
+        {/* Toggle mode sederhana */}
+        <button onClick={toggleSimple} style={{
+          padding: '0.45rem 1rem', border: `2px solid ${simple ? '#0284c7' : '#e2e8f0'}`,
+          borderRadius: 8, background: simple ? '#e0f2fe' : '#fff',
+          color: simple ? '#0284c7' : '#64748b', fontFamily: "'Poppins', sans-serif",
+          fontSize: btnFz, fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap',
+        }}>
+          {simple ? '📱 ' + t.modeDetail : '♿ ' + t.modeSederhana}
+        </button>
+
+        {/* Toggle bahasa */}
+        <button onClick={toggleLang} style={{
+          padding: '0.45rem 0.875rem', border: '2px solid #e2e8f0',
+          borderRadius: 8, background: '#fff', color: '#64748b',
+          fontFamily: "'Poppins', sans-serif", fontSize: btnFz,
+          fontWeight: 600, cursor: 'pointer',
+        }}>
+          {langLabel[lang]}
+        </button>
+
+        {/* User */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.625rem' }}>
+          <div style={{
+            width: 34, height: 34, borderRadius: '50%', background: '#0284c7',
+            color: '#fff', display: 'flex', alignItems: 'center', justifyContent: 'center',
+            fontSize: '0.875rem', fontWeight: 700, flexShrink: 0,
+          }}>{initials}</div>
+          <div style={{ display: simple ? 'none' : 'block' }}>
+            <div style={{ fontSize: '0.8125rem', fontWeight: 600, color: '#0f172a', whiteSpace: 'nowrap' }}>
+              {user?.nama_lengkap || user?.username || 'Orang Tua'}
+            </div>
+            <div style={{ fontSize: '0.7rem', color: '#64748b' }}>Ortu / Wali</div>
+          </div>
+        </div>
+      </header>
+
+      {/* Content */}
+      <main style={{
+        marginLeft: sidebarW, marginTop: 64,
+        minHeight: 'calc(100vh - 64px)', padding: simple ? '2rem' : '1.5rem',
+      }}>
+        {/* NIS input di semua halaman kecuali communication */}
+        {activePage !== 'communication' && (
+          <NisInput savedNis={nis} onSave={handleSetNis} t={t} simple={simple} />
+        )}
+
+        {activePage === 'dashboard'     && <PageDashboard nis={nis} t={t} simple={simple} onSetPage={setActivePage} />}
+        {activePage === 'riwayat'       && <PageRiwayat   nis={nis} t={t} simple={simple} />}
+        {activePage === 'logbook'       && <LogbookPage   nis={nis} t={t} simple={simple} />}
+        {activePage === 'communication' && <CommunicationHub />}
+      </main>
+    </div>
+  )
+}
+
+// ── Logbook mini (reuse tanpa import LogbookSiswa) ────────────────────────────
+
+function LogbookPage({ nis, t, simple }) {
+  const [items, setItems] = useState([])
+  const [loading, setLoading] = useState(false)
+  const fz = simple ? '1rem' : '0.8125rem'
+
+  const load = useCallback(async () => {
+    if (!nis) return
+    setLoading(true)
+    try {
+      const cari = await apiFetch(`/users?search=${encodeURIComponent(nis)}&user_type=siswa`)
+      const siswaId = cari.data?.items?.[0]?.siswa_id
+      if (!siswaId) return
+      const res = await apiFetch(`/logbook?siswa_id=${siswaId}&per_page=15`)
+      setItems(res.data?.items ?? [])
+    } catch (e) { console.error(e) }
+    finally { setLoading(false) }
+  }, [nis])
+
+  useEffect(() => { load() }, [load])
+
+  const SB = { draft:'#64748b', menunggu_review:'#d97706', disetujui:'#15803d', ditolak:'#dc2626' }
+  const SL = { draft:'Draft', menunggu_review:'Menunggu', disetujui:'Disetujui', ditolak:'Dikembalikan' }
+
+  if (!nis) return <div style={{ textAlign: 'center', padding: '3rem', color: '#64748b', fontSize: fz }}>{t.inputNis}</div>
+
+  return (
+    <div style={{ background: '#fff', border: '1px solid #e2e8f0', borderRadius: 14, overflow: 'hidden' }}>
+      {loading ? (
+        <div style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b', fontSize: fz }}>⏳ {t.loading}</div>
+      ) : items.length === 0 ? (
+        <div style={{ textAlign: 'center', padding: '2.5rem', color: '#64748b', fontSize: fz }}>{t.belumAda}</div>
+      ) : simple ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '0.75rem' }}>
+          {items.map(item => (
+            <div key={item.logbook_id} style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              padding: '0.875rem 1rem', background: '#f8fafc', borderRadius: 10,
+              border: `1px solid ${SB[item.status] ?? '#e2e8f0'}`,
+            }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '1.0625rem' }}>{fmtDate(item.tanggal)}</div>
+                <div style={{ fontSize: '0.875rem', color: '#64748b' }}>{item.lokasi || '—'}</div>
+              </div>
+              <span style={{
+                padding: '0.4rem 1rem', borderRadius: 999, fontWeight: 700,
+                fontSize: '0.875rem', color: '#fff', background: SB[item.status] ?? '#64748b',
+              }}>
+                {SL[item.status] ?? item.status}
+              </span>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: fz }}>
+          <thead>
+            <tr>
+              {['Tanggal','Lokasi','Status'].map(h => (
+                <th key={h} style={{
+                  padding: '0.625rem 1rem', textAlign: 'left', fontSize: '0.7rem',
+                  fontWeight: 700, textTransform: 'uppercase', color: '#64748b',
+                  background: '#f8fafc', borderBottom: '1px solid #e2e8f0',
+                }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {items.map(item => (
+              <tr key={item.logbook_id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '0.75rem 1rem' }}>{fmtDate(item.tanggal)}</td>
+                <td style={{ padding: '0.75rem 1rem' }}>{item.lokasi || '—'}</td>
+                <td style={{ padding: '0.75rem 1rem' }}>
+                  <span style={{
+                    display: 'inline-block', padding: '0.2rem 0.625rem',
+                    borderRadius: 999, fontSize: '0.7rem', fontWeight: 600,
+                    color: '#fff', background: SB[item.status] ?? '#64748b',
+                  }}>
+                    {SL[item.status] ?? item.status}
+                  </span>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </div>
   )
 }
