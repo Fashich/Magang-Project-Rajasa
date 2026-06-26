@@ -1,0 +1,153 @@
+/**
+ * wcag.css — WCAG 2.1 AA Accessibility Utilities
+ * Import di tokens.css atau main.jsx setelah tokens.css
+ *
+ * @author feature/prd-6-security
+ */
+
+/* ─── Skip to Content Link ───────────────────────────────────────────────────
+ * Link tersembunyi yang muncul saat keyboard user menekan Tab pertama kali.
+ * Memungkinkan pengguna screen reader/keyboard melewati navigasi langsung ke
+ * konten utama. WCAG 2.4.1 (Bypass Blocks — Level A)
+ */
+.skip-link {
+  position: fixed;
+  top: -100%;
+  left: 0;
+  z-index: 9999;
+  padding: 0.75rem 1.25rem;
+  background: var(--rjs-admin, #1e40af);
+  color: #fff !important;
+  font-family: var(--rjs-font, 'Poppins', sans-serif);
+  font-size: 0.875rem;
+  font-weight: 600;
+  border-radius: 0 0 var(--rjs-radius-sm, 8px) 0;
+  text-decoration: none;
+  transition: top 0.15s ease;
+  outline: none;
+}
+
+.skip-link:focus {
+  top: 0;
+}
+
+/* ─── Screen Reader Only ─────────────────────────────────────────────────────
+ * Elemen hanya terlihat oleh screen reader, tidak oleh pengguna visual.
+ * Gunakan untuk label yang kontekstual tapi tidak perlu divisualisasikan.
+ * WCAG 1.1.1 (Non-text Content — Level A)
+ */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Versi yang muncul saat difokus (untuk skip links) */
+.sr-only-focusable:focus {
+  position: static;
+  width: auto;
+  height: auto;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+}
+
+/* ─── Focus Visible ──────────────────────────────────────────────────────────
+ * Tampilkan outline yang jelas saat navigasi dengan keyboard.
+ * WCAG 2.4.7 (Focus Visible — Level AA)
+ * WCAG 2.4.11 (Focus Appearance — Level AA)
+ */
+:focus-visible {
+  outline: 2px solid var(--rjs-admin, #1e40af);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Hapus outline default yang jelek (hanya jika sudah ada :focus-visible) */
+:focus:not(:focus-visible) {
+  outline: none;
+}
+
+/* Dark mode focus ring */
+[data-theme='dark'] :focus-visible {
+  outline-color: var(--rjs-admin-mid, #3b82f6);
+}
+
+/* ─── Color Contrast Helpers ─────────────────────────────────────────────────
+ * WCAG 1.4.3 (Contrast Minimum — Level AA): rasio 4.5:1 untuk teks normal
+ * WCAG 1.4.6 (Contrast Enhanced — Level AAA): rasio 7:1
+ */
+
+/* Pastikan teks muted selalu cukup kontras */
+:root {
+  /* Overwrite rjs-text-muted agar minimal 4.5:1 di light mode */
+  --rjs-text-muted: #475569;  /* contrast 6.1:1 di atas putih */
+}
+
+[data-theme='dark'] {
+  /* Overwrite untuk dark mode */
+  --rjs-text-muted: #94a3b8;  /* contrast 4.6:1 di atas #1e293b */
+}
+
+/* ─── Reduced Motion ─────────────────────────────────────────────────────────
+ * WCAG 2.3.3 (Animation from Interactions — Level AAA)
+ * Hormati preferensi sistem "kurangi animasi"
+ */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ─── Interactive Element Sizes ──────────────────────────────────────────────
+ * WCAG 2.5.8 (Target Size Minimum — Level AA): minimal 24x24px
+ * Pastikan semua tombol/link mudah diklik di mobile
+ */
+button,
+[role="button"],
+a,
+input[type="checkbox"],
+input[type="radio"] {
+  min-height: 24px;
+}
+
+/* ─── Form Accessibility ─────────────────────────────────────────────────────
+ * WCAG 3.3.2 (Labels or Instructions — Level A)
+ */
+input:required::placeholder::after {
+  content: " *";
+  color: var(--rjs-danger, #dc2626);
+}
+
+/* Error state untuk input */
+input[aria-invalid="true"],
+textarea[aria-invalid="true"],
+select[aria-invalid="true"] {
+  border-color: var(--rjs-danger, #dc2626) !important;
+  outline-color: var(--rjs-danger, #dc2626);
+}
+
+/* ─── Print Styles ───────────────────────────────────────────────────────────
+ * Pastikan konten bisa dicetak dengan baik
+ */
+@media print {
+  .skip-link,
+  [aria-hidden="true"] {
+    display: none !important;
+  }
+  body {
+    color: #000 !important;
+    background: #fff !important;
+  }
+}

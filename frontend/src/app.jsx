@@ -159,7 +159,11 @@ export function App() {
   const [showPassword, setShowPassword] = useState(false);
   const [authUser, setAuthUser] = useState(() => auth.getUser());
   const [loginError, setLoginError] = useState('');
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSubmitting,   setIsSubmitting]   = useState(false);
+  const [twoFaPending,   setTwoFaPending]   = useState(null);  // { tempToken } | null
+  const [twoFaCode,      setTwoFaCode]      = useState('');
+  const [twoFaLoading,   setTwoFaLoading]   = useState(false);
+  const [twoFaError,     setTwoFaError]     = useState('');
 
   useEffect(() => {
     document.documentElement.dataset.theme = theme;
@@ -196,6 +200,12 @@ export function App() {
         throw new Error(res.message || 'Login gagal.');
       }
 
+      // Cek apakah butuh 2FA
+      if (res.data?.requires_2fa) {
+        setTwoFaPending({ tempToken: res.data.temp_token });
+        return;
+      }
+
       const token = res.data?.token;
       const user = res.data?.user;
 
@@ -212,6 +222,98 @@ export function App() {
     } finally {
       setIsSubmitting(false);
     }
+  }
+
+  async function handleTwoFaVerify(e) {
+    e.preventDefault();
+    if (!twoFaCode || twoFaCode.length !== 6) { setTwoFaError('Masukkan 6 digit kode.'); return; }
+    setTwoFaLoading(true); setTwoFaError('');
+    try {
+      const res = await fetch('/api/auth/2fa/verify', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ temp_token: twoFaPending.tempToken, code: twoFaCode }),
+      });
+      const data = await res.json();
+      if (!res.ok || !data.success) throw new Error(data.message || 'Kode salah.');
+      const token = data.data?.token;
+      const user  = data.data?.user;
+      if (!token || !user) throw new Error('Response tidak valid.');
+      auth.setToken(token);
+      auth.setUser(user);
+      setAuthUser(user);
+      setTwoFaPending(null);
+    } catch (err) {
+      setTwoFaError(err.message);
+    } finally {
+      setTwoFaLoading(false);
+    }
+  }
+
+  // ── 2FA verification screen ──
+  if (twoFaPending) {
+    return (
+      <div style={{
+        minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center',
+        background: 'var(--rjs-bg, #f8fafc)', padding: '1.5rem',
+        fontFamily: "'Poppins', sans-serif",
+      }}>
+        <div style={{
+          background: 'var(--rjs-surface, #fff)', borderRadius: 16,
+          border: '1px solid var(--rjs-border, #e2e8f0)',
+          padding: '2rem', width: '100%', maxWidth: 380,
+          boxShadow: '0 4px 24px rgba(0,0,0,.08)',
+        }}>
+          <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+            <div style={{ fontSize: 40, marginBottom: 8 }}>🔐</div>
+            <h2 style={{ fontSize: 18, fontWeight: 700, margin: '0 0 6px', color: 'var(--rjs-text, #0f172a)' }}>
+              Verifikasi Dua Faktor
+            </h2>
+            <p style={{ fontSize: 13, color: 'var(--rjs-text-muted, #64748b)', margin: 0, lineHeight: 1.5 }}>
+              Buka Google Authenticator dan masukkan kode 6 digit untuk akun Presensi Rajasa.
+            </p>
+          </div>
+          <form onSubmit={handleTwoFaVerify}>
+            <input
+              type="text"
+              maxLength={6}
+              placeholder="000000"
+              value={twoFaCode}
+              onInput={e => { setTwoFaCode(e.currentTarget.value.replace(/\D/g,'').slice(0,6)); setTwoFaError(''); }}
+              style={{
+                width: '100%', padding: '0.75rem', borderRadius: 10, marginBottom: 8,
+                border: `1px solid ${twoFaError ? '#fca5a5' : 'var(--rjs-border, #e2e8f0)'}`,
+                fontFamily: "'Poppins', sans-serif", fontSize: 24, textAlign: 'center',
+                letterSpacing: '0.3em', background: 'var(--rjs-surface, #fff)',
+                color: 'var(--rjs-text, #0f172a)', boxSizing: 'border-box',
+              }}
+              autoFocus
+            />
+            {twoFaError && (
+              <p style={{ fontSize: 12, color: '#dc2626', margin: '0 0 8px', textAlign: 'center' }}>
+                {twoFaError}
+              </p>
+            )}
+            <button type="submit" disabled={twoFaLoading || twoFaCode.length !== 6} style={{
+              width: '100%', padding: '0.625rem', borderRadius: 10, border: 'none',
+              background: twoFaCode.length === 6 ? '#1e40af' : '#94a3b8',
+              color: '#fff', fontFamily: "'Poppins', sans-serif", fontWeight: 600,
+              fontSize: 14, cursor: twoFaCode.length === 6 ? 'pointer' : 'not-allowed',
+              marginBottom: 8,
+            }}>
+              {twoFaLoading ? '⏳ Memverifikasi...' : 'Verifikasi'}
+            </button>
+            <button type="button" onClick={() => { setTwoFaPending(null); setTwoFaCode(''); setTwoFaError(''); }} style={{
+              width: '100%', padding: '0.5rem', borderRadius: 10, background: 'transparent',
+              border: '1px solid var(--rjs-border, #e2e8f0)', fontFamily: "'Poppins', sans-serif",
+              fontSize: 13, cursor: 'pointer', color: 'var(--rjs-text-muted, #64748b)',
+            }}>
+              ← Kembali ke Login
+            </button>
+          </form>
+        </div>
+      </div>
+    );
   }
 
   // ── Route by role ──
@@ -253,7 +355,7 @@ export function App() {
         <section className="brand-panel">
           <div className="brand-content">
             <div className="main-logo">
-              <img src="/images/logo/Rajasa-Logo.png" alt="Logo SMK Rajasa Surabaya" className="main-logo-img" />
+              <IdCardIcon />
             </div>
             <div className="brand-heading">
               <h1>Sistem Presensi Lab</h1>

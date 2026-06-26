@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 use FastRoute\RouteCollector;
 use Rajasa\PresensiSiswa\Http\Controllers\AuthLoginController;
+use Rajasa\PresensiSiswa\Http\Controllers\TwoFactorController;
 use Rajasa\PresensiSiswa\Http\Controllers\AuthLogoutController;
 use Rajasa\PresensiSiswa\Http\Controllers\HealthController;
 use Rajasa\PresensiSiswa\Http\Controllers\ImportJobsController;
@@ -61,7 +62,14 @@ use Rajasa\PresensiSiswa\Http\Controllers\GamifikasiController;
 return function (RouteCollector $route): void {
     $route->get('/api/health', HealthController::class);
 
-    $route->post('/api/auth/login', AuthLoginController::class);
+    $route->post('/api/auth/login',           AuthLoginController::class);
+    $route->post('/api/auth/2fa/verify',      [TwoFactorController::class, 'verifyLogin']);
+
+    // 2FA admin settings (wajib login)
+    $route->get('/api/admin/2fa/status',      [TwoFactorController::class, 'status']);
+    $route->get('/api/admin/2fa/setup',       [TwoFactorController::class, 'setup']);
+    $route->post('/api/admin/2fa/enable',     [TwoFactorController::class, 'enable']);
+    $route->delete('/api/admin/2fa/disable',  [TwoFactorController::class, 'disable']);
     $route->post('/api/auth/logout', AuthLogoutController::class);
     $route->get('/api/me', MeController::class);
 
