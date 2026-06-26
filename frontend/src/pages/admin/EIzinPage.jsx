@@ -9,6 +9,8 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
+import { bukaWA, pesanIzinDisetujui, pesanIzinDitolak } from '../../utils/waLink.jsx'
+import { emailIzinDisetujui, emailIzinDitolak } from '../../services/emailService.js'
 import './EIzinPage.css'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -90,10 +92,11 @@ function StatusBadge({ status }) {
 // ── Approve / Reject Modal ────────────────────────────────────────────────────
 
 function ApproveModal({ izin, onClose, onDone }) {
-  const [action,  setAction]  = useState('approve')
-  const [catatan, setCatatan] = useState('')
-  const [loading, setLoading] = useState(false)
-  const [error,   setError]   = useState('')
+  const [action,   setAction]  = useState('approve')
+  const [catatan,  setCatatan] = useState('')
+  const [loading,  setLoading] = useState(false)
+  const [error,    setError]   = useState('')
+  const [done,     setDone]    = useState(false)   // tampilkan panel WA/Email setelah berhasil
 
   async function handleSubmit() {
     setLoading(true); setError('')
@@ -102,6 +105,19 @@ function ApproveModal({ izin, onClose, onDone }) {
         method: 'PATCH',
         body: JSON.stringify({ action, catatan }),
       })
+      // Kirim email otomatis via EmailJS (silent — tidak block UI)
+      const emailParams = {
+        toEmail:  izin.ortu_email ?? izin.email ?? '',
+        siswa:    izin.nama_lengkap,
+        jenis:    izin.jenis,
+        dari:     izin.tanggal_mulai,
+        sampai:   izin.tanggal_selesai,
+        catatan,
+      }
+      if (action === 'approve') emailIzinDisetujui(emailParams)
+      else                      emailIzinDitolak(emailParams)
+
+      setDone(true)   // tampilkan panel WA
       onDone()
     } catch (e) {
       setError(e.message)
@@ -109,6 +125,15 @@ function ApproveModal({ izin, onClose, onDone }) {
       setLoading(false)
     }
   }
+
+  // Pesan WA yang sudah disiapkan
+  const waMsg = done
+    ? (action === 'approve'
+        ? pesanIzinDisetujui({ siswa: izin.nama_lengkap, jenis: izin.jenis,
+            dari: izin.tanggal_mulai, sampai: izin.tanggal_selesai })
+        : pesanIzinDitolak({ siswa: izin.nama_lengkap, jenis: izin.jenis,
+            dari: izin.tanggal_mulai, sampai: izin.tanggal_selesai, catatan }))
+    : ''
 
   return (
     <div class="eizin-modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
