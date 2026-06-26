@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
+import NotifikasiBell from '../../components/shared/NotifikasiBell.jsx'
 import './AdminLayout.css'
 
 const THEME_KEY = 'presensi_lab_rajasa:theme'
@@ -261,10 +262,9 @@ function AdminHeader({ onToggle, activePage, onToggleTheme, theme, user }) {
         <button type="button" className="admin-header-btn" onClick={onToggleTheme} aria-label="Toggle theme">
           {I.theme}
         </button>
-        <button type="button" className="admin-header-btn" aria-label="Notifikasi">
-          {I.bell}
-          <span className="admin-notif-dot" aria-hidden="true" />
-        </button>
+        <NotifikasiBell
+          btnClassName="admin-header-btn"
+        />
         <div className="admin-header-user">
           <div className="admin-user-avatar">{initials}</div>
           <div>

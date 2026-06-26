@@ -36,6 +36,8 @@ use Rajasa\PresensiSiswa\Http\Controllers\SesiIndexController;
 use Rajasa\PresensiSiswa\Http\Controllers\SesiForceFinishController;
 use Rajasa\PresensiSiswa\Http\Controllers\AuditTrailController;
 use Rajasa\PresensiSiswa\Http\Controllers\LaporanController;
+use Rajasa\PresensiSiswa\Http\Controllers\NotifikasiController;
+use Rajasa\PresensiSiswa\Http\Controllers\NotifikasiActionController;
 use Rajasa\PresensiSiswa\Http\Controllers\LaporanExportController;
 use Rajasa\PresensiSiswa\Http\Controllers\AnalitikController;
 use Rajasa\PresensiSiswa\Http\Controllers\PengaturanGetController;
@@ -82,6 +84,12 @@ return function (RouteCollector $route): void {
 
     // ── Audit Trail (admin) ──────────────────────────────────────────────────
     $route->get('/api/admin/audit',                         AuditTrailController::class);
+    // Notifikasi
+    $route->get('/api/notifikasi',                         NotifikasiController::class);
+    $route->post('/api/notifikasi/read-all',               [NotifikasiActionController::class, 'markAllRead']);
+    $route->patch('/api/notifikasi/{id:\d+}/read',         [NotifikasiActionController::class, 'markRead']);
+    $route->delete('/api/notifikasi/{id:\d+}',            [NotifikasiActionController::class, 'delete']);
+
     $route->get('/api/admin/laporan',                       LaporanController::class);
     $route->get('/api/admin/laporan/export',               LaporanExportController::class);
     $route->get('/api/admin/analitik',                      AnalitikController::class);

@@ -13,6 +13,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
+import NotifikasiBell from '../../components/shared/NotifikasiBell.jsx'
 import './GuruLayout.css'
 
 const THEME_KEY = 'rajasa-presensi-theme'
@@ -154,10 +155,9 @@ function GuruHeader({ onToggle, activePage, onToggleTheme, user }) {
         <button type="button" class="guru-header-btn" onClick={onToggleTheme}>
           {I.theme}
         </button>
-        <button type="button" class="guru-header-btn">
-          {I.bell}
-          <span class="guru-notif-dot" />
-        </button>
+        <NotifikasiBell
+          btnClassName="guru-header-btn"
+        />
         <div class="guru-header-user">
           <div class="guru-user-avatar">{initials}</div>
           <div>
