@@ -16,7 +16,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
-import NotifikasiBell from '../../../components/shared/NotifikasiBell.jsx'
+import NotifikasiBell from '../shared/NotifikasiBell.jsx'
 import { authApi } from '../../utils/api'
 import './SiswaLayout.css'
 
