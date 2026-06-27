@@ -38,6 +38,32 @@ const I = {
   school:  <svg viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>,
 }
 
+// ── Theme icon: bulan sabit (dark) + matahari (light) diagonal split ──────────
+function SunMoonIcon({ theme }) {
+  const dark = theme === 'dark'
+  return (
+    <svg viewBox="0 0 24 24" fill="none" style={{ width: '100%', height: '100%' }}>
+      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5"/>
+      <line x1="5.36" y1="18.64" x2="18.64" y2="5.36" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      {/* Bulan sabit — nyala penuh saat dark mode, redup saat light */}
+      <g opacity={dark ? 1 : 0.28} style={{ transition: 'opacity 0.25s' }}>
+        <g transform="scale(0.33) translate(9,12)">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/>
+        </g>
+      </g>
+      {/* Matahari — nyala penuh saat light mode, redup saat dark */}
+      <g opacity={dark ? 0.28 : 1} style={{ transition: 'opacity 0.25s' }}>
+        <circle cx="16.5" cy="16" r="2" fill="currentColor"/>
+        <line x1="16.5" y1="19.3" x2="16.5" y2="20.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <line x1="19.7" y1="16" x2="21" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <line x1="18.6" y1="18.1" x2="19.7" y2="19.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <line x1="14.4" y1="18.1" x2="13.3" y2="19.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+        <line x1="18.6" y1="13.9" x2="19.7" y2="12.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      </g>
+    </svg>
+  )
+}
+
 // ── Nav config ────────────────────────────────────────────────────────────────
 const NAV_SECTIONS = [
   {
@@ -125,7 +151,7 @@ function SiswaSidebar({ collapsed, activePage, onPageChange, onLogout }) {
 }
 
 // ── Header ────────────────────────────────────────────────────────────────────
-function SiswaHeader({ activePage, onToggle, onToggleTheme, user }) {
+function SiswaHeader({ activePage, onToggle, onToggleTheme, theme, user }) {
   const initials = (user?.nama_lengkap || user?.username || 'S').charAt(0).toUpperCase()
 
   return (
@@ -145,7 +171,7 @@ function SiswaHeader({ activePage, onToggle, onToggleTheme, user }) {
 
       <div className="siswa-header-actions">
         <button type="button" className="siswa-header-btn" onClick={onToggleTheme}>
-          {I.theme}
+          <SunMoonIcon theme={theme} />
         </button>
         <button type="button" className="siswa-header-btn">
           {I.bell}
@@ -328,6 +354,7 @@ export default function SiswaLayout({ user, onLogout, renderPage }) {
         activePage={activePage}
         onToggle={handleToggle}
         onToggleTheme={handleToggleTheme}
+        theme={theme}
         user={user}
       />
       <main className="siswa-content-new">
