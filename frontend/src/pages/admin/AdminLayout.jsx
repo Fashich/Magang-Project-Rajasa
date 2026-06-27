@@ -52,7 +52,7 @@ const NAV_SECTIONS = [
       { id: 'e-izin',    label: 'E-Izin',           icon: I.izin, badge: null },
       { id: 'peringatan',label: 'Early Warning',    icon: I.alert },
       { id: 'logbook',       label: 'Logbook Praktik',    icon: I.logbook },
-      { id: 'communication', label: 'Communication Hub',  icon: I.chat },
+      { id: 'communication', label: 'Pusat Komunikasi',  icon: I.chat },
     ],
   },
   {
@@ -238,6 +238,7 @@ function AdminHeader({ onToggle, activePage, onToggleTheme, theme, user }) {
     'e-izin':            'Portal E-Izin',
     peringatan:          'Early Warning',
     logbook:             'Logbook Praktik',
+    communication:       'Pusat Komunikasi',
     users:               'Manajemen Pengguna',
     laporan:             'Laporan',
     audit:               'Audit Trail',

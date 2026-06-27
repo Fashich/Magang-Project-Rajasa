@@ -57,7 +57,7 @@ const NAV_SECTIONS = [
       { id: 'warning', label: 'Early Warning', icon: I.alert },
       { id: 'logbook', label: 'Logbook PKL',   icon: I.logbook },
       { id: 'izin',          label: 'E-Izin',            icon: I.izin },
-      { id: 'communication', label: 'Communication Hub', icon: I.chat },
+      { id: 'communication', label: 'Pusat Komunikasi', icon: I.chat },
       { id: 'gamifikasi',    label: 'Gamifikasi',         icon: I.game },
     ],
   },
@@ -76,7 +76,7 @@ const PAGE_TITLES = {
   warning:   'Early Warning',
   logbook:   'Logbook PKL',
   izin:          'E-Izin',
-  communication: 'Communication Hub',
+  communication: 'Pusat Komunikasi',
   gamifikasi:    'Gamifikasi',
   akun:      'Pengaturan Akun',
 }

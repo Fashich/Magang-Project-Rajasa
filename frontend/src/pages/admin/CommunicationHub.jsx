@@ -411,7 +411,7 @@ export default function CommunicationHub() {
       {/* Header */}
       <div class="ch-page-header">
         <div>
-          <h1 class="ch-page-title">Communication Hub</h1>
+          <h1 class="ch-page-title">Pusat Komunikasi</h1>
           <p class="ch-page-sub">
             {isSiswa
               ? 'Kirim pertanyaan, keluhan, atau izin khusus ke guru/admin'

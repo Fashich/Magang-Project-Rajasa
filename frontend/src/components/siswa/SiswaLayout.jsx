@@ -58,7 +58,7 @@ const NAV_SECTIONS = [
     items: [
       { id: 'izin',    label: 'E-Izin',      icon: I.izin },
       { id: 'logbook',       label: 'Logbook PKL',         icon: I.logbook },
-      { id: 'communication', label: 'Communication Hub', icon: I.chat },
+      { id: 'communication', label: 'Pusat Komunikasi', icon: I.chat },
       { id: 'gamifikasi',    label: 'Gamifikasi',         icon: I.game },
     ],
   },
@@ -70,6 +70,7 @@ const PAGE_TITLES = {
   kalender:  'Kalender Akademik',
   izin:      'E-Izin',
   logbook:   'Logbook PKL',
+  communication: 'Pusat Komunikasi',
 }
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
