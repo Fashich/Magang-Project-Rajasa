@@ -60,11 +60,10 @@ final class SiswaKalenderController
 
                 $pdfName = basename($files[0]);
 
-                $scheme  = (!empty($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
-                    ? 'https'
-                    : 'http';
-                $host    = $_SERVER['HTTP_HOST'] ?? 'localhost:8080';
-                $pdfUrl  = "{$scheme}://{$host}/server/kalender-akademik/{$pdfName}";
+                // Return a root-relative path so the browser can request it
+                // via /server/... regardless of hostname (works via Vite proxy
+                // at localhost:3000 and also direct nginx at localhost:8080).
+                $pdfUrl  = "/server/kalender-akademik/{$pdfName}";
             }
         }
 

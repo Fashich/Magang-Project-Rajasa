@@ -19,6 +19,12 @@ export default defineConfig({
         target: 'http://nginx:80',
         changeOrigin: true,
       },
+      '/server': {
+        // Proxy /server/... to nginx so the PDF embed can load files
+        // that live in backend/server/ (e.g. kalender-akademik PDFs).
+        target: 'http://nginx:80',
+        changeOrigin: true,
+      },
     },
   },
 });

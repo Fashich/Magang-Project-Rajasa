@@ -61,6 +61,7 @@
   min-height: 100vh;
   background: var(--guru-bg);
   font-family: var(--guru-font);
+  overflow-x: hidden;          /* prevent horizontal scroll from any child */
 }
 
 /* ── Sidebar ────────────────────────────────────────────────────────────────── */
@@ -135,7 +136,7 @@
 }
 
 .guru-nav-section-label {
-  padding: 0.5rem 1rem 0.25rem;
+  padding: 0.75rem 1rem 0.35rem;
   font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -149,7 +150,7 @@
   align-items: center;
   gap: 0.75rem;
   width: 100%;
-  padding: 0.625rem 1rem;
+  padding: 0.8rem 1rem;
   border: none;
   background: transparent;
   font-family: var(--guru-font);
@@ -373,18 +374,35 @@
   min-height: calc(100vh - var(--guru-header-h));
   transition: margin-left var(--guru-transition);
   padding: 1.5rem;
+  /* Constrain width so inner components never cause horizontal scroll */
+  width: calc(100% - var(--guru-sidebar-w));
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .guru-layout.sidebar-collapsed .guru-content {
   margin-left: var(--guru-sidebar-coll);
+  width: calc(100% - var(--guru-sidebar-coll));
 }
 
 /* ── Stat cards ─────────────────────────────────────────────────────────────── */
 .guru-stats-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  grid-template-columns: repeat(5, 1fr);
   gap: 1rem;
   margin-bottom: 1.5rem;
+}
+
+@media (max-width: 1100px) {
+  .guru-stats-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 767px) {
+  .guru-stats-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .guru-stat-card {
@@ -666,24 +684,19 @@
 }
 @keyframes guruFadeOverlay { from { opacity: 0; } to { opacity: 1; } }
 
-/* Tablet (768–1023px): auto-collapse */
+/* Tablet (768–1023px): JS auto-sets collapsed=true on mount & resize.
+   All icon-only / collapsed styles come from .sidebar-collapsed (below).
+   This block only handles structural adjustments that can't be done via class. */
 @media (min-width: 768px) and (max-width: 1023px) {
-  .guru-layout {
-    --guru-sidebar-w: var(--guru-sidebar-coll);
-  }
   .guru-sidebar {
-    width: var(--guru-sidebar-coll) !important;
+    /* smooth width transition on collapse/expand */
+    transition: width 0.25s cubic-bezier(.4,0,.2,1);
   }
-  .guru-sidebar-brand-text,
-  .guru-sidebar .guru-nav-group-label,
-  .guru-sidebar .guru-nav-item span,
-  .guru-sidebar .guru-logout-btn span {
-    display: none !important;
+  /* When sidebar IS expanded at tablet, tighten content to avoid cramping */
+  .guru-content {
+    transition: margin-left 0.25s cubic-bezier(.4,0,.2,1),
+                width 0.25s cubic-bezier(.4,0,.2,1);
   }
-  .guru-sidebar .guru-nav-item { justify-content: center; }
-  .guru-sidebar .guru-logout-btn { justify-content: center; }
-  .guru-content { margin-left: var(--guru-sidebar-coll) !important; }
-  .guru-header { left: var(--guru-sidebar-coll) !important; }
 }
 
 /* Mobile (<768px): sidebar jadi drawer */
@@ -694,10 +707,34 @@
   .guru-header {
     left: 0 !important;
     right: 0;
+    width: 100%;
+    z-index: 200;
+  }
+  /* Reset collapsed state di mobile — tampilkan teks normal di drawer */
+  .guru-layout.sidebar-collapsed .guru-sidebar {
+    width: 272px !important;
+  }
+  .guru-layout.sidebar-collapsed .guru-sidebar-brand-text,
+  .guru-layout.sidebar-collapsed .guru-nav-section-label,
+  .guru-layout.sidebar-collapsed .guru-nav-item span,
+  .guru-layout.sidebar-collapsed .guru-logout-btn span {
+    display: flex !important;
+  }
+  .guru-layout.sidebar-collapsed .guru-nav-item {
+    justify-content: flex-start !important;
+    padding: 0.625rem 1rem !important;
+    margin: 0 !important;
+    border-radius: 0 !important;
+  }
+  .guru-layout.sidebar-collapsed .guru-logout-btn {
+    justify-content: flex-start !important;
   }
   .guru-content {
     margin-left: 0 !important;
+    margin-top: 0 !important;
     padding-top: var(--guru-header-h, 64px);
+    width: 100% !important;
+    box-sizing: border-box;
   }
   .guru-sidebar {
     position: fixed !important;
@@ -709,8 +746,37 @@
     transition: transform .3s cubic-bezier(.4,0,.2,1), box-shadow .3s ease;
   }
   .guru-layout.mobile-open .guru-sidebar {
-    transform: translateX(0);
+    transform: translateX(0) !important;
     box-shadow: 4px 0 32px rgba(0,0,0,.25);
   }
+  /* Hamburger selalu tampil dan clickable */
+  .guru-header-toggle {
+    display: flex !important;
+    pointer-events: all !important;
+    z-index: 201;
+    position: relative;
+  }
   .guru-page-grid { grid-template-columns: 1fr !important; }
+}
+/* ── Logo image (Phase 0 fix) ─────────────────────────────────────────────── */
+.guru-sidebar-brand-img {
+  width: 36px !important;
+  height: 36px !important;
+  max-width: 36px !important;
+  max-height: 36px !important;
+  object-fit: contain !important;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: block;
+}
+/* ── Collapsed state: icon spacing rapi ──────────────────────────────────── */
+.guru-layout.sidebar-collapsed .guru-nav-item {
+  justify-content: center;
+  padding: 0.5rem 0;
+  margin: 2px 6px;
+  border-radius: 8px;
+}
+.guru-layout.sidebar-collapsed .guru-logout-btn {
+  justify-content: center;
+  padding: 0.5rem 0;
 }

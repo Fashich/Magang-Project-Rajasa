@@ -40,6 +40,14 @@ final class RouteDispatcher
             return;
         }
 
+        // Support [ClassName, 'method'] array handler
+        if (is_array($handler) && count($handler) === 2) {
+            [$class, $method] = $handler;
+            $controller = $this->container->get($class);
+            $controller->$method(...array_values($vars));
+            return;
+        }
+
         if (is_callable($handler)) {
             $handler(...array_values($vars));
             return;

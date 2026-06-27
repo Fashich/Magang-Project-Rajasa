@@ -44,13 +44,13 @@ function PageSlot({ id, active, children }) {
 
 // ── PAGE 1: Dashboard ─────────────────────────────────────────────────────────
 
-function StatCard({ label, value, icon, color }) {
+function StatCard({ label, value, icon, color, containerStyle = {} }) {
   return (
-    <div class="guru-stat-card" style={{ '--accent': color }}>
-      <div class="guru-stat-icon">{icon}</div>
-      <div>
+    <div class="guru-stat-card" style={{ '--accent': color, minWidth: 0, overflow: 'hidden', width: '100%', ...containerStyle }}>
+      <div class="guru-stat-icon" style={{ flexShrink: 0 }}>{icon}</div>
+      <div style={{ minWidth: 0, overflow: 'hidden' }}>
         <div class="guru-stat-value">{value ?? 0}</div>
-        <div class="guru-stat-label">{label}</div>
+        <div class="guru-stat-label" style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{label}</div>
       </div>
     </div>
   )
@@ -113,12 +113,18 @@ function PageDashboard({ onNav }) {
         </div>
       )}
 
-      <div class="guru-stats-grid">
-        <StatCard label="Hadir" value={totals.tepat_waktu} icon="✅" color="#15803d" />
-        <StatCard label="Terlambat" value={totals.terlambat} icon="⏰" color="#d97706" />
-        <StatCard label="Alpha" value={totals.alpha} icon="❌" color="#dc2626" />
-        <StatCard label="Sakit" value={totals.sakit} icon="🏥" color="#0284c7" />
-        <StatCard label="Izin" value={totals.izin} icon="📋" color="#7c3aed" />
+      <div style={{ display:'flex', gap:'1rem', marginBottom:'1.5rem', width:'100%' }}>
+        {[
+          { label:'Hadir',     value:totals.tepat_waktu, icon:'✅', color:'#15803d' },
+          { label:'Terlambat', value:totals.terlambat,   icon:'⏰', color:'#d97706' },
+          { label:'Alpha',     value:totals.alpha,        icon:'❌', color:'#dc2626' },
+          { label:'Sakit',     value:totals.sakit,        icon:'🏥', color:'#0284c7' },
+          { label:'Izin',      value:totals.izin,         icon:'📋', color:'#7c3aed' },
+        ].map(({ label, value, icon, color }) => (
+          <div key={label} style={{ flex:'1 1 0', minWidth:0, width:'20%' }}>
+            <StatCard label={label} value={value} icon={icon} color={color} />
+          </div>
+        ))}
       </div>
 
       <div class="guru-page-grid">

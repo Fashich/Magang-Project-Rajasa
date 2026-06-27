@@ -243,7 +243,12 @@ function LogoutOverlay({ state, onConfirm, onCancel }) {
 // ── Main Export ───────────────────────────────────────────────────────────────
 export default function SiswaLayout({ user, onLogout, renderPage }) {
   const [activePage,  setActivePage]  = useState('dashboard')
-  const [collapsed,   setCollapsed]   = useState(false)
+  const [collapsed,   setCollapsed]   = useState(() => {
+    // Auto-collapse at tablet width on first render (no flash)
+    if (typeof window === 'undefined') return false
+    const w = window.innerWidth
+    return w >= 768 && w < 1024
+  })
   const [mobileOpen,  setMobileOpen]  = useState(false)
   const [theme,       setTheme]       = useState(() => localStorage.getItem(THEME_KEY) || 'light')
   const [logoutState, setLogoutState] = useState('idle')
@@ -255,6 +260,26 @@ export default function SiswaLayout({ user, onLogout, renderPage }) {
   }, [theme])
 
   useEffect(() => { setMobileOpen(false) }, [activePage])
+
+  // Auto-adjust layout on window resize
+  useEffect(() => {
+    const onResize = () => {
+      const w = window.innerWidth
+      if (w < 768) {
+        // Mobile: drawer mode, reset collapsed so labels render correctly
+        setCollapsed(false)
+      } else if (w < 1024) {
+        // Tablet: auto-collapse sidebar, close any open drawer
+        setCollapsed(true)
+        setMobileOpen(false)
+      } else {
+        // Desktop: close mobile drawer if somehow open
+        setMobileOpen(false)
+      }
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
 
   const handleToggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), [])
 
@@ -289,6 +314,9 @@ export default function SiswaLayout({ user, onLogout, renderPage }) {
 
   return (
     <div className={`siswa-layout-new${collapsed ? ' collapsed' : ''}${mobileOpen ? ' mobile-open' : ''}`}>
+      {mobileOpen && (
+        <div className="siswa-mobile-overlay" onClick={() => setMobileOpen(false)} aria-hidden="true" />
+      )}
       <SiswaSidebar
         collapsed={collapsed}
         activePage={activePage}
@@ -297,7 +325,7 @@ export default function SiswaLayout({ user, onLogout, renderPage }) {
       />
       <SiswaHeader
         activePage={activePage}
-        onToggle={() => setCollapsed(p => !p)}
+        onToggle={handleToggle}
         onToggleTheme={handleToggleTheme}
         user={user}
       />

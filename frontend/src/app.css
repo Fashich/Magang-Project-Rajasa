@@ -62,15 +62,13 @@
 }
 
 .main-logo {
-  width: 108px;
-  height: 108px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-  background: var(--main-logo-bg);
-  color: var(--main-logo-color);
+  background: transparent;
+  box-shadow: none;
+  border-radius: 0;
+  width: auto;
+  height: auto;
+  display: block;
   margin-bottom: 22px;
-  box-shadow: var(--main-logo-shadow);
 }
 
 .main-logo svg {
@@ -540,15 +538,17 @@
 }
 /* ─── Phase 1: Login responsive touch-up ──────────────────────────────────── */
 .main-logo-img {
-  width: 88px;
-  height: 88px;
+  width: 120px;
+  height: 120px;
   object-fit: contain;
-  border-radius: 16px;
-  filter: drop-shadow(0 4px 16px rgba(0,0,0,.15));
+  border-radius: 20px;
+  margin-bottom: 20px;
+  filter: drop-shadow(0 4px 20px rgba(0,0,0,.2));
+  display: block;
 }
 
 @media (max-width: 1100px) {
-  .main-logo-img { width: 64px; height: 64px; }
+  .main-logo-img { width: 88px; height: 88px; }
 }
 
 @media (max-width: 640px) {

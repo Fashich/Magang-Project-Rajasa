@@ -247,7 +247,12 @@ function LogoutOverlay({ state, onConfirm, onCancel }) {
 // ── Main Export ───────────────────────────────────────────────────────────────
 export default function GuruLayout({ user, onLogout, renderPage }) {
   const [activePage,  setActivePage]  = useState('dashboard')
-  const [collapsed,   setCollapsed]   = useState(false)
+  const [collapsed,   setCollapsed]   = useState(() => {
+    // Auto-collapse at tablet width on first render (no flash)
+    if (typeof window === 'undefined') return false
+    const w = window.innerWidth
+    return w >= 768 && w < 1024
+  })
   const [mobileOpen,  setMobileOpen]  = useState(false)
   const [theme,       setTheme]       = useState(() => localStorage.getItem(THEME_KEY) || 'light')
   const [logoutState, setLogoutState] = useState('idle')
@@ -260,9 +265,31 @@ export default function GuruLayout({ user, onLogout, renderPage }) {
 
   useEffect(() => { setMobileOpen(false) }, [activePage])
 
+  // Auto-adjust layout on window resize
+  useEffect(() => {
+    const onResize = () => {
+      const w = window.innerWidth
+      if (w < 768) {
+        // Mobile: use drawer, reset collapsed so drawer shows full labels
+        setCollapsed(false)
+      } else if (w < 1024) {
+        // Tablet: auto-collapse sidebar, close any open drawer
+        setCollapsed(true)
+        setMobileOpen(false)
+      } else {
+        // Desktop: close mobile drawer if somehow open
+        setMobileOpen(false)
+      }
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   const handleToggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), [])
 
   const handleToggle = useCallback(() => {
+    // < 768px  → mobile drawer mode (toggle mobileOpen)
+    // >= 768px → collapse/expand sidebar (toggle collapsed)
     if (window.innerWidth < 768) {
       setMobileOpen(o => !o)
     } else {

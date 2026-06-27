@@ -5,7 +5,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
-import TwoFactorSetup from '../../pages/admin/TwoFactorSetup.jsx'
+import TwoFactorSetup from './TwoFactorSetup.jsx'
 import NotifikasiBell from '../../components/shared/NotifikasiBell.jsx'
 import './AdminLayout.css'
 
@@ -368,7 +368,9 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
       />
       <main className="admin-content">
         <div className="admin-page">
-          {typeof renderPage === 'function' ? renderPage(activePage, setActivePage) : null}
+          {activePage === '2fa'
+            ? <TwoFactorSetup />
+            : typeof renderPage === 'function' ? renderPage(activePage, setActivePage) : null}
         </div>
       </main>
       <LogoutOverlay

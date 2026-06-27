@@ -506,6 +506,7 @@
   min-height: 100vh;
   background: var(--clr-bg);
   font-family: var(--font-main);
+  overflow-x: hidden;          /* prevent horizontal scroll from any child */
 }
 
 /* ── Sidebar ── */
@@ -576,7 +577,7 @@
 }
 
 .siswa-nav-section-label {
-  padding: 0.5rem 1rem 0.25rem;
+  padding: 0.75rem 1rem 0.35rem;
   font-size: 0.65rem;
   font-weight: 700;
   text-transform: uppercase;
@@ -590,7 +591,7 @@
   align-items: center;
   gap: 0.75rem;
   width: 100%;
-  padding: 0.625rem 1rem;
+  padding: 0.8rem 1rem;
   border: none;
   background: transparent;
   font-family: var(--font-main);
@@ -790,10 +791,15 @@
   min-height: calc(100vh - var(--header-height));
   padding: 1.5rem;
   transition: margin-left var(--transition-fast);
+  /* Constrain so inner components never cause horizontal scroll */
+  width: calc(100% - var(--sidebar-width));
+  box-sizing: border-box;
+  overflow-x: hidden;
 }
 
 .siswa-layout-new.collapsed .siswa-content-new {
   margin-left: var(--sidebar-collapsed);
+  width: calc(100% - var(--sidebar-collapsed));
 }
 
 @keyframes sSpin {
@@ -814,24 +820,17 @@
 }
 @keyframes siswaFadeOverlay { from { opacity: 0; } to { opacity: 1; } }
 
-/* Tablet (768–1023px): auto-collapse */
+/* Tablet (768–1023px): JS auto-sets collapsed=true on mount & resize.
+   All icon-only / collapsed styles come from .siswa-layout-new.collapsed.
+   This block only ensures smooth transitions. */
 @media (min-width: 768px) and (max-width: 1023px) {
-  .siswa-layout-new {
-    --sidebar-width: var(--sidebar-collapsed, 72px);
-  }
   .siswa-sidebar-new {
-    width: 72px !important;
+    transition: width 0.25s cubic-bezier(.4,0,.2,1);
   }
-  .siswa-brand-text,
-  .siswa-nav .siswa-nav-section-label,
-  .siswa-nav .siswa-nav-item span,
-  .siswa-logout-btn span {
-    display: none !important;
+  .siswa-content-new {
+    transition: margin-left 0.25s cubic-bezier(.4,0,.2,1),
+                width 0.25s cubic-bezier(.4,0,.2,1);
   }
-  .siswa-nav .siswa-nav-item { justify-content: center; }
-  .siswa-logout-btn { justify-content: center; }
-  .siswa-content-new { margin-left: 72px !important; }
-  .siswa-header-new { left: 72px !important; }
 }
 
 /* Mobile (<768px): sidebar jadi drawer */
@@ -845,7 +844,10 @@
   }
   .siswa-content-new {
     margin-left: 0 !important;
+    margin-top: 0 !important;
     padding-top: var(--header-height, 64px);
+    width: 100% !important;
+    box-sizing: border-box;
   }
   .siswa-sidebar-new {
     position: fixed !important;
@@ -864,4 +866,27 @@
   /* Header info hide on mobile */
   .siswa-header-user-name,
   .siswa-header-breadcrumb { display: none !important; }
+}
+/* ── Collapsed state: icon spacing rapi ──────────────────────────────────── */
+.siswa-layout-new.collapsed .siswa-nav-item {
+  justify-content: center;
+  padding: 0.5rem 0;
+  margin: 2px 6px;
+  border-radius: 8px;
+}
+.siswa-layout-new.collapsed .siswa-logout-btn {
+  justify-content: center;
+  padding: 0.5rem 0;
+}
+
+/* ── Logo image ───────────────────────────────────────────────────────────── */
+.siswa-brand-img {
+  width: 36px !important;
+  height: 36px !important;
+  max-width: 36px !important;
+  max-height: 36px !important;
+  object-fit: contain !important;
+  border-radius: 8px;
+  flex-shrink: 0;
+  display: block;
 }

@@ -10,6 +10,7 @@ use Rajasa\PresensiSiswa\Http\Middleware\AuthMiddleware;
 use Rajasa\PresensiSiswa\Services\AuthService;
 use Rajasa\PresensiSiswa\Services\TotpService;
 use Illuminate\Database\Capsule\Manager as DB;
+use Rajasa\PresensiSiswa\Models\User;
 
 /**
  * TwoFactorController
@@ -144,7 +145,7 @@ final class TwoFactorController
             Response::error('Token tidak valid atau sudah kadaluarsa. Silakan login ulang.', [], 401); return;
         }
 
-        $user = DB::table('users')->where('user_id', $pending->user_id)->first();
+        $user = User::find($pending->user_id);
         if (!$user || !$user->totp_enabled) {
             Response::error('Akun tidak ditemukan atau 2FA tidak aktif.', [], 401); return;
         }
@@ -161,8 +162,8 @@ final class TwoFactorController
             'last_login_at' => Carbon::now()->toDateTimeString(),
         ]);
 
-        // Buat auth token via AuthService (metode yang sama dengan login normal)
-        $tokenData = $this->authService->createToken($user);
+        // Buat auth token via AuthService
+        $tokenData = $this->authService->loginFromUser($user);
 
         Response::success('Login berhasil.', $tokenData);
     }

@@ -354,9 +354,7 @@ export function App() {
 
         <section className="brand-panel">
           <div className="brand-content">
-            <div className="main-logo">
-              <IdCardIcon />
-            </div>
+            <img src="/images/logo/Rajasa-Logo.png" alt="Logo SMK Rajasa Surabaya" className="main-logo-img" />
             <div className="brand-heading">
               <h1>Sistem Presensi Lab</h1>
               <p>SMK Rajasa Surabaya</p>

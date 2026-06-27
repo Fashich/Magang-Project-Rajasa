@@ -52,6 +52,20 @@ final class AuthService
         return $user;
     }
 
+    /**
+     * Buat token untuk user yang sudah terverifikasi (dipakai 2FA flow).
+     */
+    public function loginFromUser(User $user): array
+    {
+        $token = $this->tokenService->create((int) $user->user_id);
+        return [
+            'token'       => $token,
+            'user'        => $this->formatUser($user),
+            'roles'       => $this->permissionService->rolesForUser((int) $user->user_id),
+            'permissions' => $this->permissionService->permissionsForUser((int) $user->user_id),
+        ];
+    }
+
     public function formatUser(User $user): array
     {
         return [

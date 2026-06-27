@@ -27,6 +27,7 @@
   --admin-text-subtle:   #94a3b8;
 
   --admin-sidebar-w:     260px;
+  --admin-sidebar-coll:   72px;
   --admin-header-h:      64px;
   --admin-font:          'Poppins', sans-serif;
   --admin-radius:        12px;
@@ -638,9 +639,9 @@
 
 .admin-logout-btn svg { width: 18px; height: 18px; fill: currentColor; flex-shrink: 0; }
 
-/* ─── Responsive — Phase 1 ────────────────────────────────────────────────── */
+/* ─── Responsive — Phase 1 (fixed) ────────────────────────────────────────── */
 
-/* Overlay */
+/* Overlay mobile */
 .admin-mobile-overlay {
   position: fixed;
   inset: 0;
@@ -651,25 +652,36 @@
 }
 @keyframes adminFadeOverlay { from { opacity: 0; } to { opacity: 1; } }
 
-/* Tablet (768–1023px): auto-collapse sidebar */
+/* ── Tablet (768–1023px): sidebar icon-only ────────────────────────────────── */
 @media (min-width: 768px) and (max-width: 1023px) {
   .admin-layout {
-    --admin-sidebar-w: var(--admin-sidebar-coll);
+    --admin-sidebar-w: 72px;
   }
   .admin-sidebar {
-    width: var(--admin-sidebar-coll) !important;
+    width: 72px !important;
   }
+  /* Sembunyikan teks, tampilkan hanya icon */
   .admin-sidebar-logo-text,
-  .admin-sidebar .admin-nav-group-label,
-  .admin-sidebar .admin-nav-item span,
-  .admin-sidebar .admin-logout-btn span {
+  .admin-nav-section-label,
+  .admin-nav-item span:not(.nav-icon),
+  .admin-logout-btn span {
     display: none !important;
   }
-  .admin-sidebar .admin-nav-item { justify-content: center; padding: 0 0.5rem; }
-  .admin-sidebar .admin-logout-btn { justify-content: center; }
+  .admin-nav-item {
+    justify-content: center !important;
+    padding: 0.5rem 0 !important;
+    margin: 2px 6px !important;
+    border-radius: 8px !important;
+  }
+  .admin-logout-btn {
+    justify-content: center !important;
+    padding: 0.5rem 0 !important;
+  }
+  .admin-content { margin-left: 72px !important; }
+  .admin-header  { left: 72px !important; }
 }
 
-/* Mobile (<768px): sidebar jadi drawer */
+/* ── Mobile (<768px): sidebar jadi drawer ──────────────────────────────────── */
 @media (max-width: 767px) {
   .admin-layout {
     --admin-sidebar-w: 0px;
@@ -677,6 +689,7 @@
   .admin-header {
     left: 0 !important;
     right: 0;
+    width: 100%;
   }
   .admin-content {
     margin-left: 0 !important;
@@ -694,5 +707,9 @@
   .admin-layout.mobile-open .admin-sidebar {
     transform: translateX(0);
     box-shadow: 4px 0 32px rgba(0,0,0,.25);
+  }
+  /* Pastikan hamburger toggle selalu terlihat */
+  .admin-header-toggle {
+    display: flex !important;
   }
 }
