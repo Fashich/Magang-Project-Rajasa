@@ -36,27 +36,62 @@ const I = {
   school:  <svg viewBox="0 0 24 24"><path d="M5 13.18v4L12 21l7-3.82v-4L12 17l-7-3.82zM12 3L1 9l11 6 9-4.91V17h2V9L12 3z"/></svg>,
 }
 
-// ── Theme icon: bulan sabit (dark) + matahari (light) diagonal split ──────────
+// ── Theme icon: split background + bulan sabit perak (dark) + matahari kuning (light) ──
 function SunMoonIcon({ theme }) {
   const dark = theme === 'dark'
   return (
-    <svg viewBox="0 0 24 24" fill="none" style={{ width: '100%', height: '100%' }}>
-      <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5"/>
-      <line x1="5.36" y1="18.64" x2="18.64" y2="5.36" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-      {/* Bulan sabit — nyala penuh saat dark mode, redup saat light */}
-      <g opacity={dark ? 1 : 0.28} style={{ transition: 'opacity 0.25s' }}>
-        <g transform="scale(0.33) translate(9,12)">
-          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" fill="currentColor"/>
+    <svg viewBox="0 0 24 24" fill="none">
+      <defs>
+        {/* Clip ke rounded rect agar sudut ikon rapi */}
+        <clipPath id="__smicon_clip">
+          <rect width="24" height="24" rx="5.3"/>
+        </clipPath>
+      </defs>
+      <g clipPath="url(#__smicon_clip)">
+        {/* ── Background split diagonal ── */}
+        {/* Kiri-atas: sisi bulan */}
+        <path d="M0,0 L24,0 L0,24 Z"
+          fill={dark ? '#0A0F1E' : '#1E3A5F'}/>
+        {/* Kanan-bawah: sisi matahari */}
+        <path d="M24,0 L24,24 L0,24 Z"
+          fill={dark ? '#1A2744' : '#7DD3FC'}/>
+
+        {/* ── Bintang-bintang (hanya dark mode, area kiri-atas) ── */}
+        {dark && (
+          <g fill="white">
+            <circle cx="3.5"  cy="2.5"  r="0.5"  opacity="0.92"/>
+            <circle cx="11"   cy="2.5"  r="0.38" opacity="0.80"/>
+            <circle cx="9"    cy="5.5"  r="0.32" opacity="0.70"/>
+            <circle cx="2"    cy="9"    r="0.28" opacity="0.85"/>
+            <circle cx="6.5"  cy="11"   r="0.22" opacity="0.60"/>
+            <circle cx="4"    cy="15"   r="0.22" opacity="0.55"/>
+            <circle cx="1.5"  cy="17.5" r="0.28" opacity="0.65"/>
+            <circle cx="8"    cy="8"    r="0.18" opacity="0.72"/>
+            <circle cx="0.8"  cy="5"    r="0.18" opacity="0.50"/>
+          </g>
+        )}
+
+        {/* ── Bulan sabit KIRI-ATAS ── */}
+        <g opacity={dark ? 1 : 0.18} style={{ transition: 'opacity 0.25s' }}>
+          <g transform="scale(0.6)">
+            <path d="M3 12.79A9 9 0 1 0 12.79 3 7 7 0 0 1 3 12.79z"
+              fill={dark ? '#E2E8F0' : 'white'}/>
+          </g>
         </g>
-      </g>
-      {/* Matahari — nyala penuh saat light mode, redup saat dark */}
-      <g opacity={dark ? 0.28 : 1} style={{ transition: 'opacity 0.25s' }}>
-        <circle cx="16.5" cy="16" r="2" fill="currentColor"/>
-        <line x1="16.5" y1="19.3" x2="16.5" y2="20.5" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        <line x1="19.7" y1="16" x2="21" y2="16" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        <line x1="18.6" y1="18.1" x2="19.7" y2="19.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        <line x1="14.4" y1="18.1" x2="13.3" y2="19.2" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-        <line x1="18.6" y1="13.9" x2="19.7" y2="12.8" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+
+        {/* ── Matahari KANAN-BAWAH ── */}
+        <g opacity={dark ? 0.18 : 1} style={{ transition: 'opacity 0.25s' }}>
+          <circle cx="16" cy="16" r="3.5" fill={dark ? '#94A3B8' : '#FBBF24'}/>
+          <line x1="16"    y1="20.5"  x2="16"    y2="23"    stroke={dark ? '#94A3B8' : '#FBBF24'} strokeWidth="2" strokeLinecap="round"/>
+          <line x1="20.5"  y1="16"    x2="23"    y2="16"    stroke={dark ? '#94A3B8' : '#FBBF24'} strokeWidth="2" strokeLinecap="round"/>
+          <line x1="19.47" y1="19.47" x2="21.19" y2="21.19" stroke={dark ? '#94A3B8' : '#FBBF24'} strokeWidth="2" strokeLinecap="round"/>
+          <line x1="12.53" y1="19.47" x2="10.81" y2="21.19" stroke={dark ? '#94A3B8' : '#FBBF24'} strokeWidth="2" strokeLinecap="round"/>
+          <line x1="19.47" y1="12.53" x2="21.19" y2="10.81" stroke={dark ? '#94A3B8' : '#FBBF24'} strokeWidth="2" strokeLinecap="round"/>
+        </g>
+
+        {/* ── Garis pemisah diagonal ── */}
+        <line x1="0" y1="24" x2="24" y2="0"
+          stroke="rgba(255,255,255,0.18)" strokeWidth="0.7"/>
       </g>
     </svg>
   )
