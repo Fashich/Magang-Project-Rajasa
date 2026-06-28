@@ -155,13 +155,16 @@ export default function ProfileCard({ onClose, theme, userType }) {
           display:'flex', alignItems:'center', justifyContent:'space-between',
         }}>
           <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
-            {/* Icon sekolah */}
+            {/* Logo Rajasa */}
             <div style={{
-              width:'36px', height:'36px', borderRadius:'50%',
-              background:'rgba(255,255,255,0.15)',
+              width:'36px', height:'36px', borderRadius:'8px',
+              background:'#ffffff',
               display:'flex', alignItems:'center', justifyContent:'center',
-              fontSize:'1.2rem',
-            }}>🏫</div>
+              flexShrink: 0, overflow:'hidden', padding:'2px',
+            }}>
+              <img src="/images/logo/Rajasa-Logo.png" alt="Logo Rajasa"
+                style={{ width:'100%', height:'100%', objectFit:'contain' }}/>
+            </div>
             <div>
               <div style={{ color:'#fff', fontWeight:700, fontSize:'0.92rem', letterSpacing:'0.03em' }}>
                 SMKS RAJASA SURABAYA
@@ -191,14 +194,14 @@ export default function ProfileCard({ onClose, theme, userType }) {
             alignItems:'center', justifyContent:'center',
             padding:'24px 16px', gap:'12px',
           }}>
-            {/* Foto container */}
+            {/* Foto container — rasio 3:4, stretch bukan crop */}
             <div
               onClick={() => fileInputRef.current?.click()}
               title="Klik untuk ganti foto"
               style={{
-                width:'110px', height:'140px',
+                width:'111px', height:'148px',
                 background: photoBg,
-                borderRadius:'8px',
+                borderRadius:'6px',
                 overflow:'hidden',
                 cursor:'pointer',
                 position:'relative',
@@ -208,7 +211,7 @@ export default function ProfileCard({ onClose, theme, userType }) {
             >
               {loading ? null : profile?.foto_url ? (
                 <img src={profile.foto_url} alt="Foto profil"
-                  style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}/>
+                  style={{ width:'100%', height:'100%', objectFit:'fill', display:'block' }}/>
               ) : (
                 <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center',
                               color: dark ? '#475569' : '#94a3b8' }}>
