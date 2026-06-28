@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'preact/hooks'
 import api from '../../utils/api.js'
-import { auth } from '../../utils/auth.js'
+import auth from '../../utils/auth.js'
 
 // ── Fallback foto ─────────────────────────────────────────────────────────────
 function NoPhotoIcon({ size = 90 }) {

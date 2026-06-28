@@ -219,82 +219,118 @@ final class ProfileController
     {
         $user = $this->auth->user();
         $body = $this->request->body();
-        $now  = now()->toDateTimeString();
 
-        if (in_array($user->user_type, ['guru', 'staff', 'admin', 'intern'], true)) {
-            // Field yang boleh diedit per jenis user
-            $allowedFields = match ($user->user_type) {
-                'admin'  => ['nama_lengkap', 'nip', 'jabatan', 'email', 'no_telp'],
-                default  => ['nama_lengkap', 'mapel_pengampu', 'no_telp'], // guru/staff/intern
-            };
+        if (!is_array($body) || empty($body)) {
+            Response::error('Body request kosong atau tidak valid.', [], 400);
+            return;
+        }
 
-            $row = DB::table('guru_staff as g')
-                ->join('users as u', 'u.guru_id', '=', 'g.guru_id')
-                ->where('u.user_id', '=', (int) $user->user_id)
-                ->select(['g.guru_id'])
-                ->first();
+        $now = date('Y-m-d H:i:s');
 
-            if (!$row) {
-                Response::error('Data guru tidak ditemukan.', [], 404);
-                return;
-            }
+        try {
+            if (in_array($user->user_type, ['guru', 'staff', 'admin', 'intern'], true)) {
 
-            if (!empty($body['email']) && !filter_var($body['email'], FILTER_VALIDATE_EMAIL)) {
-                Response::error('Format email tidak valid.', [], 422);
-                return;
-            }
-
-            $updates = [];
-            foreach ($allowedFields as $field) {
-                if (array_key_exists($field, $body)) {
-                    $updates[$field] = !empty($body[$field]) ? trim((string) $body[$field]) : null;
-                }
-            }
-
-            if (!empty($updates)) {
-                $updates['updated_at'] = $now;
-                DB::table('guru_staff')->where('guru_id', $row->guru_id)->update($updates);
-            }
-
-        } else {
-            // Siswa — bisa edit nama_lengkap, email, no_telp
-            $row = DB::table('siswa as s')
-                ->join('users as u', 'u.siswa_id', '=', 's.siswa_id')
-                ->where('u.user_id', '=', (int) $user->user_id)
-                ->select(['s.siswa_id'])
-                ->first();
-
-            if (!$row) {
-                Response::error('Data siswa tidak ditemukan.', [], 404);
-                return;
-            }
-
-            // nama_lengkap → update tabel siswa
-            if (!empty($body['nama_lengkap'])) {
-                DB::table('siswa')
-                    ->where('siswa_id', $row->siswa_id)
-                    ->update(['nama_lengkap' => trim($body['nama_lengkap']), 'updated_at' => $now]);
-            }
-
-            // email + no_telp → update/insert profil_siswa
-            $profilUpdates = [];
-            foreach (['email', 'no_telp'] as $field) {
-                if (array_key_exists($field, $body)) {
-                    $profilUpdates[$field] = !empty($body[$field]) ? trim($body[$field]) : null;
-                }
-            }
-
-            if (!empty($profilUpdates)) {
-                $profilUpdates['updated_at'] = $now;
-                $exists = DB::table('profil_siswa')->where('siswa_id', $row->siswa_id)->exists();
-                if ($exists) {
-                    DB::table('profil_siswa')->where('siswa_id', $row->siswa_id)->update($profilUpdates);
+                // Field yang boleh diedit per jenis user
+                if ($user->user_type === 'admin') {
+                    $allowedFields = ['nama_lengkap', 'nip', 'jabatan', 'email', 'no_telp'];
                 } else {
-                    $profilUpdates['siswa_id']   = $row->siswa_id;
-                    $profilUpdates['created_at'] = $now;
-                    DB::table('profil_siswa')->insert($profilUpdates);
+                    $allowedFields = ['nama_lengkap', 'mapel_pengampu', 'no_telp'];
+                }
+
+                $row = DB::table('guru_staff as g')
+                    ->join('users as u', 'u.guru_id', '=', 'g.guru_id')
+                    ->where('u.user_id', '=', (int) $user->user_id)
+                    ->select(['g.guru_id', 'g.nip as existing_nip'])
+                    ->first();
+
+                if (!$row) {
+                    Response::error('Data guru tidak ditemukan.', [], 404);
+                    return;
+                }
+
+                if (!empty($body['email']) && !filter_var($body['email'], FILTER_VALIDATE_EMAIL)) {
+                    Response::error('Format email tidak valid.', [], 422);
+                    return;
+                }
+
+                // Cek duplikat NIP hanya jika NIP berubah
+                if (
+                    !empty($body['nip'])
+                    && trim((string) $body['nip']) !== (string) ($row->existing_nip ?? '')
+                ) {
+                    $nipExist = DB::table('guru_staff')
+                        ->where('nip', trim((string) $body['nip']))
+                        ->where('guru_id', '!=', (int) $row->guru_id)
+                        ->exists();
+                    if ($nipExist) {
+                        Response::error('NIP sudah digunakan oleh guru lain.', [], 409);
+                        return;
+                    }
+                }
+
+                $updates = [];
+                foreach ($allowedFields as $field) {
+                    if (array_key_exists($field, $body)) {
+                        $val = $body[$field];
+                        $updates[$field] = ($val !== null && $val !== '') ? trim((string) $val) : null;
+                    }
+                }
+
+                if (empty($updates)) {
+                    Response::success('Tidak ada perubahan.');
+                    return;
+                }
+
+                $updates['updated_at'] = $now;
+                DB::table('guru_staff')->where('guru_id', (int) $row->guru_id)->update($updates);
+
+            } else {
+                // Siswa — bisa edit nama_lengkap, email, no_telp
+                $row = DB::table('siswa as s')
+                    ->join('users as u', 'u.siswa_id', '=', 's.siswa_id')
+                    ->where('u.user_id', '=', (int) $user->user_id)
+                    ->select(['s.siswa_id'])
+                    ->first();
+
+                if (!$row) {
+                    Response::error('Data siswa tidak ditemukan.', [], 404);
+                    return;
+                }
+
+                if (!empty($body['nama_lengkap'])) {
+                    DB::table('siswa')
+                        ->where('siswa_id', (int) $row->siswa_id)
+                        ->update(['nama_lengkap' => trim((string) $body['nama_lengkap']), 'updated_at' => $now]);
+                }
+
+                $profilUpdates = [];
+                foreach (['email', 'no_telp'] as $field) {
+                    if (array_key_exists($field, $body)) {
+                        $val = $body[$field];
+                        $profilUpdates[$field] = ($val !== null && $val !== '') ? trim((string) $val) : null;
+                    }
+                }
+
+                if (!empty($profilUpdates)) {
+                    $profilUpdates['updated_at'] = $now;
+                    $exists = DB::table('profil_siswa')->where('siswa_id', (int) $row->siswa_id)->exists();
+                    if ($exists) {
+                        DB::table('profil_siswa')->where('siswa_id', (int) $row->siswa_id)->update($profilUpdates);
+                    } else {
+                        $profilUpdates['siswa_id']   = (int) $row->siswa_id;
+                        $profilUpdates['created_at'] = $now;
+                        DB::table('profil_siswa')->insert($profilUpdates);
+                    }
                 }
             }
+
+        } catch (\Throwable $e) {
+            Response::error(
+                'Gagal menyimpan profil: ' . $e->getMessage(),
+                ['trace' => substr($e->getTraceAsString(), 0, 500)],
+                500
+            );
+            return;
         }
 
         Response::success('Profil berhasil diperbarui.');
