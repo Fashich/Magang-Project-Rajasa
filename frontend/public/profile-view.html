@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profil — Presensi Lab Rajasa</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      background: #0f172a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding: 24px 16px;
+      color: #e2e8f0;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 400px;
+      background: #1e293b;
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.5);
+      border: 1px solid #334155;
+    }
+
+    /* Header */
+    .header {
+      background: #1e3a6e;
+      padding: 14px 18px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .header img { width: 34px; height: 34px; object-fit: contain; border-radius: 6px; }
+    .header-text .school { font-weight: 700; font-size: 0.88rem; color: #fff; letter-spacing: 0.02em; }
+    .header-text .subtitle { font-size: 0.65rem; color: rgba(255,255,255,0.65); letter-spacing: 0.05em; text-transform: uppercase; margin-top: 1px; }
+
+    /* Body */
+    .body { display: flex; gap: 0; }
+
+    /* Foto kolom */
+    .foto-col {
+      width: 130px;
+      flex-shrink: 0;
+      background: #0f172a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px 12px;
+      gap: 10px;
+      border-right: 1px solid #334155;
+    }
+    .foto-box {
+      width: 96px;
+      height: 128px;
+      border-radius: 6px;
+      overflow: hidden;
+      background: #1e293b;
+      border: 2px solid #334155;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .foto-box img { width: 100%; height: 100%; object-fit: fill; display: block; }
+    .foto-box svg { width: 80px; height: 80px; color: #475569; }
+    .status-badge {
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 0.68rem;
+      font-weight: 600;
+      letter-spacing: 0.04em;
+    }
+    .status-aktif { background: rgba(34,197,94,0.15); color: #22c55e; border: 1px solid #22c55e; }
+    .status-nonaktif { background: rgba(239,68,68,0.15); color: #ef4444; border: 1px solid #ef4444; }
+
+    /* Data kolom */
+    .data-col { flex: 1; padding: 16px; min-width: 0; }
+    .nama { font-weight: 700; font-size: 1rem; color: #f1f5f9; margin-bottom: 4px; }
+    .peran { font-size: 0.75rem; color: #64748b; margin-bottom: 12px; }
+    .divider { border: none; border-top: 1px solid #334155; margin-bottom: 10px; }
+
+    .field { display: flex; flex-direction: column; margin-bottom: 8px; }
+    .field-label { font-size: 0.62rem; font-weight: 700; color: #475569; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
+    .field-value { font-size: 0.8rem; color: #e2e8f0; word-break: break-word; }
+    .field-empty { font-size: 0.8rem; color: #334155; font-style: italic; }
+
+    .last-login { margin-top: 10px; font-size: 0.65rem; color: #475569; text-align: right; }
+
+    /* States */
+    .state { text-align: center; padding: 48px 24px; }
+    .state-icon { font-size: 2.5rem; margin-bottom: 12px; }
+    .state-title { font-size: 1rem; font-weight: 600; color: #f1f5f9; margin-bottom: 6px; }
+    .state-sub { font-size: 0.8rem; color: #64748b; }
+    .spinner {
+      width: 40px; height: 40px;
+      border: 3px solid #334155;
+      border-top-color: #6366f1;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .footer {
+      text-align: center;
+      margin-top: 16px;
+      font-size: 0.68rem;
+      color: #334155;
+    }
+    .expiry-note {
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.72rem;
+      color: #64748b;
+      text-align: center;
+      margin-top: 16px;
+      max-width: 400px;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <div id="app" class="card">
+    <div class="state">
+      <div class="spinner"></div>
+      <div class="state-title">Memuat profil…</div>
+      <div class="state-sub">Mohon tunggu sebentar</div>
+    </div>
+  </div>
+  <div class="expiry-note" id="expiry" style="display:none">
+    ⏱ Link ini hanya berlaku selama sesi pemilik akun aktif
+  </div>
+  <div class="footer">Presensi Lab SMKS Rajasa Surabaya</div>
+
+  <script>
+    const params   = new URLSearchParams(window.location.search)
+    const token    = params.get('t')
+    const apiBase  = window.location.origin
+
+    function val(v) {
+      return v
+        ? `<span class="field-value">${v}</span>`
+        : `<span class="field-empty">—</span>`
+    }
+
+    function renderGuru(p) {
+      return `
+        <div class="field"><span class="field-label">NIP</span>${val(p.nip)}</div>
+        <div class="field"><span class="field-label">Username</span>${val(p.username)}</div>
+        <div class="field"><span class="field-label">Jabatan</span>${val(p.jabatan)}</div>
+        <div class="field"><span class="field-label">Mata Pelajaran</span>${val(p.mapel_pengampu)}</div>
+        <div class="field"><span class="field-label">Status Pegawai</span>${val(p.status_kepegawaian)}</div>
+        <div class="field"><span class="field-label">Email</span>${val(p.email)}</div>
+        <div class="field"><span class="field-label">No. HP</span>${val(p.no_telp)}</div>
+      `
+    }
+
+    function renderSiswa(p) {
+      return `
+        <div class="field"><span class="field-label">NISN</span>${val(p.nisn)}</div>
+        <div class="field"><span class="field-label">NIS</span>${val(p.nis)}</div>
+        <div class="field"><span class="field-label">Jurusan</span>${val(p.jurusan)}</div>
+        <div class="field"><span class="field-label">Angkatan</span>${val(p.angkatan)}</div>
+        <div class="field"><span class="field-label">Kelas</span>${val(p.kelas_aktif)}</div>
+        <div class="field"><span class="field-label">Email</span>${val(p.email)}</div>
+        <div class="field"><span class="field-label">No. HP</span>${val(p.no_telp)}</div>
+      `
+    }
+
+    function noPhoto() {
+      return `<svg viewBox="0 0 90 90" fill="none">
+        <rect width="90" height="90" fill="#334155"/>
+        <circle cx="45" cy="34" r="18" fill="#475569"/>
+        <ellipse cx="45" cy="78" rx="28" ry="18" fill="#475569"/>
+      </svg>`
+    }
+
+    async function load() {
+      if (!token) {
+        document.getElementById('app').innerHTML = `
+          <div class="state">
+            <div class="state-icon">🔒</div>
+            <div class="state-title">Link tidak valid</div>
+            <div class="state-sub">Token tidak ditemukan dalam URL.</div>
+          </div>`
+        return
+      }
+
+      try {
+        const res  = await fetch(`${apiBase}/api/profile/me`, {
+          headers: { 'Authorization': `Bearer ${token}` }
+        })
+
+        if (res.status === 401) {
+          document.getElementById('app').innerHTML = `
+            <div class="state">
+              <div class="state-icon">⏰</div>
+              <div class="state-title">Sesi telah berakhir</div>
+              <div class="state-sub">Token sudah tidak berlaku. Minta pemilik akun untuk membagikan QR baru.</div>
+            </div>`
+          return
+        }
+
+        if (!res.ok) throw new Error('Gagal memuat')
+
+        const json = await res.json()
+        const p    = json.data?.profile ?? json.profile ?? {}
+        const isGuru = ['guru','staff','admin','intern'].includes(p.jenis_user ?? '')
+
+        const statusClass = p.status === 'aktif' ? 'status-aktif' : 'status-nonaktif'
+        const fotoEl = p.foto_url
+          ? `<img src="${apiBase}${p.foto_url}" alt="Foto"/>`
+          : noPhoto()
+
+        const loginText = p.last_login_at
+          ? new Date(p.last_login_at).toLocaleString('id-ID', { dateStyle:'medium', timeStyle:'short' })
+          : null
+
+        document.getElementById('app').innerHTML = `
+          <div class="header">
+            <img src="/images/logo/Rajasa-Logo.png" alt="Logo"/>
+            <div class="header-text">
+              <div class="school">SMKS RAJASA SURABAYA</div>
+              <div class="subtitle">${isGuru ? 'Kartu Identitas Guru / Staff' : 'Kartu Identitas Siswa'}</div>
+            </div>
+          </div>
+          <div class="body">
+            <div class="foto-col">
+              <div class="foto-box">${fotoEl}</div>
+              <div class="status-badge ${statusClass}">● ${(p.status ?? 'aktif').toUpperCase()}</div>
+            </div>
+            <div class="data-col">
+              <div class="nama">${p.nama_lengkap ?? '—'}</div>
+              <div class="peran">${isGuru ? (p.jabatan ?? p.jenis_user ?? 'Guru') : (p.kelas_aktif ?? 'Siswa')}</div>
+              <hr class="divider"/>
+              ${isGuru ? renderGuru(p) : renderSiswa(p)}
+              ${loginText ? `<div class="last-login">Login terakhir: ${loginText}</div>` : ''}
+            </div>
+          </div>`
+
+        document.getElementById('expiry').style.display = 'block'
+
+      } catch (e) {
+        document.getElementById('app').innerHTML = `
+          <div class="state">
+            <div class="state-icon">❌</div>
+            <div class="state-title">Gagal memuat profil</div>
+            <div class="state-sub">${e.message}</div>
+          </div>`
+      }
+    }
+
+    load()
+  </script>
+</body>
+</html>

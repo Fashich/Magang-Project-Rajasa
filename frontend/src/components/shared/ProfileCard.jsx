@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'preact/hooks'
 import api from '../../utils/api.js'
+import { auth } from '../../utils/auth.js'
 
 // ── Fallback foto — ikon orang SVG ────────────────────────────────────────────
 function NoPhotoIcon({ size = 90 }) {
@@ -79,8 +80,13 @@ export default function ProfileCard({ onClose, theme, userType }) {
   const [error, setError]         = useState('')
   const [uploading, setUploading] = useState(false)
   const [uploadErr, setUploadErr] = useState('')
+  const [showQR, setShowQR]       = useState(false)
   const fileInputRef = useRef(null)
   const dark = theme === 'dark'
+
+  // QR — link ke profile-view.html dengan token saat ini
+  const qrUrl    = `${window.location.origin}/profile-view.html?t=${auth.getToken() ?? ''}`
+  const qrImgSrc = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&margin=8&color=${dark ? 'e2e8f0' : '1e293b'}&bgcolor=${dark ? '1e293b' : 'ffffff'}&data=${encodeURIComponent(qrUrl)}`
 
   const isGuru  = ['guru','staff','admin','intern'].includes(userType)
   const isSiswa = userType === 'siswa'
@@ -246,6 +252,19 @@ export default function ProfileCard({ onClose, theme, userType }) {
               📷 Ganti Foto
             </button>
 
+            {/* Tombol QR */}
+            <button type="button" onClick={() => setShowQR(q => !q)}
+              style={{
+                background: showQR ? '#6366f1' : 'none',
+                border:`1.5px solid ${showQR ? '#6366f1' : (dark ? '#334155' : '#e2e8f0')}`,
+                borderRadius:'20px', padding:'5px 14px', fontSize:'0.72rem',
+                color: showQR ? '#fff' : (dark ? '#94a3b8' : '#64748b'),
+                cursor:'pointer', fontFamily:'inherit',
+                display:'flex', alignItems:'center', gap:'5px',
+              }}>
+              📱 {showQR ? 'Tutup QR' : 'QR Code'}
+            </button>
+
             {uploadErr && (
               <div style={{ color:'#ef4444', fontSize:'0.7rem', textAlign:'center' }}>{uploadErr}</div>
             )}
@@ -334,6 +353,34 @@ export default function ProfileCard({ onClose, theme, userType }) {
             )}
           </div>
         </div>
+        {/* ── QR Code panel ── */}
+        {showQR && (
+          <div style={{
+            borderTop: `1px solid ${dark ? '#334155' : '#e2e8f0'}`,
+            padding:'18px', display:'flex', flexDirection:'column',
+            alignItems:'center', gap:'12px',
+            background: dark ? '#0f172a' : '#f8fafc',
+          }}>
+            <div style={{ fontSize:'0.78rem', fontWeight:600, color: dark ? '#94a3b8' : '#64748b' }}>
+              Scan untuk lihat profil di HP
+            </div>
+            <div style={{
+              padding:'10px', borderRadius:'12px',
+              background: dark ? '#1e293b' : '#ffffff',
+              border:`1px solid ${dark ? '#334155' : '#e2e8f0'}`,
+            }}>
+              <img src={qrImgSrc} alt="QR Profil" width="180" height="180"
+                style={{ display:'block', borderRadius:'4px' }}/>
+            </div>
+            <div style={{
+              fontSize:'0.68rem', color: dark ? '#475569' : '#94a3b8',
+              textAlign:'center', lineHeight:1.5, maxWidth:'240px',
+            }}>
+              ⏱ Berlaku selama sesi akun aktif.<br/>
+              Pastikan HP terhubung ke jaringan yang sama.
+            </div>
+          </div>
+        )}
       </div>
     </div>
   )
