@@ -95,7 +95,7 @@ export default function ProfileCard({ onClose, theme, userType }) {
 
   // Fetch profile data
   useEffect(() => {
-    api.get('/api/profile/me')
+    api.get('/profile/me')
       .then(res => setProfile(res.data?.profile ?? null))
       .catch(() => setError('Gagal memuat profil.'))
       .finally(() => setLoading(false))
@@ -128,7 +128,7 @@ export default function ProfileCard({ onClose, theme, userType }) {
     try {
       const fd = new FormData()
       fd.append('foto', file)
-      const res = await api.postForm('/api/profile/foto', fd)
+      const res = await api.postForm('/profile/foto', fd)
       const newUrl = res.data?.foto_url
       if (newUrl) {
         setProfile(p => ({ ...p, foto_url: newUrl + '?t=' + Date.now() }))
@@ -142,7 +142,7 @@ export default function ProfileCard({ onClose, theme, userType }) {
   }
 
   const handleSaveKontak = useCallback(async (field, value) => {
-    await api.put('/api/profile/kontak', { [field]: value })
+    await api.put('/profile/kontak', { [field]: value })
     setProfile(p => ({ ...p, [field]: value }))
   }, [])
 
