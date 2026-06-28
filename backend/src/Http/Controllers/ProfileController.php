@@ -218,41 +218,85 @@ final class ProfileController
     public function updateKontak(): void
     {
         $user = $this->auth->user();
+        $body = $this->request->body();
+        $now  = now()->toDateTimeString();
 
-        // Siswa tidak bisa edit kontak sendiri
-        if ($user->user_type === 'siswa') {
-            Response::error('Siswa tidak dapat mengubah data kontak sendiri. Hubungi admin.', [], 403);
-            return;
+        if (in_array($user->user_type, ['guru', 'staff', 'admin', 'intern'], true)) {
+            // Field yang boleh diedit per jenis user
+            $allowedFields = match ($user->user_type) {
+                'admin'  => ['nama_lengkap', 'nip', 'jabatan', 'email', 'no_telp'],
+                default  => ['nama_lengkap', 'mapel_pengampu', 'no_telp'], // guru/staff/intern
+            };
+
+            $row = DB::table('guru_staff as g')
+                ->join('users as u', 'u.guru_id', '=', 'g.guru_id')
+                ->where('u.user_id', '=', (int) $user->user_id)
+                ->select(['g.guru_id'])
+                ->first();
+
+            if (!$row) {
+                Response::error('Data guru tidak ditemukan.', [], 404);
+                return;
+            }
+
+            if (!empty($body['email']) && !filter_var($body['email'], FILTER_VALIDATE_EMAIL)) {
+                Response::error('Format email tidak valid.', [], 422);
+                return;
+            }
+
+            $updates = [];
+            foreach ($allowedFields as $field) {
+                if (array_key_exists($field, $body)) {
+                    $updates[$field] = !empty($body[$field]) ? trim((string) $body[$field]) : null;
+                }
+            }
+
+            if (!empty($updates)) {
+                $updates['updated_at'] = $now;
+                DB::table('guru_staff')->where('guru_id', $row->guru_id)->update($updates);
+            }
+
+        } else {
+            // Siswa — bisa edit nama_lengkap, email, no_telp
+            $row = DB::table('siswa as s')
+                ->join('users as u', 'u.siswa_id', '=', 's.siswa_id')
+                ->where('u.user_id', '=', (int) $user->user_id)
+                ->select(['s.siswa_id'])
+                ->first();
+
+            if (!$row) {
+                Response::error('Data siswa tidak ditemukan.', [], 404);
+                return;
+            }
+
+            // nama_lengkap → update tabel siswa
+            if (!empty($body['nama_lengkap'])) {
+                DB::table('siswa')
+                    ->where('siswa_id', $row->siswa_id)
+                    ->update(['nama_lengkap' => trim($body['nama_lengkap']), 'updated_at' => $now]);
+            }
+
+            // email + no_telp → update/insert profil_siswa
+            $profilUpdates = [];
+            foreach (['email', 'no_telp'] as $field) {
+                if (array_key_exists($field, $body)) {
+                    $profilUpdates[$field] = !empty($body[$field]) ? trim($body[$field]) : null;
+                }
+            }
+
+            if (!empty($profilUpdates)) {
+                $profilUpdates['updated_at'] = $now;
+                $exists = DB::table('profil_siswa')->where('siswa_id', $row->siswa_id)->exists();
+                if ($exists) {
+                    DB::table('profil_siswa')->where('siswa_id', $row->siswa_id)->update($profilUpdates);
+                } else {
+                    $profilUpdates['siswa_id']   = $row->siswa_id;
+                    $profilUpdates['created_at'] = $now;
+                    DB::table('profil_siswa')->insert($profilUpdates);
+                }
+            }
         }
 
-        $body   = $this->request->body();
-        $email  = isset($body['email'])  ? trim($body['email'])  : null;
-        $noTelp = isset($body['no_telp'])? trim($body['no_telp']): null;
-
-        if ($email !== null && $email !== '' && !filter_var($email, FILTER_VALIDATE_EMAIL)) {
-            Response::error('Format email tidak valid.', [], 422);
-            return;
-        }
-
-        $row = DB::table('guru_staff as g')
-            ->join('users as u', 'u.guru_id', '=', 'g.guru_id')
-            ->where('u.user_id', '=', (int) $user->user_id)
-            ->select(['g.guru_id'])
-            ->first();
-
-        if (!$row) {
-            Response::error('Data guru tidak ditemukan.', [], 404);
-            return;
-        }
-
-        $updates = ['updated_at' => now()->toDateTimeString()];
-        if ($email  !== null) $updates['email']   = $email  ?: null;
-        if ($noTelp !== null) $updates['no_telp'] = $noTelp ?: null;
-
-        DB::table('guru_staff')
-            ->where('guru_id', $row->guru_id)
-            ->update($updates);
-
-        Response::success('Data kontak berhasil diperbarui.');
+        Response::success('Profil berhasil diperbarui.');
     }
 }
