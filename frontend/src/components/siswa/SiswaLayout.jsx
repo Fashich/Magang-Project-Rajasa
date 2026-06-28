@@ -300,8 +300,15 @@ function SiswaHeader({ activePage, onToggle, onToggleTheme, theme, onChangeLang,
 }
 
 // ── Logout Overlay ────────────────────────────────────────────────────────────
-function LogoutOverlay({ state, onConfirm, onCancel }) {
+function LogoutOverlay({ state, onConfirm, onCancel, theme }) {
   if (state === 'idle') return null
+  const dark    = theme === 'dark'
+  const cardBg  = dark ? '#1e293b' : '#ffffff'
+  const txtMain = dark ? '#f1f5f9' : '#0f172a'
+  const txtSub  = dark ? '#94a3b8' : '#64748b'
+  const border  = dark ? '#334155' : '#e2e8f0'
+  const btnCancelClr = dark ? '#94a3b8' : '#475569'
+  const iconBg  = dark ? 'rgba(220,38,38,0.15)' : '#fef2f2'
   return (
     <div style={{
       position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)',
@@ -310,16 +317,17 @@ function LogoutOverlay({ state, onConfirm, onCancel }) {
       fontFamily: "'Poppins', sans-serif",
     }} onClick={state === 'confirming' ? onCancel : undefined}>
       <div style={{
-        background: '#fff', borderRadius: '16px',
-        boxShadow: '0 20px 60px rgba(0,0,0,.25)',
+        background: cardBg, borderRadius: '16px',
+        boxShadow: '0 24px 64px rgba(0,0,0,.35)',
         width: '100%', maxWidth: '360px', overflow: 'hidden',
+        border: `1px solid ${border}`,
       }} onClick={e => e.stopPropagation()}>
 
         {state === 'confirming' && (
           <>
             <div style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
               <div style={{
-                width: 44, height: 44, borderRadius: 12, background: '#fef2f2',
+                width: 44, height: 44, borderRadius: 12, background: iconBg,
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
                 <svg viewBox="0 0 24 24" style={{ width: 22, height: 22, fill: '#dc2626' }}>
@@ -337,7 +345,7 @@ function LogoutOverlay({ state, onConfirm, onCancel }) {
             </div>
             <div style={{
               display: 'flex', justifyContent: 'flex-end', gap: '0.5rem',
-              padding: '0.875rem 1.5rem 1.25rem', borderTop: '1px solid #e2e8f0',
+              padding: '0.875rem 1.5rem 1.25rem', borderTop: `1px solid ${border}`,
             }}>
               <button onClick={onCancel} style={{
                 padding: '0.45rem 1rem', borderRadius: 8, cursor: 'pointer',
@@ -359,7 +367,7 @@ function LogoutOverlay({ state, onConfirm, onCancel }) {
             display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '1rem',
           }}>
             <div style={{
-              width: 40, height: 40, border: '3px solid #e2e8f0',
+              width: 40, height: 40, border: `3px solid ${border}`,
               borderTopColor: '#0284c7', borderRadius: '50%',
               animation: 'sSpin 0.75s linear infinite',
             }} />

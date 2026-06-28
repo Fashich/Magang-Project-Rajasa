@@ -197,8 +197,15 @@ const NAV_SECTIONS = [
 
 // ─── Logout Overlay ───────────────────────────────────────────────────────────
 
-function LogoutOverlay({ state, onConfirm, onCancel }) {
+function LogoutOverlay({ state, onConfirm, onCancel, theme }) {
   if (state === 'idle') return null
+  const dark    = theme === 'dark'
+  const cardBg  = dark ? '#1e293b' : '#ffffff'
+  const txtMain = dark ? '#f1f5f9' : '#0f172a'
+  const txtSub  = dark ? '#94a3b8' : '#64748b'
+  const border  = dark ? '#334155' : '#e2e8f0'
+  const btnCancelClr = dark ? '#94a3b8' : '#475569'
+  const iconBg  = dark ? 'rgba(220,38,38,0.15)' : '#fef2f2'
 
   return (
     <div
@@ -246,7 +253,7 @@ function LogoutOverlay({ state, onConfirm, onCancel }) {
             <div style={{
               display: 'flex', justifyContent: 'flex-end', gap: '0.5rem',
               padding: '0.875rem 1.5rem 1.25rem',
-              borderTop: '1px solid #e2e8f0',
+              borderTop: `1px solid ${border}`,
             }}>
               <button type="button" onClick={onCancel} style={{
                 padding: '0.45rem 1rem', borderRadius: 8, cursor: 'pointer',
@@ -269,7 +276,7 @@ function LogoutOverlay({ state, onConfirm, onCancel }) {
           }}>
             <div style={{
               width: 40, height: 40,
-              border: '3px solid #e2e8f0',
+              border: `3px solid ${border}`,
               borderTopColor: '#dc2626',
               borderRadius: '50%',
               animation: 'adminSpin 0.75s linear infinite',

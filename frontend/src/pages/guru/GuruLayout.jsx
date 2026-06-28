@@ -322,27 +322,35 @@ function GuruHeader({ onToggle, activePage, onToggleTheme, theme, onChangeLang, 
 }
 
 // ── Logout Overlay ────────────────────────────────────────────────────────────
-function LogoutOverlay({ state, onConfirm, onCancel }) {
+function LogoutOverlay({ state, onConfirm, onCancel, theme }) {
   if (state === 'idle') return null
+  const dark   = theme === 'dark'
+  const cardBg = dark ? '#1e293b' : '#ffffff'
+  const txtMain= dark ? '#f1f5f9' : '#0f172a'
+  const txtSub = dark ? '#94a3b8' : '#64748b'
+  const border = dark ? '#334155' : '#e2e8f0'
+  const btnCancelClr = dark ? '#94a3b8' : '#475569'
 
   return (
     <div style={{
-      position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)',
+      position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.65)',
       display: 'flex', alignItems: 'center', justifyContent: 'center',
-      zIndex: 9999, padding: '1rem', backdropFilter: 'blur(3px)',
+      zIndex: 9999, padding: '1rem', backdropFilter: 'blur(4px)',
       fontFamily: "'Poppins', sans-serif",
     }} onClick={state === 'confirming' ? onCancel : undefined}>
       <div style={{
-        background: '#fff', borderRadius: '16px',
-        boxShadow: '0 20px 60px rgba(0,0,0,.25)',
+        background: cardBg, borderRadius: '16px',
+        boxShadow: '0 24px 64px rgba(0,0,0,.35)',
         width: '100%', maxWidth: '360px', overflow: 'hidden',
+        border: `1px solid ${border}`,
       }} onClick={e => e.stopPropagation()}>
 
         {state === 'confirming' && (
           <>
             <div style={{ padding: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
               <div style={{
-                width: 44, height: 44, borderRadius: 12, background: '#fef2f2',
+                width: 44, height: 44, borderRadius: 12,
+                background: dark ? 'rgba(220,38,38,0.15)' : '#fef2f2',
                 display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0,
               }}>
                 <svg viewBox="0 0 24 24" style={{ width: 22, height: 22, fill: '#dc2626' }}>
@@ -350,18 +358,18 @@ function LogoutOverlay({ state, onConfirm, onCancel }) {
                 </svg>
               </div>
               <div>
-                <p style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: '#0f172a' }}>Keluar dari sistem?</p>
-                <p style={{ margin: '0.2rem 0 0', fontSize: '0.8rem', color: '#64748b' }}>Sesi aktif akan diakhiri.</p>
+                <p style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, color: txtMain }}>Keluar dari sistem?</p>
+                <p style={{ margin: '0.2rem 0 0', fontSize: '0.8rem', color: txtSub }}>Sesi aktif akan diakhiri.</p>
               </div>
             </div>
             <div style={{
               display: 'flex', justifyContent: 'flex-end', gap: '0.5rem',
-              padding: '0.875rem 1.5rem 1.25rem', borderTop: '1px solid #e2e8f0',
+              padding: '0.875rem 1.5rem 1.25rem', borderTop: `1px solid ${border}`,
             }}>
               <button onClick={onCancel} style={{
                 padding: '0.45rem 1rem', borderRadius: 8, cursor: 'pointer',
-                border: '1px solid #e2e8f0', background: 'transparent',
-                fontFamily: "'Poppins', sans-serif", fontSize: '0.82rem', fontWeight: 600, color: '#475569',
+                border: `1px solid ${border}`, background: 'transparent',
+                fontFamily: "'Poppins', sans-serif", fontSize: '0.82rem', fontWeight: 600, color: btnCancelClr,
               }}>Batal</button>
               <button onClick={onConfirm} style={{
                 padding: '0.45rem 1.125rem', borderRadius: 8, cursor: 'pointer',
@@ -378,15 +386,15 @@ function LogoutOverlay({ state, onConfirm, onCancel }) {
             flexDirection: 'column', alignItems: 'center', gap: '1rem',
           }}>
             <div style={{
-              width: 40, height: 40, border: '3px solid #e2e8f0',
+              width: 40, height: 40, border: `3px solid ${border}`,
               borderTopColor: '#0f766e', borderRadius: '50%',
               animation: 'guruSpin 0.75s linear infinite',
             }} />
-            <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: '#0f172a' }}>Sedang keluar…</p>
+            <p style={{ margin: 0, fontSize: '0.9rem', fontWeight: 700, color: txtMain }}>Sedang keluar…</p>
             <button onClick={onCancel} style={{
               padding: '0.4rem 1.25rem', borderRadius: 8, cursor: 'pointer',
-              border: '1px solid #e2e8f0', background: 'transparent',
-              fontFamily: "'Poppins', sans-serif", fontSize: '0.78rem', fontWeight: 600, color: '#64748b',
+              border: `1px solid ${border}`, background: 'transparent',
+              fontFamily: "'Poppins', sans-serif", fontSize: '0.78rem', fontWeight: 600, color: txtSub,
             }}>Batalkan</button>
           </div>
         )}
