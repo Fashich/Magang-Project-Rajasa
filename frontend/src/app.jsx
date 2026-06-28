@@ -55,9 +55,9 @@ import './app.css';
 
 const THEME_KEY = 'rajasa-presensi-theme';
 
-// ── Kontak Admin — ganti dengan nomor & email asli sekolah ───────────────────
-const ADMIN_WA_NUMBER = '6281234567890'     // Format 62xxx tanpa +
-const ADMIN_EMAIL     = 'admin@rajasa.sch.id'
+// ── Kontak Admin — diambil dari .env (VITE_ADMIN_WA, VITE_ADMIN_EMAIL) ────────
+const ADMIN_WA_NUMBER = import.meta.env.VITE_ADMIN_WA    ?? ''
+const ADMIN_EMAIL     = import.meta.env.VITE_ADMIN_EMAIL ?? ''
 
 function UserIcon() {
   return (
