@@ -72,9 +72,7 @@ function InfoRow({ icon, label, value, editable, onSave, dark }) {
                 Edit
               </button>
             )}
-            {!editable && (
-              <span style={{ fontSize:'0.7rem', color: dark ? '#334155' : '#e2e8f0' }}>🔒</span>
-            )}
+
           </div>
         )}
       </div>
@@ -246,15 +244,7 @@ export default function ProfileCard({ onClose, theme, userType }) {
       {profile && !loading && (
         <div style={{ padding:'4px 16px 12px', maxHeight:'340px', overflowY:'auto' }}>
 
-          {/* Catatan siswa */}
-          {isSiswa && (
-            <div style={{ margin:'8px 0 4px', padding:'7px 10px', borderRadius:'8px',
-                          background: dark ? '#0f172a' : '#fef9ec',
-                          border:`1px solid ${dark ? '#334155' : '#fde68a'}`,
-                          fontSize:'0.72rem', color: dark ? '#fbbf24' : '#92400e' }}>
-              ℹ️ Data identitas hanya dapat diubah oleh Administrator
-            </div>
-          )}
+
 
           {isGuru && (
             <>
