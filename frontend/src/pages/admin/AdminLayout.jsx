@@ -116,7 +116,7 @@ function LangDropdown({ lang, onChangeLang, theme, btnClass }) {
   }, [open])
   const dark = theme === 'dark'
   return (
-    <div style={{ position:'relative' }} ref={ref}>
+    <div  ref={ref}>
       <button type="button" className={btnClass} onClick={() => setOpen(o => !o)}
         title="Ganti bahasa" aria-label="Ganti bahasa"
         style={{ display:'flex', alignItems:'center', gap:'3px', width:'auto', paddingInline:'7px' }}
@@ -394,7 +394,7 @@ function AdminHeader({ onToggle, activePage, onToggleTheme, theme, onChangeLang,
         <NotifikasiBell
           btnClassName="admin-header-btn"
         />
-        <div className="admin-header-user" style={{ position:'relative' }}>
+        <div className="admin-header-user" >
           <button type="button"
             onClick={() => setProfileOpen(o => !o)}
             style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', padding:0 }}

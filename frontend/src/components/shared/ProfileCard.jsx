@@ -1,100 +1,78 @@
 import { useState, useEffect, useRef, useCallback } from 'preact/hooks'
 import api from '../../utils/api.js'
 
-// ── Fallback jika tidak ada foto ──────────────────────────────────────────────
-function NoPhotoIcon() {
+// ── Fallback foto — ikon orang SVG ────────────────────────────────────────────
+function NoPhotoIcon({ size = 90 }) {
   return (
-    <svg viewBox="0 0 80 80" fill="none" width="72" height="72">
-      <circle cx="40" cy="40" r="40" fill="currentColor" opacity="0.12"/>
-      <circle cx="40" cy="30" r="14" fill="currentColor" opacity="0.4"/>
-      <ellipse cx="40" cy="66" rx="22" ry="15" fill="currentColor" opacity="0.4"/>
+    <svg viewBox="0 0 90 90" fill="none" width={size} height={size}>
+      <rect width="90" height="90" fill="#cbd5e1"/>
+      <circle cx="45" cy="34" r="18" fill="#94a3b8"/>
+      <ellipse cx="45" cy="78" rx="28" ry="18" fill="#94a3b8"/>
     </svg>
   )
 }
 
-// ── Baris info di card ────────────────────────────────────────────────────────
-function InfoRow({ icon, label, value, editable, onSave, dark }) {
+// ── Baris field gaya KTP ──────────────────────────────────────────────────────
+function KTPRow({ label, value, editable, onSave, dark }) {
   const [editing, setEditing] = useState(false)
   const [val, setVal]         = useState(value ?? '')
 
-  const handleSave = async () => {
-    await onSave?.(val)
-    setEditing(false)
-  }
+  const handleSave = async () => { await onSave?.(val); setEditing(false) }
 
-  if (!value && !editable) return (
-    <div style={{
-      display:'flex', alignItems:'flex-start', gap:'10px',
-      padding:'8px 0', borderBottom:`1px solid ${dark ? '#1e293b' : '#f1f5f9'}`,
-    }}>
-      <span style={{ fontSize:'0.95rem', flexShrink:0, marginTop:'1px' }}>{icon}</span>
-      <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontSize:'0.68rem', fontWeight:600, color: dark ? '#64748b' : '#94a3b8',
-                      textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:'2px' }}>
-          {label}
-        </div>
-        <span style={{ fontSize:'0.84rem', color: dark ? '#334155' : '#cbd5e1', fontStyle:'italic' }}>—</span>
-      </div>
-    </div>
-  )
+  const labelStyle = {
+    width: '38%', fontSize: '0.72rem', fontWeight: 600,
+    color: dark ? '#64748b' : '#94a3b8',
+    textTransform: 'uppercase', letterSpacing: '0.04em',
+    flexShrink: 0,
+  }
+  const valueStyle = {
+    flex: 1, fontSize: '0.84rem',
+    color: dark ? '#e2e8f0' : '#1e293b',
+    wordBreak: 'break-word',
+  }
+  const emptyStyle = { ...valueStyle, color: dark ? '#334155' : '#cbd5e1', fontStyle: 'italic' }
 
   return (
-    <div style={{
-      display:'flex', alignItems:'flex-start', gap:'10px',
-      padding:'8px 0', borderBottom:`1px solid ${dark ? '#1e293b' : '#f1f5f9'}`,
-    }}>
-      <span style={{ fontSize:'0.95rem', flexShrink:0, marginTop:'1px' }}>{icon}</span>
-      <div style={{ flex:1, minWidth:0 }}>
-        <div style={{ fontSize:'0.68rem', fontWeight:600, color: dark ? '#64748b' : '#94a3b8',
-                      textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:'2px' }}>
-          {label}
+    <div style={{ display:'flex', alignItems:'flex-start', padding:'5px 0',
+                  borderBottom: `1px solid ${dark ? '#1e293b' : '#f1f5f9'}` }}>
+      <span style={labelStyle}>{label}</span>
+      <span style={{ color: dark ? '#475569' : '#cbd5e1', marginRight:'8px', fontSize:'0.8rem' }}>:</span>
+      {editing ? (
+        <div style={{ flex:1, display:'flex', gap:'6px', alignItems:'center' }}>
+          <input type="text" value={val} onInput={e => setVal(e.currentTarget.value)}
+            style={{ flex:1, padding:'3px 8px', borderRadius:'6px', fontSize:'0.82rem',
+                     border:'1.5px solid #6366f1', background: dark ? '#0f172a' : '#f8fafc',
+                     color: dark ? '#f1f5f9' : '#1e293b', fontFamily:'inherit', outline:'none' }}/>
+          <button onClick={handleSave}
+            style={{ background:'#6366f1', color:'#fff', border:'none', borderRadius:'6px',
+                     padding:'3px 10px', fontSize:'0.75rem', cursor:'pointer', fontFamily:'inherit' }}>
+            Simpan
+          </button>
+          <button onClick={() => { setVal(value ?? ''); setEditing(false) }}
+            style={{ background:'none', border:'none', cursor:'pointer',
+                     color: dark ? '#64748b' : '#94a3b8', fontSize:'0.8rem', fontFamily:'inherit' }}>
+            ✕
+          </button>
         </div>
-        {editing ? (
-          <div style={{ display:'flex', gap:'6px', alignItems:'center' }}>
-            <input
-              type="text" value={val}
-              onInput={e => setVal(e.currentTarget.value)}
-              style={{
-                flex:1, padding:'4px 8px', borderRadius:'6px', fontSize:'0.82rem',
-                border:`1.5px solid #6366f1`,
-                background: dark ? '#0f172a' : '#f8fafc',
-                color: dark ? '#f1f5f9' : '#1e293b',
-                fontFamily:'inherit', outline:'none',
-              }}
-            />
-            <button onClick={handleSave}
-              style={{ background:'#6366f1', color:'#fff', border:'none', borderRadius:'6px',
-                       padding:'4px 10px', fontSize:'0.75rem', cursor:'pointer', fontFamily:'inherit' }}>
-              Simpan
+      ) : (
+        <div style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'space-between', gap:'8px' }}>
+          <span style={value ? valueStyle : emptyStyle}>{value || '—'}</span>
+          {editable && (
+            <button onClick={() => setEditing(true)}
+              style={{ background:'none', border:'none', cursor:'pointer', color:'#6366f1',
+                       fontSize:'0.72rem', fontWeight:600, flexShrink:0, fontFamily:'inherit',
+                       padding:'2px 6px', borderRadius:'4px',
+                       border:'1px solid #6366f1' }}>
+              Edit
             </button>
-            <button onClick={() => { setVal(value ?? ''); setEditing(false) }}
-              style={{ background:'transparent', color: dark ? '#64748b' : '#94a3b8', border:'none',
-                       cursor:'pointer', fontSize:'0.8rem', fontFamily:'inherit' }}>
-              Batal
-            </button>
-          </div>
-        ) : (
-          <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'6px' }}>
-            <span style={{ fontSize:'0.84rem', color: dark ? '#e2e8f0' : '#334155',
-                           wordBreak:'break-word', flex:1 }}>
-              {value || <span style={{ color: dark ? '#334155' : '#cbd5e1', fontStyle:'italic' }}>—</span>}
-            </span>
-            {editable && (
-              <button onClick={() => setEditing(true)}
-                style={{ background:'none', border:'none', cursor:'pointer', color:'#6366f1',
-                         fontSize:'0.72rem', fontWeight:600, flexShrink:0, fontFamily:'inherit' }}>
-                Edit
-              </button>
-            )}
-
-          </div>
-        )}
-      </div>
+          )}
+        </div>
+      )}
     </div>
   )
 }
 
-// ── ProfileCard utama ─────────────────────────────────────────────────────────
+// ── ProfileCard utama — modal tengah layar gaya KTP ───────────────────────────
 export default function ProfileCard({ onClose, theme, userType }) {
   const [profile, setProfile]     = useState(null)
   const [loading, setLoading]     = useState(true)
@@ -102,10 +80,12 @@ export default function ProfileCard({ onClose, theme, userType }) {
   const [uploading, setUploading] = useState(false)
   const [uploadErr, setUploadErr] = useState('')
   const fileInputRef = useRef(null)
-  const cardRef      = useRef(null)
   const dark = theme === 'dark'
 
-  // Fetch profile data
+  const isGuru  = ['guru','staff','admin','intern'].includes(userType)
+  const isSiswa = userType === 'siswa'
+
+  // Fetch profil
   useEffect(() => {
     api.get('/profile/me')
       .then(res => setProfile(res.data?.profile ?? null))
@@ -113,40 +93,21 @@ export default function ProfileCard({ onClose, theme, userType }) {
       .finally(() => setLoading(false))
   }, [])
 
-  // Click outside → close
-  useEffect(() => {
-    const handler = (e) => {
-      if (cardRef.current && !cardRef.current.contains(e.target)) onClose()
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [onClose])
-
-  const handleFotoClick = () => fileInputRef.current?.click()
-
+  // Upload foto
   const handleFotoChange = async (e) => {
     const file = e.currentTarget.files?.[0]
     if (!file) return
-
     setUploadErr('')
-
-    // Validasi frontend: max 10MB
-    if (file.size > 10 * 1024 * 1024) {
-      setUploadErr('Ukuran foto maksimal 10 MB.')
-      return
-    }
-
+    if (file.size > 10 * 1024 * 1024) { setUploadErr('Maksimal 10 MB.'); return }
     setUploading(true)
     try {
       const fd = new FormData()
       fd.append('foto', file)
       const res = await api.postForm('/profile/foto', fd)
       const newUrl = res.data?.foto_url
-      if (newUrl) {
-        setProfile(p => ({ ...p, foto_url: newUrl + '?t=' + Date.now() }))
-      }
+      if (newUrl) setProfile(p => ({ ...p, foto_url: newUrl + '?t=' + Date.now() }))
     } catch (err) {
-      setUploadErr(err?.response?.data?.message ?? 'Upload gagal. Coba lagi.')
+      setUploadErr(err?.response?.data?.message ?? 'Upload gagal.')
     } finally {
       setUploading(false)
       e.currentTarget.value = ''
@@ -158,143 +119,220 @@ export default function ProfileCard({ onClose, theme, userType }) {
     setProfile(p => ({ ...p, [field]: value }))
   }, [])
 
-  // ── Styles ────────────────────────────────────────────────────────────────
-  const bg     = dark ? '#1e293b' : '#ffffff'
-  const bgTop  = dark ? '#0f172a' : '#f8fafc'
-  const txtSub = dark ? '#94a3b8' : '#64748b'
-
-  const isGuru  = ['guru','staff','admin','intern'].includes(userType)
-  const isSiswa = userType === 'siswa'
+  // ── Warna & style ─────────────────────────────────────────────────────────
+  const cardBg    = dark ? '#1e293b' : '#ffffff'
+  const headerBg  = dark ? '#0f2545' : '#1e3a6e'
+  const bodyBg    = dark ? '#1e293b' : '#ffffff'
+  const photoBg   = dark ? '#0f172a' : '#f1f5f9'
 
   return (
+    /* Backdrop */
     <div
-      ref={cardRef}
+      onClick={onClose}
       style={{
-        position:'absolute', top:'calc(100% + 10px)', right:0,
-        width:'300px', zIndex:999,
-        background:bg,
-        border: dark ? '1px solid #334155' : '1px solid #e2e8f0',
-        borderRadius:'16px',
-        boxShadow:'0 20px 60px rgba(0,0,0,0.22)',
-        overflow:'hidden',
-        fontFamily:'inherit',
+        position:'fixed', inset:0, zIndex:1000,
+        background:'rgba(0,0,0,0.6)', backdropFilter:'blur(6px)',
+        display:'flex', alignItems:'center', justifyContent:'center',
+        padding:'16px', fontFamily:'inherit',
       }}
     >
-      {/* ── Top area: foto + nama + role ── */}
-      <div style={{ background:bgTop, padding:'20px 20px 14px', textAlign:'center', position:'relative' }}>
-        <button type="button" onClick={onClose}
-          style={{ position:'absolute', top:'10px', right:'12px', background:'none', border:'none',
-                   cursor:'pointer', color:txtSub, fontSize:'1.3rem', lineHeight:1 }}>×</button>
+      {/* Card KTP */}
+      <div
+        onClick={e => e.stopPropagation()}
+        style={{
+          background: cardBg,
+          borderRadius:'16px',
+          width:'100%', maxWidth:'620px',
+          boxShadow:'0 32px 80px rgba(0,0,0,0.35)',
+          overflow:'hidden',
+          position:'relative',
+        }}
+      >
+        {/* ── Header bar ── */}
+        <div style={{
+          background: headerBg,
+          padding:'14px 20px',
+          display:'flex', alignItems:'center', justifyContent:'space-between',
+        }}>
+          <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
+            {/* Icon sekolah */}
+            <div style={{
+              width:'36px', height:'36px', borderRadius:'50%',
+              background:'rgba(255,255,255,0.15)',
+              display:'flex', alignItems:'center', justifyContent:'center',
+              fontSize:'1.2rem',
+            }}>🏫</div>
+            <div>
+              <div style={{ color:'#fff', fontWeight:700, fontSize:'0.92rem', letterSpacing:'0.03em' }}>
+                SMKS RAJASA SURABAYA
+              </div>
+              <div style={{ color:'rgba(255,255,255,0.65)', fontSize:'0.7rem', letterSpacing:'0.06em' }}>
+                {isGuru ? 'KARTU IDENTITAS GURU / STAFF' : 'KARTU IDENTITAS SISWA'}
+              </div>
+            </div>
+          </div>
+          <button type="button" onClick={onClose}
+            style={{ background:'rgba(255,255,255,0.15)', border:'none', cursor:'pointer',
+                     color:'#fff', width:'30px', height:'30px', borderRadius:'50%',
+                     fontSize:'1rem', display:'flex', alignItems:'center', justifyContent:'center' }}>
+            ✕
+          </button>
+        </div>
 
-        {/* Foto */}
-        <div
-          onClick={handleFotoClick}
-          style={{
-            width:'72px', height:'72px', borderRadius:'50%', margin:'0 auto 10px',
-            overflow:'hidden', cursor:'pointer', position:'relative',
-            background: dark ? '#334155' : '#e2e8f0',
-            color: dark ? '#64748b' : '#94a3b8',
-            border:`3px solid ${dark ? '#475569' : '#e2e8f0'}`,
-          }}
-          title="Klik untuk ganti foto"
-        >
-          {loading ? null : profile?.foto_url ? (
-            <img src={profile.foto_url} alt="Foto profil"
-              style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}/>
-          ) : (
-            <NoPhotoIcon/>
-          )}
-          {/* Overlay kamera */}
+        {/* ── Body: foto kiri + data kanan ── */}
+        <div style={{ display:'flex', gap:0, background: bodyBg }}>
+
+          {/* Kolom foto */}
           <div style={{
-            position:'absolute', inset:0, display:'flex', alignItems:'center',
-            justifyContent:'center', background:'rgba(0,0,0,0.38)',
-            opacity: uploading ? 1 : 0, transition:'opacity 0.2s',
+            width:'170px', flexShrink:0,
+            background: dark ? '#0f172a' : '#f8fafc',
+            borderRight: `1px solid ${dark ? '#334155' : '#e2e8f0'}`,
+            display:'flex', flexDirection:'column',
+            alignItems:'center', justifyContent:'center',
+            padding:'24px 16px', gap:'12px',
           }}>
-            {uploading
-              ? <span style={{ color:'#fff', fontSize:'0.7rem' }}>Mengupload...</span>
-              : <span style={{ fontSize:'1.2rem' }}>📷</span>
-            }
+            {/* Foto container */}
+            <div
+              onClick={() => fileInputRef.current?.click()}
+              title="Klik untuk ganti foto"
+              style={{
+                width:'110px', height:'140px',
+                background: photoBg,
+                borderRadius:'8px',
+                overflow:'hidden',
+                cursor:'pointer',
+                position:'relative',
+                border: `2px solid ${dark ? '#334155' : '#e2e8f0'}`,
+                flexShrink: 0,
+              }}
+            >
+              {loading ? null : profile?.foto_url ? (
+                <img src={profile.foto_url} alt="Foto profil"
+                  style={{ width:'100%', height:'100%', objectFit:'cover', display:'block' }}/>
+              ) : (
+                <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center', justifyContent:'center',
+                              color: dark ? '#475569' : '#94a3b8' }}>
+                  <NoPhotoIcon size={100}/>
+                </div>
+              )}
+              {/* Hover overlay */}
+              <div style={{
+                position:'absolute', inset:0, background:'rgba(0,0,0,0.45)',
+                display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'4px',
+                opacity: uploading ? 1 : 0, transition:'opacity 0.2s',
+              }}
+                onMouseEnter={e => e.currentTarget.style.opacity = '1'}
+                onMouseLeave={e => !uploading && (e.currentTarget.style.opacity = '0')}
+              >
+                <span style={{ fontSize:'1.4rem' }}>📷</span>
+                <span style={{ color:'#fff', fontSize:'0.68rem', fontWeight:600, textAlign:'center', padding:'0 4px' }}>
+                  {uploading ? 'Mengupload…' : 'Ganti Foto'}
+                </span>
+              </div>
+            </div>
+
+            <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp"
+              onChange={handleFotoChange} style={{ display:'none' }}/>
+
+            <button type="button" onClick={() => fileInputRef.current?.click()}
+              style={{
+                background:'none', border:`1.5px solid ${dark ? '#334155' : '#e2e8f0'}`,
+                borderRadius:'20px', padding:'5px 14px', fontSize:'0.72rem',
+                color: dark ? '#94a3b8' : '#64748b', cursor:'pointer', fontFamily:'inherit',
+                display:'flex', alignItems:'center', gap:'5px',
+              }}>
+              📷 Ganti Foto
+            </button>
+
+            {uploadErr && (
+              <div style={{ color:'#ef4444', fontSize:'0.7rem', textAlign:'center' }}>{uploadErr}</div>
+            )}
+
+            {/* Status badge */}
+            {profile && (
+              <div style={{
+                padding:'4px 12px', borderRadius:'20px', fontSize:'0.7rem', fontWeight:600,
+                background: profile.status === 'aktif'
+                  ? (dark ? 'rgba(34,197,94,0.15)' : 'rgba(34,197,94,0.1)')
+                  : (dark ? 'rgba(239,68,68,0.15)' : 'rgba(239,68,68,0.1)'),
+                color: profile.status === 'aktif' ? '#16a34a' : '#dc2626',
+                border: `1px solid ${profile.status === 'aktif' ? '#22c55e' : '#ef4444'}`,
+              }}>
+                ● {(profile.status ?? 'aktif').toUpperCase()}
+              </div>
+            )}
+          </div>
+
+          {/* Kolom data */}
+          <div style={{ flex:1, padding:'20px 22px', minWidth:0 }}>
+            {loading && (
+              <div style={{ color: dark ? '#64748b' : '#94a3b8', fontSize:'0.85rem', paddingTop:'20px' }}>
+                Memuat profil…
+              </div>
+            )}
+            {error && (
+              <div style={{ color:'#ef4444', fontSize:'0.85rem', paddingTop:'20px' }}>{error}</div>
+            )}
+
+            {profile && !loading && (
+              <>
+                {/* Nama besar */}
+                <div style={{
+                  fontWeight:700, fontSize:'1.1rem',
+                  color: dark ? '#f1f5f9' : '#1e293b',
+                  marginBottom:'14px', lineHeight:1.3,
+                  borderBottom:`2px solid ${dark ? '#334155' : '#e2e8f0'}`,
+                  paddingBottom:'10px',
+                }}>
+                  {profile.nama_lengkap}
+                  <span style={{ display:'block', fontSize:'0.75rem', fontWeight:400,
+                                 color: dark ? '#64748b' : '#94a3b8', marginTop:'2px' }}>
+                    {isGuru ? (profile.jenis_user ?? 'Guru') : 'Siswa'}
+                  </span>
+                </div>
+
+                {/* Field guru */}
+                {isGuru && (
+                  <>
+                    <KTPRow label="NIP"            value={profile.nip}                editable={false} dark={dark}/>
+                    <KTPRow label="Username"        value={profile.username}           editable={false} dark={dark}/>
+                    <KTPRow label="Jabatan"         value={profile.jabatan}            editable={false} dark={dark}/>
+                    <KTPRow label="Mata Pelajaran"  value={profile.mapel_pengampu}     editable={false} dark={dark}/>
+                    <KTPRow label="Status Pegawai"  value={profile.status_kepegawaian} editable={false} dark={dark}/>
+                    <KTPRow label="Email"           value={profile.email}              editable={true}
+                      onSave={v => handleSaveKontak('email', v)} dark={dark}/>
+                    <KTPRow label="No. HP"          value={profile.no_telp}            editable={true}
+                      onSave={v => handleSaveKontak('no_telp', v)} dark={dark}/>
+                  </>
+                )}
+
+                {/* Field siswa */}
+                {isSiswa && (
+                  <>
+                    <KTPRow label="NISN"     value={profile.nisn}                    editable={false} dark={dark}/>
+                    <KTPRow label="NIS"      value={profile.nis}                     editable={false} dark={dark}/>
+                    <KTPRow label="Username" value={profile.username}                editable={false} dark={dark}/>
+                    <KTPRow label="Jurusan"  value={profile.jurusan}                 editable={false} dark={dark}/>
+                    <KTPRow label="Angkatan" value={profile.angkatan?.toString()}    editable={false} dark={dark}/>
+                    <KTPRow label="Kelas"    value={profile.kelas_aktif}             editable={false} dark={dark}/>
+                    <KTPRow label="Email"    value={profile.email}                   editable={false} dark={dark}/>
+                    <KTPRow label="No. HP"   value={profile.no_telp}                 editable={false} dark={dark}/>
+                  </>
+                )}
+
+                {/* Login terakhir */}
+                {profile.last_login_at && (
+                  <div style={{ marginTop:'12px', fontSize:'0.7rem',
+                                color: dark ? '#475569' : '#cbd5e1', textAlign:'right' }}>
+                    Login terakhir:{' '}
+                    {new Date(profile.last_login_at).toLocaleString('id-ID', { dateStyle:'medium', timeStyle:'short' })}
+                  </div>
+                )}
+              </>
+            )}
           </div>
         </div>
-
-        <input ref={fileInputRef} type="file" accept="image/jpeg,image/png,image/webp"
-          onChange={handleFotoChange} style={{ display:'none' }}/>
-
-        {/* Tombol ganti foto */}
-        <button type="button" onClick={handleFotoClick}
-          style={{
-            background:'none', border:`1px solid ${dark ? '#334155' : '#e2e8f0'}`,
-            borderRadius:'20px', padding:'3px 12px', fontSize:'0.72rem',
-            color:txtSub, cursor:'pointer', fontFamily:'inherit', marginBottom:'8px',
-          }}>
-          📷 {uploading ? 'Mengupload…' : 'Ganti Foto'}
-        </button>
-
-        {uploadErr && (
-          <div style={{ color:'#ef4444', fontSize:'0.73rem', marginTop:'4px' }}>{uploadErr}</div>
-        )}
-
-        {loading ? (
-          <div style={{ color:txtSub, fontSize:'0.83rem' }}>Memuat profil…</div>
-        ) : error ? (
-          <div style={{ color:'#ef4444', fontSize:'0.83rem' }}>{error}</div>
-        ) : profile ? (
-          <>
-            <div style={{ fontWeight:700, fontSize:'0.97rem', color: dark ? '#f1f5f9' : '#1e293b', lineHeight:1.3 }}>
-              {profile.nama_lengkap}
-            </div>
-            <div style={{ fontSize:'0.76rem', color:txtSub, marginTop:'3px' }}>
-              {isGuru ? (profile.jabatan ?? profile.jenis_user) : (profile.kelas_aktif ?? 'Siswa')}
-              {' · '}
-              <span style={{ color: profile.status === 'aktif' ? '#22c55e' : '#ef4444' }}>
-                ● {profile.status}
-              </span>
-            </div>
-          </>
-        ) : null}
       </div>
-
-      {/* ── Info rows ── */}
-      {profile && !loading && (
-        <div style={{ padding:'4px 16px 12px', maxHeight:'340px', overflowY:'auto' }}>
-
-
-
-          {isGuru && (
-            <>
-              <InfoRow icon="🪪" label="NIP"              value={profile.nip}                editable={false} dark={dark}/>
-              <InfoRow icon="👤" label="Username"         value={profile.username}           editable={false} dark={dark}/>
-              <InfoRow icon="🏛️"  label="Jabatan"         value={profile.jabatan}            editable={false} dark={dark}/>
-              <InfoRow icon="📚" label="Mata Pelajaran"   value={profile.mapel_pengampu}     editable={false} dark={dark}/>
-              <InfoRow icon="📋" label="Status Pegawai"   value={profile.status_kepegawaian} editable={false} dark={dark}/>
-              <InfoRow icon="📧" label="Email"            value={profile.email}              editable={true}
-                onSave={v => handleSaveKontak('email', v)} dark={dark}/>
-              <InfoRow icon="📱" label="No. HP"           value={profile.no_telp}            editable={true}
-                onSave={v => handleSaveKontak('no_telp', v)} dark={dark}/>
-            </>
-          )}
-
-          {isSiswa && (
-            <>
-              <InfoRow icon="🪪" label="NISN"     value={profile.nisn}        editable={false} dark={dark}/>
-              <InfoRow icon="🏫" label="NIS"      value={profile.nis}         editable={false} dark={dark}/>
-              <InfoRow icon="👤" label="Username" value={profile.username}    editable={false} dark={dark}/>
-              <InfoRow icon="🏛️"  label="Jurusan" value={profile.jurusan}     editable={false} dark={dark}/>
-              <InfoRow icon="📅" label="Angkatan" value={profile.angkatan?.toString()} editable={false} dark={dark}/>
-              <InfoRow icon="🎒" label="Kelas"    value={profile.kelas_aktif} editable={false} dark={dark}/>
-              <InfoRow icon="📧" label="Email"    value={profile.email}       editable={false} dark={dark}/>
-              <InfoRow icon="📱" label="No. HP"   value={profile.no_telp}     editable={false} dark={dark}/>
-            </>
-          )}
-
-          {/* Last login */}
-          {profile.last_login_at && (
-            <div style={{ marginTop:'8px', fontSize:'0.7rem', color:txtSub, textAlign:'right' }}>
-              Login terakhir: {new Date(profile.last_login_at).toLocaleString('id-ID', { dateStyle:'medium', timeStyle:'short' })}
-            </div>
-          )}
-        </div>
-      )}
     </div>
   )
 }
