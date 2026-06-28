@@ -158,9 +158,8 @@ export default function ProfileCard({ onClose, theme, userType }) {
             {/* Logo Rajasa */}
             <div style={{
               width:'36px', height:'36px', borderRadius:'8px',
-              background:'#ffffff',
               display:'flex', alignItems:'center', justifyContent:'center',
-              flexShrink: 0, overflow:'hidden', padding:'2px',
+              flexShrink: 0, overflow:'hidden',
             }}>
               <img src="/images/logo/Rajasa-Logo.png" alt="Logo Rajasa"
                 style={{ width:'100%', height:'100%', objectFit:'contain' }}/>
