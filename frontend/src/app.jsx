@@ -220,7 +220,8 @@ function ForgotPasswordModal({ onClose, theme }) {
   }
   const openEmail = () => {
     if (!idValue) return
-    window.location.href = `mailto:${ADMIN_EMAIL}?subject=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&to=${encodeURIComponent(ADMIN_EMAIL)}&su=${encodeURIComponent(emailSubject)}&body=${encodeURIComponent(emailBody)}`
+    window.open(gmailUrl, '_blank')
   }
 
   const bg      = dark ? '#1e293b' : '#ffffff'
@@ -338,7 +339,7 @@ function ForgotPasswordModal({ onClose, theme }) {
           <button type="button" onClick={openEmail} disabled={!idValue}
             style={{
               flex:1, padding:'12px 8px', borderRadius:'10px', border:'none',
-              background: idValue ? '#6366f1' : (dark ? '#0f172a' : '#f1f5f9'),
+              background: idValue ? '#EA4335' : (dark ? '#0f172a' : '#f1f5f9'),
               color: idValue ? '#fff' : (dark ? '#334155' : '#cbd5e1'),
               fontFamily:'inherit', fontWeight:600, fontSize:'0.85rem',
               cursor: idValue ? 'pointer' : 'not-allowed',
@@ -346,11 +347,10 @@ function ForgotPasswordModal({ onClose, theme }) {
               transition:'all 0.15s', opacity: idValue ? 1 : 0.5,
             }}
           >
-            <svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="2" y="4" width="20" height="16" rx="3"/>
-              <polyline points="2,4 12,13 22,4"/>
+            <svg viewBox="0 0 24 24" width="17" height="17" fill="currentColor">
+              <path d="M24 5.457v13.909c0 .904-.732 1.636-1.636 1.636h-3.819V11.73L12 16.64l-6.545-4.91v9.273H1.636A1.636 1.636 0 0 1 0 19.366V5.457c0-2.023 2.309-3.178 3.927-1.964L5.455 4.64 12 9.548l6.545-4.910 1.528-1.145C21.69 2.28 24 3.434 24 5.457z"/>
             </svg>
-            Email
+            Gmail
           </button>
         </div>
       </div>
