@@ -531,6 +531,7 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
         state={logoutState}
         onConfirm={handleLogoutConfirm}
         onCancel={handleLogoutCancel}
+        theme={theme}
       />
     </div>
   )

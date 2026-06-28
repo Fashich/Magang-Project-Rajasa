@@ -492,6 +492,7 @@ export default function SiswaLayout({ user, onLogout, renderPage }) {
         state={logoutState}
         onConfirm={handleLogoutConfirm}
         onCancel={handleLogoutCancel}
+        theme={theme}
       />
     </div>
   )

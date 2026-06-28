@@ -519,6 +519,7 @@ export default function GuruLayout({ user, onLogout, renderPage }) {
         state={logoutState}
         onConfirm={handleLogoutConfirm}
         onCancel={handleLogoutCancel}
+        theme={theme}
       />
     </div>
   )
