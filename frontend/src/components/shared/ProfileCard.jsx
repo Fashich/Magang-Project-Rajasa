@@ -22,7 +22,21 @@ function InfoRow({ icon, label, value, editable, onSave, dark }) {
     setEditing(false)
   }
 
-  if (!value && !editable) return null
+  if (!value && !editable) return (
+    <div style={{
+      display:'flex', alignItems:'flex-start', gap:'10px',
+      padding:'8px 0', borderBottom:`1px solid ${dark ? '#1e293b' : '#f1f5f9'}`,
+    }}>
+      <span style={{ fontSize:'0.95rem', flexShrink:0, marginTop:'1px' }}>{icon}</span>
+      <div style={{ flex:1, minWidth:0 }}>
+        <div style={{ fontSize:'0.68rem', fontWeight:600, color: dark ? '#64748b' : '#94a3b8',
+                      textTransform:'uppercase', letterSpacing:'0.05em', marginBottom:'2px' }}>
+          {label}
+        </div>
+        <span style={{ fontSize:'0.84rem', color: dark ? '#334155' : '#cbd5e1', fontStyle:'italic' }}>—</span>
+      </div>
+    </div>
+  )
 
   return (
     <div style={{
