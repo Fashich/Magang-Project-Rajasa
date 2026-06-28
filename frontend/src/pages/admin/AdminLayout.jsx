@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 import TwoFactorSetup from './TwoFactorSetup.jsx'
 import NotifikasiBell from '../../components/shared/NotifikasiBell.jsx'
 import './AdminLayout.css'
@@ -85,6 +86,7 @@ const LANG_KEY    = 'rajasa-lang'
 const LANGS       = ['id', 'jw', 'md']
 const LANG_LABELS = { id: 'ID', jw: 'JW', md: 'MD' }
 const LANG_NAMES  = { id: 'Indonesia', jw: 'Basa Jawa', md: 'Basa Madura' }
+const LANG_FLAGS  = { id: '🇮🇩', jw: '🏛️', md: '🏝️' }
 
 function LangIcon() {
   return (
@@ -100,41 +102,95 @@ function LangIcon() {
   )
 }
 
+
+/** Dropdown pemilih bahasa */
+function LangDropdown({ lang, onChangeLang, theme, btnClass }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  useEffect(() => {
+    if (!open) return
+    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+  const dark = theme === 'dark'
+  return (
+    <div style={{ position:'relative' }} ref={ref}>
+      <button type="button" className={btnClass} onClick={() => setOpen(o => !o)}
+        title="Ganti bahasa" aria-label="Ganti bahasa"
+        style={{ display:'flex', alignItems:'center', gap:'3px', width:'auto', paddingInline:'7px' }}
+      >
+        <LangIcon/>
+        <span style={{ fontSize:'0.58rem', fontWeight:700, letterSpacing:'0.05em', lineHeight:1 }}>
+          {LANG_LABELS[lang]}
+        </span>
+      </button>
+      {open && (
+        <div style={{
+          position:'absolute', top:'calc(100% + 8px)', right:0,
+          background: dark ? '#1e293b' : '#ffffff',
+          border: dark ? '1px solid #334155' : '1px solid #e2e8f0',
+          borderRadius:'12px', boxShadow:'0 10px 32px rgba(0,0,0,0.18)',
+          overflow:'hidden', minWidth:'168px', zIndex:999,
+        }}>
+          {LANGS.map(l => (
+            <button key={l} type="button"
+              onClick={() => { onChangeLang(l); setOpen(false) }}
+              style={{
+                display:'flex', alignItems:'center', gap:'9px', width:'100%',
+                padding:'10px 14px', border:'none', cursor:'pointer',
+                fontFamily:'inherit', textAlign:'left',
+                background: l === lang ? (dark ? 'rgba(99,102,241,0.18)' : 'rgba(99,102,241,0.08)') : 'transparent',
+                fontSize:'0.83rem', fontWeight: l === lang ? 600 : 400,
+                color: l === lang ? (dark ? '#818cf8' : '#4f46e5') : (dark ? '#cbd5e1' : '#475569'),
+              }}
+            >
+              <span style={{ fontSize:'1.05rem', lineHeight:1 }}>{LANG_FLAGS[l]}</span>
+              <span style={{ flex:1 }}>{LANG_NAMES[l]}</span>
+              {l === lang && <span style={{ fontWeight:700, fontSize:'0.85rem' }}>✓</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ─── Nav config ──────────────────────────────────────────────────────────────
 
 const NAV_SECTIONS = [
   {
-    label: 'Overview',
+    label: 'Overview', tKey: 'nav_overview',
     items: [
-      { id: 'dashboard',         label: 'Dashboard',           icon: I.dash },
-      { id: 'analitik',          label: 'Analitik Kehadiran',  icon: I.chart },
-      { id: 'analitik-prestasi', label: 'Analitik Prestasi',   icon: I.chartpie },
+      { id: 'dashboard',         label: 'Dashboard',          tKey: 'dashboard',          icon: I.dash },
+      { id: 'analitik',          label: 'Analitik Kehadiran', tKey: 'analitik_kehadiran', icon: I.chart },
+      { id: 'analitik-prestasi', label: 'Analitik Prestasi',  tKey: 'analitik_prestasi',  icon: I.chartpie },
     ],
   },
   {
-    label: 'Manajemen',
+    label: 'Manajemen', tKey: 'nav_manajemen',
     items: [
-      { id: 'sesi',      label: 'Sesi Presensi',   icon: I.sesi },
-      { id: 'e-izin',    label: 'E-Izin',           icon: I.izin, badge: null },
-      { id: 'peringatan',label: 'Early Warning',    icon: I.alert },
-      { id: 'logbook',       label: 'Logbook Praktik',    icon: I.logbook },
-      { id: 'communication', label: 'Pusat Komunikasi',  icon: I.chat },
+      { id: 'sesi',          label: 'Sesi Presensi',   tKey: 'sesi_presensi',    icon: I.sesi },
+      { id: 'e-izin',        label: 'E-Izin',          tKey: 'e_izin',           icon: I.izin, badge: null },
+      { id: 'peringatan',    label: 'Early Warning',   tKey: 'early_warning',    icon: I.alert },
+      { id: 'logbook',       label: 'Logbook Praktik', tKey: 'logbook_praktik',  icon: I.logbook },
+      { id: 'communication', label: 'Pusat Komunikasi',tKey: 'pusat_komunikasi', icon: I.chat },
     ],
   },
   {
-    label: 'Data',
+    label: 'Data', tKey: 'nav_data',
     items: [
-      { id: 'gamifikasi',label: 'Gamifikasi',        icon: I.game },
-      { id: 'users',     label: 'Pengguna',         icon: I.users },
-      { id: 'laporan',   label: 'Laporan',           icon: I.report },
-      { id: 'audit',     label: 'Audit Trail',       icon: I.audit },
+      { id: 'gamifikasi', label: 'Gamifikasi',   tKey: 'gamifikasi',   icon: I.game },
+      { id: 'users',      label: 'Pengguna',     tKey: 'pengguna',     icon: I.users },
+      { id: 'laporan',    label: 'Laporan',      tKey: 'laporan',      icon: I.report },
+      { id: 'audit',      label: 'Audit Trail',  tKey: 'audit_trail',  icon: I.audit },
     ],
   },
   {
-    label: 'Sistem',
+    label: 'Sistem', tKey: 'nav_sistem',
     items: [
-      { id: 'settings',  label: 'Pengaturan',       icon: I.setting },
-      { id: '2fa',       label: 'Keamanan 2FA',      icon: I.lock ?? '🔐' },
+      { id: 'settings', label: 'Pengaturan',  tKey: 'pengaturan',  icon: I.setting },
+      { id: '2fa',      label: 'Keamanan 2FA',tKey: 'keamanan_2fa',icon: I.lock ?? '🔐' },
     ],
   },
 ]
@@ -241,7 +297,8 @@ function LogoutOverlay({ state, onConfirm, onCancel }) {
 
 // ─── Sidebar ──────────────────────────────────────────────────────────────────
 
-function AdminSidebar({ collapsed, activePage, onPageChange, onLogout, user }) {
+function AdminSidebar({ collapsed, activePage, onPageChange, onLogout, user, lang }) {
+  const t = T[lang] || T.id
   return (
     <aside className="admin-sidebar">
       <div className="admin-sidebar-logo">
@@ -262,7 +319,7 @@ function AdminSidebar({ collapsed, activePage, onPageChange, onLogout, user }) {
         {NAV_SECTIONS.map((section) => (
           <div key={section.label}>
             {!collapsed && (
-              <div className="admin-nav-section-label">{section.label}</div>
+              <div className="admin-nav-section-label">{t[section.tKey] ?? section.label}</div>
             )}
             {section.items.map((item) => (
               <button
@@ -270,10 +327,10 @@ function AdminSidebar({ collapsed, activePage, onPageChange, onLogout, user }) {
                 type="button"
                 className={`admin-nav-item${activePage === item.id ? ' active' : ''}`}
                 onClick={() => onPageChange(item.id)}
-                title={collapsed ? item.label : undefined}
+                title={collapsed ? (t[item.tKey] ?? item.label) : undefined}
               >
                 <span className="nav-icon">{item.icon}</span>
-                {!collapsed && <span>{item.label}</span>}
+                {!collapsed && <span>{t[item.tKey] ?? item.label}</span>}
                 {!collapsed && item.badge != null && (
                   <span className="admin-nav-badge">{item.badge}</span>
                 )}
@@ -295,7 +352,7 @@ function AdminSidebar({ collapsed, activePage, onPageChange, onLogout, user }) {
 
 // ─── Header ───────────────────────────────────────────────────────────────────
 
-function AdminHeader({ onToggle, activePage, onToggleTheme, theme, onToggleLang, lang, user }) {
+function AdminHeader({ onToggle, activePage, onToggleTheme, theme, onChangeLang, lang, user }) {
   const PAGE_TITLES = {
     dashboard:           'Dashboard',
     analitik:            'Analitik Kehadiran',
@@ -332,19 +389,7 @@ function AdminHeader({ onToggle, activePage, onToggleTheme, theme, onToggleLang,
         <button type="button" className="admin-header-btn" onClick={onToggleTheme} aria-label="Toggle theme">
           <SunMoonIcon theme={theme} />
         </button>
-        <button
-          type="button"
-          className="admin-header-btn"
-          onClick={onToggleLang}
-          title={`Bahasa: ${LANG_NAMES[lang]}`}
-          aria-label="Ganti bahasa"
-          style={{ display:'flex', alignItems:'center', gap:'3px', width:'auto', paddingInline:'6px' }}
-        >
-          <LangIcon/>
-          <span style={{ fontSize:'0.58rem', fontWeight:700, letterSpacing:'0.05em', lineHeight:1 }}>
-            {LANG_LABELS[lang]}
-          </span>
-        </button>
+        <LangDropdown lang={lang} onChangeLang={onChangeLang} theme={theme} btnClass="admin-header-btn"/>
         <NotifikasiBell
           btnClassName="admin-header-btn"
         />
@@ -383,7 +428,7 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
   useEffect(() => { setMobileOpen(false) }, [activePage])
 
   const handleToggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), [])
-  const handleToggleLang  = useCallback(() => setLang(l => LANGS[(LANGS.indexOf(l) + 1) % LANGS.length]), [])
+  const handleChangeLang  = useCallback((l) => setLang(l), [])
 
   const handleToggle = useCallback(() => {
     if (window.innerWidth < 768) {
@@ -444,13 +489,14 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
         onPageChange={setActivePage}
         onLogout={handleLogoutClick}
         user={user}
+        lang={lang}
       />
       <AdminHeader
         onToggle={handleToggle}
         activePage={activePage}
         onToggleTheme={handleToggleTheme}
         theme={theme}
-        onToggleLang={handleToggleLang}
+        onChangeLang={handleChangeLang}
         lang={lang}
         user={user}
       />

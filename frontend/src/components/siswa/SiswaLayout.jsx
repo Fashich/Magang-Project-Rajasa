@@ -16,6 +16,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 import NotifikasiBell from '../shared/NotifikasiBell.jsx'
 import { authApi } from '../../utils/api'
 import './SiswaLayout.css'
@@ -89,6 +90,7 @@ const LANG_KEY    = 'rajasa-lang'
 const LANGS       = ['id', 'jw', 'md']
 const LANG_LABELS = { id: 'ID', jw: 'JW', md: 'MD' }
 const LANG_NAMES  = { id: 'Indonesia', jw: 'Basa Jawa', md: 'Basa Madura' }
+const LANG_FLAGS  = { id: '🇮🇩', jw: '🏛️', md: '🏝️' }
 
 function LangIcon() {
   return (
@@ -104,28 +106,82 @@ function LangIcon() {
   )
 }
 
+
+/** Dropdown pemilih bahasa */
+function LangDropdown({ lang, onChangeLang, theme, btnClass }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  useEffect(() => {
+    if (!open) return
+    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+  const dark = theme === 'dark'
+  return (
+    <div style={{ position:'relative' }} ref={ref}>
+      <button type="button" className={btnClass} onClick={() => setOpen(o => !o)}
+        title="Ganti bahasa" aria-label="Ganti bahasa"
+        style={{ display:'flex', alignItems:'center', gap:'3px', width:'auto', paddingInline:'7px' }}
+      >
+        <LangIcon/>
+        <span style={{ fontSize:'0.58rem', fontWeight:700, letterSpacing:'0.05em', lineHeight:1 }}>
+          {LANG_LABELS[lang]}
+        </span>
+      </button>
+      {open && (
+        <div style={{
+          position:'absolute', top:'calc(100% + 8px)', right:0,
+          background: dark ? '#1e293b' : '#ffffff',
+          border: dark ? '1px solid #334155' : '1px solid #e2e8f0',
+          borderRadius:'12px', boxShadow:'0 10px 32px rgba(0,0,0,0.18)',
+          overflow:'hidden', minWidth:'168px', zIndex:999,
+        }}>
+          {LANGS.map(l => (
+            <button key={l} type="button"
+              onClick={() => { onChangeLang(l); setOpen(false) }}
+              style={{
+                display:'flex', alignItems:'center', gap:'9px', width:'100%',
+                padding:'10px 14px', border:'none', cursor:'pointer',
+                fontFamily:'inherit', textAlign:'left',
+                background: l === lang ? (dark ? 'rgba(99,102,241,0.18)' : 'rgba(99,102,241,0.08)') : 'transparent',
+                fontSize:'0.83rem', fontWeight: l === lang ? 600 : 400,
+                color: l === lang ? (dark ? '#818cf8' : '#4f46e5') : (dark ? '#cbd5e1' : '#475569'),
+              }}
+            >
+              <span style={{ fontSize:'1.05rem', lineHeight:1 }}>{LANG_FLAGS[l]}</span>
+              <span style={{ flex:1 }}>{LANG_NAMES[l]}</span>
+              {l === lang && <span style={{ fontWeight:700, fontSize:'0.85rem' }}>✓</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Nav config ────────────────────────────────────────────────────────────────
 const NAV_SECTIONS = [
   {
-    label: 'Overview',
+    label: 'Overview', tKey: 'nav_overview',
     items: [
-      { id: 'dashboard', label: 'Dashboard', icon: I.dash },
+      { id: 'dashboard', label: 'Dashboard', tKey: 'dashboard', icon: I.dash },
     ],
   },
   {
-    label: 'Presensi',
+    label: 'Presensi', tKey: 'nav_presensi',
     items: [
-      { id: 'rekap',    label: 'Rekap Presensi',    icon: I.rekap },
-      { id: 'kalender', label: 'Kalender Akademik', icon: I.kalender },
+      { id: 'rekap',    label: 'Rekap Presensi',    tKey: 'rekap_presensi',    icon: I.rekap },
+      { id: 'kalender', label: 'Kalender Akademik', tKey: 'kalender_akademik', icon: I.kalender },
     ],
   },
   {
-    label: 'Kegiatan',
+    label: 'Kegiatan', tKey: 'nav_kegiatan',
     items: [
-      { id: 'izin',    label: 'E-Izin',      icon: I.izin },
-      { id: 'logbook',       label: 'Logbook PKL',         icon: I.logbook },
-      { id: 'communication', label: 'Pusat Komunikasi', icon: I.chat },
-      { id: 'gamifikasi',    label: 'Gamifikasi',         icon: I.game },
+      { id: 'izin',          label: 'E-Izin',           tKey: 'e_izin',           icon: I.izin },
+      { id: 'logbook',       label: 'Logbook PKL',      tKey: 'logbook_pkl',      icon: I.logbook },
+      { id: 'communication', label: 'Pusat Komunikasi', tKey: 'pusat_komunikasi', icon: I.chat },
+      { id: 'gamifikasi',    label: 'Gamifikasi',       tKey: 'gamifikasi',       icon: I.game },
     ],
   },
 ]
@@ -140,7 +196,8 @@ const PAGE_TITLES = {
 }
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
-function SiswaSidebar({ collapsed, activePage, onPageChange, onLogout }) {
+function SiswaSidebar({ collapsed, activePage, onPageChange, onLogout, lang }) {
+  const t = T[lang] || T.id
   return (
     <aside className={`siswa-sidebar-new${collapsed ? ' collapsed' : ''}`}>
       <div className="siswa-brand">
@@ -161,7 +218,7 @@ function SiswaSidebar({ collapsed, activePage, onPageChange, onLogout }) {
         {NAV_SECTIONS.map(section => (
           <div key={section.label}>
             {!collapsed && (
-              <div className="siswa-nav-section-label">{section.label}</div>
+              <div className="siswa-nav-section-label">{(T[lang] || T.id)[section.tKey] ?? section.label}</div>
             )}
             {section.items.map(item => (
               <button
@@ -169,10 +226,10 @@ function SiswaSidebar({ collapsed, activePage, onPageChange, onLogout }) {
                 type="button"
                 className={`siswa-nav-item${activePage === item.id ? ' active' : ''}`}
                 onClick={() => onPageChange(item.id)}
-                title={collapsed ? item.label : undefined}
+                title={collapsed ? (t[item.tKey] ?? item.label) : undefined}
               >
                 <span className="siswa-nav-icon">{item.icon}</span>
-                {!collapsed && <span>{item.label}</span>}
+                {!collapsed && <span>{(T[lang] || T.id)[item.tKey] ?? item.label}</span>}
               </button>
             ))}
           </div>
@@ -191,7 +248,7 @@ function SiswaSidebar({ collapsed, activePage, onPageChange, onLogout }) {
 }
 
 // ── Header ────────────────────────────────────────────────────────────────────
-function SiswaHeader({ activePage, onToggle, onToggleTheme, theme, onToggleLang, lang, user }) {
+function SiswaHeader({ activePage, onToggle, onToggleTheme, theme, onChangeLang, lang, user }) {
   const initials = (user?.nama_lengkap || user?.username || 'S').charAt(0).toUpperCase()
 
   return (
@@ -213,19 +270,7 @@ function SiswaHeader({ activePage, onToggle, onToggleTheme, theme, onToggleLang,
         <button type="button" className="siswa-header-btn" onClick={onToggleTheme}>
           <SunMoonIcon theme={theme} />
         </button>
-        <button
-          type="button"
-          className="siswa-header-btn"
-          onClick={onToggleLang}
-          title={`Bahasa: ${LANG_NAMES[lang]}`}
-          aria-label="Ganti bahasa"
-          style={{ display:'flex', alignItems:'center', gap:'3px', width:'auto', paddingInline:'6px' }}
-        >
-          <LangIcon/>
-          <span style={{ fontSize:'0.58rem', fontWeight:700, letterSpacing:'0.05em', lineHeight:1 }}>
-            {LANG_LABELS[lang]}
-          </span>
-        </button>
+        <LangDropdown lang={lang} onChangeLang={onChangeLang} theme={theme} btnClass="siswa-header-btn"/>
         <button type="button" className="siswa-header-btn">
           {I.bell}
         </button>
@@ -367,7 +412,7 @@ export default function SiswaLayout({ user, onLogout, renderPage }) {
   }, [])
 
   const handleToggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), [])
-  const handleToggleLang  = useCallback(() => setLang(l => LANGS[(LANGS.indexOf(l) + 1) % LANGS.length]), [])
+  const handleChangeLang  = useCallback((l) => setLang(l), [])
 
   const handleToggle = useCallback(() => {
     if (window.innerWidth < 768) {
@@ -408,13 +453,14 @@ export default function SiswaLayout({ user, onLogout, renderPage }) {
         activePage={activePage}
         onPageChange={setActivePage}
         onLogout={() => setLogoutState('confirming')}
+        lang={lang}
       />
       <SiswaHeader
         activePage={activePage}
         onToggle={handleToggle}
         onToggleTheme={handleToggleTheme}
         theme={theme}
-        onToggleLang={handleToggleLang}
+        onChangeLang={handleChangeLang}
         lang={lang}
         user={user}
       />

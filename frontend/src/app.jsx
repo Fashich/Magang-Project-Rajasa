@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'preact/hooks';
+import { useEffect, useState, useRef } from 'preact/hooks';
 import { authApi } from './utils/api';
 import auth from './utils/auth';
 import DashboardSiswa from './pages/siswa/DashboardSiswa';
@@ -154,13 +154,19 @@ export function App() {
   });
 
   const LANG_LABELS_APP = { id: 'ID', jw: 'JW', md: 'MD' }
+  const LANG_NAMES_APP  = { id: 'Indonesia', jw: 'Basa Jawa', md: 'Basa Madura' }
+  const LANG_FLAGS_APP  = { id: '🇮🇩', jw: '🏛️', md: '🏝️' }
   const LANGS_APP       = ['id', 'jw', 'md']
-  const [lang, setLang] = useState(() => localStorage.getItem('rajasa-lang') || 'id')
-  const cycleLang = () => {
-    const next = LANGS_APP[(LANGS_APP.indexOf(lang) + 1) % LANGS_APP.length]
-    setLang(next)
-    localStorage.setItem('rajasa-lang', next)
-  }
+  const [lang, setLang]         = useState(() => localStorage.getItem('rajasa-lang') || 'id')
+  const [langOpen, setLangOpen] = useState(false)
+  const langRef = useRef(null)
+  useEffect(() => {
+    if (!langOpen) return
+    const close = (e) => { if (langRef.current && !langRef.current.contains(e.target)) setLangOpen(false) }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [langOpen])
+  const changeLang = (l) => { setLang(l); localStorage.setItem('rajasa-lang', l); setLangOpen(false) }
 
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -360,24 +366,52 @@ export function App() {
         >
           <img src="/icon/circle-half-stroke-solid-full.svg" alt="" className="theme-toggle-icon" />
         </button>
-        <button
-          type="button"
-          className="lang-toggle"
-          onClick={cycleLang}
-          title="Ganti bahasa / Change language"
-          aria-label="Ganti bahasa"
-        >
-          <svg viewBox="0 0 24 24" fill="none" width="16" height="16" style={{ flexShrink: 0 }}>
-            <path d="M4 17L7.5 8L11 17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
-            <path d="M5.4 14h4.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-            <line x1="13.5" y1="5" x2="13.5" y2="19" stroke="currentColor" strokeWidth="0.7" strokeLinecap="round" opacity="0.35"/>
-            <path d="M15.5 8.5h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
-            <path d="M18 8.5v2.8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
-            <path d="M15.5 13.5c1.2 1.8 2.5 2.7 2.5 2.7s1.3-0.9 2.5-2.7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
-            <path d="M16.3 17.5h3.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-          </svg>
-          <span>{LANG_LABELS_APP[lang]}</span>
-        </button>
+        <div style={{ position:'relative' }} ref={langRef}>
+          <button
+            type="button"
+            className="lang-toggle"
+            onClick={() => setLangOpen(o => !o)}
+            title="Ganti bahasa / Change language"
+            aria-label="Ganti bahasa"
+          >
+            <svg viewBox="0 0 24 24" fill="none" width="16" height="16" style={{ flexShrink: 0 }}>
+              <path d="M4 17L7.5 8L11 17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+              <path d="M5.4 14h4.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+              <line x1="13.5" y1="5" x2="13.5" y2="19" stroke="currentColor" strokeWidth="0.7" strokeLinecap="round" opacity="0.35"/>
+              <path d="M15.5 8.5h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+              <path d="M18 8.5v2.8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+              <path d="M15.5 13.5c1.2 1.8 2.5 2.7 2.5 2.7s1.3-0.9 2.5-2.7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+              <path d="M16.3 17.5h3.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+            </svg>
+            <span>{LANG_LABELS_APP[lang]}</span>
+          </button>
+          {langOpen && (
+            <div style={{
+              position:'absolute', top:'calc(100% + 6px)', right:0,
+              background: theme === 'dark' ? '#1e293b' : '#ffffff',
+              border: theme === 'dark' ? '1px solid #334155' : '1px solid #e2e8f0',
+              borderRadius:'12px', boxShadow:'0 10px 32px rgba(0,0,0,0.18)',
+              overflow:'hidden', minWidth:'168px', zIndex:999,
+            }}>
+              {LANGS_APP.map(l => (
+                <button key={l} type="button" onClick={() => changeLang(l)}
+                  style={{
+                    display:'flex', alignItems:'center', gap:'9px', width:'100%',
+                    padding:'10px 14px', border:'none', cursor:'pointer',
+                    fontFamily:'inherit', textAlign:'left', fontSize:'0.83rem',
+                    background: l === lang ? (theme==='dark' ? 'rgba(99,102,241,0.18)' : 'rgba(99,102,241,0.08)') : 'transparent',
+                    fontWeight: l === lang ? 600 : 400,
+                    color: l === lang ? (theme==='dark' ? '#818cf8' : '#4f46e5') : (theme==='dark' ? '#cbd5e1' : '#475569'),
+                  }}
+                >
+                  <span style={{ fontSize:'1.05rem', lineHeight:1 }}>{LANG_FLAGS_APP[l]}</span>
+                  <span style={{ flex:1 }}>{LANG_NAMES_APP[l]}</span>
+                  {l === lang && <span style={{ fontWeight:700 }}>✓</span>}
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
         <section className="brand-panel">
           <div className="brand-content">

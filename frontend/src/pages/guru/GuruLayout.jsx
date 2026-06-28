@@ -13,6 +13,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 import NotifikasiBell from '../../components/shared/NotifikasiBell.jsx'
 import './GuruLayout.css'
 
@@ -102,17 +103,14 @@ const LANG_KEY    = 'rajasa-lang'
 const LANGS       = ['id', 'jw', 'md']
 const LANG_LABELS = { id: 'ID', jw: 'JW', md: 'MD' }
 const LANG_NAMES  = { id: 'Indonesia', jw: 'Basa Jawa', md: 'Basa Madura' }
+const LANG_FLAGS  = { id: '🇮🇩', jw: '🏛️', md: '🏝️' }
 
-// Ikon gaya Google Translate: "A" (Latin) + "文" (Kanji) dipisah garis tipis
 function LangIcon() {
   return (
     <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
-      {/* Karakter 'A' — kiri */}
       <path d="M4 17L7.5 8L11 17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
       <path d="M5.4 14h4.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
-      {/* Pemisah */}
       <line x1="13.5" y1="5" x2="13.5" y2="19" stroke="currentColor" strokeWidth="0.7" strokeLinecap="round" opacity="0.28"/>
-      {/* Karakter '文' — kanan (garis atas, batang tengah, kurva, garis bawah) */}
       <path d="M15.5 8.5h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
       <path d="M18 8.5v2.8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
       <path d="M15.5 13.5c1.2 1.8 2.5 2.7 2.5 2.7s1.3-0.9 2.5-2.7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
@@ -121,35 +119,88 @@ function LangIcon() {
   )
 }
 
+/** Dropdown pemilih bahasa — klik icon → muncul pilihan 3 bahasa */
+function LangDropdown({ lang, onChangeLang, theme, btnClass }) {
+  const [open, setOpen] = useState(false)
+  const ref = useRef(null)
+  useEffect(() => {
+    if (!open) return
+    const close = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false) }
+    document.addEventListener('mousedown', close)
+    return () => document.removeEventListener('mousedown', close)
+  }, [open])
+  const dark = theme === 'dark'
+  return (
+    <div style={{ position:'relative' }} ref={ref}>
+      <button type="button" class={btnClass} onClick={() => setOpen(o => !o)}
+        title="Ganti bahasa" aria-label="Ganti bahasa"
+        style={{ display:'flex', alignItems:'center', gap:'3px', width:'auto', paddingInline:'7px' }}
+      >
+        <LangIcon/>
+        <span style={{ fontSize:'0.58rem', fontWeight:700, letterSpacing:'0.05em', lineHeight:1 }}>
+          {LANG_LABELS[lang]}
+        </span>
+      </button>
+      {open && (
+        <div style={{
+          position:'absolute', top:'calc(100% + 8px)', right:0,
+          background: dark ? '#1e293b' : '#ffffff',
+          border: dark ? '1px solid #334155' : '1px solid #e2e8f0',
+          borderRadius:'12px', boxShadow:'0 10px 32px rgba(0,0,0,0.18)',
+          overflow:'hidden', minWidth:'168px', zIndex:999,
+        }}>
+          {LANGS.map(l => (
+            <button key={l} type="button"
+              onClick={() => { onChangeLang(l); setOpen(false) }}
+              style={{
+                display:'flex', alignItems:'center', gap:'9px', width:'100%',
+                padding:'10px 14px', border:'none', cursor:'pointer',
+                fontFamily:'inherit', textAlign:'left',
+                background: l === lang ? (dark ? 'rgba(99,102,241,0.18)' : 'rgba(99,102,241,0.08)') : 'transparent',
+                fontSize:'0.83rem', fontWeight: l === lang ? 600 : 400,
+                color: l === lang ? (dark ? '#818cf8' : '#4f46e5') : (dark ? '#cbd5e1' : '#475569'),
+              }}
+            >
+              <span style={{ fontSize:'1.05rem', lineHeight:1 }}>{LANG_FLAGS[l]}</span>
+              <span style={{ flex:1 }}>{LANG_NAMES[l]}</span>
+              {l === lang && <span style={{ fontWeight:700, fontSize:'0.85rem' }}>✓</span>}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Nav config ────────────────────────────────────────────────────────────────
 const NAV_SECTIONS = [
   {
-    label: 'Overview',
+    label: 'Overview', tKey: 'nav_overview',
     items: [
-      { id: 'dashboard', label: 'Dashboard', icon: I.dash },
+      { id: 'dashboard', label: 'Dashboard',       tKey: 'dashboard',       icon: I.dash },
     ],
   },
   {
-    label: 'Presensi',
+    label: 'Presensi', tKey: 'nav_presensi',
     items: [
-      { id: 'sesi',  label: 'Sesi Presensi', icon: I.sesi },
-      { id: 'rekap', label: 'Rekap Kehadiran', icon: I.rekap },
+      { id: 'sesi',  label: 'Sesi Presensi',   tKey: 'sesi_presensi',   icon: I.sesi },
+      { id: 'rekap', label: 'Rekap Kehadiran', tKey: 'rekap_kehadiran', icon: I.rekap },
     ],
   },
   {
-    label: 'Siswa',
+    label: 'Siswa', tKey: 'nav_siswa',
     items: [
-      { id: 'warning', label: 'Early Warning', icon: I.alert },
-      { id: 'logbook', label: 'Logbook PKL',   icon: I.logbook },
-      { id: 'izin',          label: 'E-Izin',            icon: I.izin },
-      { id: 'communication', label: 'Pusat Komunikasi', icon: I.chat },
-      { id: 'gamifikasi',    label: 'Gamifikasi',         icon: I.game },
+      { id: 'warning',       label: 'Early Warning',    tKey: 'early_warning',    icon: I.alert },
+      { id: 'logbook',       label: 'Logbook PKL',      tKey: 'logbook_pkl',      icon: I.logbook },
+      { id: 'izin',          label: 'E-Izin',           tKey: 'e_izin',           icon: I.izin },
+      { id: 'communication', label: 'Pusat Komunikasi', tKey: 'pusat_komunikasi', icon: I.chat },
+      { id: 'gamifikasi',    label: 'Gamifikasi',       tKey: 'gamifikasi',       icon: I.game },
     ],
   },
   {
-    label: 'Akun',
+    label: 'Akun', tKey: 'nav_akun',
     items: [
-      { id: 'akun', label: 'Pengaturan Akun', icon: I.setting },
+      { id: 'akun', label: 'Pengaturan Akun', tKey: 'pengaturan_akun', icon: I.setting },
     ],
   },
 ]
@@ -167,7 +218,8 @@ const PAGE_TITLES = {
 }
 
 // ── Sidebar ───────────────────────────────────────────────────────────────────
-function GuruSidebar({ collapsed, activePage, onPageChange, onLogout }) {
+function GuruSidebar({ collapsed, activePage, onPageChange, onLogout, lang }) {
+  const t = T[lang] || T.id
   return (
     <aside class="guru-sidebar">
       <div class="guru-sidebar-brand">
@@ -188,7 +240,7 @@ function GuruSidebar({ collapsed, activePage, onPageChange, onLogout }) {
         {NAV_SECTIONS.map(section => (
           <div key={section.label}>
             {!collapsed && (
-              <div class="guru-nav-section-label">{section.label}</div>
+              <div class="guru-nav-section-label">{t[section.tKey] ?? section.label}</div>
             )}
             {section.items.map(item => (
               <button
@@ -196,10 +248,10 @@ function GuruSidebar({ collapsed, activePage, onPageChange, onLogout }) {
                 type="button"
                 class={`guru-nav-item${activePage === item.id ? ' active' : ''}`}
                 onClick={() => onPageChange(item.id)}
-                title={collapsed ? item.label : undefined}
+                title={collapsed ? (t[item.tKey] ?? item.label) : undefined}
               >
                 <span class="guru-nav-icon">{item.icon}</span>
-                {!collapsed && <span>{item.label}</span>}
+                {!collapsed && <span>{t[item.tKey] ?? item.label}</span>}
               </button>
             ))}
           </div>
@@ -208,9 +260,9 @@ function GuruSidebar({ collapsed, activePage, onPageChange, onLogout }) {
 
       <div class="guru-sidebar-footer">
         <button type="button" class="guru-logout-btn" onClick={onLogout}
-          title={collapsed ? 'Keluar' : undefined}>
+          title={collapsed ? (t.keluar ?? 'Keluar') : undefined}>
           <span class="guru-nav-icon">{I.logout}</span>
-          {!collapsed && <span>Keluar</span>}
+          {!collapsed && <span>{t.keluar ?? 'Keluar'}</span>}
         </button>
       </div>
     </aside>
@@ -218,7 +270,7 @@ function GuruSidebar({ collapsed, activePage, onPageChange, onLogout }) {
 }
 
 // ── Header ────────────────────────────────────────────────────────────────────
-function GuruHeader({ onToggle, activePage, onToggleTheme, theme, onToggleLang, lang, user }) {
+function GuruHeader({ onToggle, activePage, onToggleTheme, theme, onChangeLang, lang, user }) {
   const initials = (user?.nama_lengkap || user?.username || 'G').charAt(0).toUpperCase()
 
   return (
@@ -240,19 +292,7 @@ function GuruHeader({ onToggle, activePage, onToggleTheme, theme, onToggleLang, 
         <button type="button" class="guru-header-btn" onClick={onToggleTheme}>
           <SunMoonIcon theme={theme} />
         </button>
-        <button
-          type="button"
-          class="guru-header-btn"
-          onClick={onToggleLang}
-          title={`Bahasa: ${LANG_NAMES[lang]}`}
-          aria-label="Ganti bahasa"
-          style={{ display:'flex', alignItems:'center', gap:'3px', width:'auto', paddingInline:'6px' }}
-        >
-          <LangIcon/>
-          <span style={{ fontSize:'0.58rem', fontWeight:700, letterSpacing:'0.05em', lineHeight:1 }}>
-            {LANG_LABELS[lang]}
-          </span>
-        </button>
+        <LangDropdown lang={lang} onChangeLang={onChangeLang} theme={theme} btnClass="guru-header-btn"/>
         <NotifikasiBell
           btnClassName="guru-header-btn"
         />
@@ -389,7 +429,7 @@ export default function GuruLayout({ user, onLogout, renderPage }) {
   }, [])
 
   const handleToggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), [])
-  const handleToggleLang  = useCallback(() => setLang(l => LANGS[(LANGS.indexOf(l) + 1) % LANGS.length]), [])
+  const handleChangeLang  = useCallback((l) => setLang(l), [])
 
   const handleToggle = useCallback(() => {
     // < 768px  → mobile drawer mode (toggle mobileOpen)
@@ -440,13 +480,14 @@ export default function GuruLayout({ user, onLogout, renderPage }) {
         activePage={activePage}
         onPageChange={setActivePage}
         onLogout={() => setLogoutState('confirming')}
+        lang={lang}
       />
       <GuruHeader
         onToggle={handleToggle}
         activePage={activePage}
         onToggleTheme={handleToggleTheme}
         theme={theme}
-        onToggleLang={handleToggleLang}
+        onChangeLang={handleChangeLang}
         lang={lang}
         user={user}
       />
