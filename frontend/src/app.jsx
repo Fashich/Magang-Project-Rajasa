@@ -404,7 +404,6 @@ export function App() {
                     color: l === lang ? (theme==='dark' ? '#818cf8' : '#4f46e5') : (theme==='dark' ? '#cbd5e1' : '#475569'),
                   }}
                 >
-                  <span style={{ fontSize:'1.05rem', lineHeight:1 }}>{LANG_FLAGS_APP[l]}</span>
                   <span style={{ flex:1 }}>{LANG_NAMES_APP[l]}</span>
                   {l === lang && <span style={{ fontWeight:700 }}>✓</span>}
                 </button>
