@@ -38,6 +38,28 @@
   cursor: pointer;
 }
 
+/* Tombol ganti bahasa — di sebelah kiri theme toggle */
+.lang-toggle {
+  position: absolute;
+  top: 22px;
+  right: 66px;          /* 22 (margin kanan) + 34 (lebar theme-toggle) + 10 (gap) */
+  z-index: 5;
+  height: 34px;
+  padding: 0 8px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  cursor: pointer;
+  font-family: inherit;
+  color: inherit;
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
 .theme-toggle-icon {
   width: 28px;
   height: 28px;

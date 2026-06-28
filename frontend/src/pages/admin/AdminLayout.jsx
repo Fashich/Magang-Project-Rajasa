@@ -80,6 +80,26 @@ function SunMoonIcon({ theme }) {
   )
 }
 
+// ── Language config ───────────────────────────────────────────────────────────
+const LANG_KEY    = 'rajasa-lang'
+const LANGS       = ['id', 'jw', 'md']
+const LANG_LABELS = { id: 'ID', jw: 'JW', md: 'MD' }
+const LANG_NAMES  = { id: 'Indonesia', jw: 'Basa Jawa', md: 'Basa Madura' }
+
+function LangIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+      <path d="M4 17L7.5 8L11 17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M5.4 14h4.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+      <line x1="13.5" y1="5" x2="13.5" y2="19" stroke="currentColor" strokeWidth="0.7" strokeLinecap="round" opacity="0.28"/>
+      <path d="M15.5 8.5h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+      <path d="M18 8.5v2.8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+      <path d="M15.5 13.5c1.2 1.8 2.5 2.7 2.5 2.7s1.3-0.9 2.5-2.7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M16.3 17.5h3.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
 // ─── Nav config ──────────────────────────────────────────────────────────────
 
 const NAV_SECTIONS = [
@@ -275,7 +295,7 @@ function AdminSidebar({ collapsed, activePage, onPageChange, onLogout, user }) {
 
 // ─── Header ───────────────────────────────────────────────────────────────────
 
-function AdminHeader({ onToggle, activePage, onToggleTheme, theme, user }) {
+function AdminHeader({ onToggle, activePage, onToggleTheme, theme, onToggleLang, lang, user }) {
   const PAGE_TITLES = {
     dashboard:           'Dashboard',
     analitik:            'Analitik Kehadiran',
@@ -312,6 +332,19 @@ function AdminHeader({ onToggle, activePage, onToggleTheme, theme, user }) {
         <button type="button" className="admin-header-btn" onClick={onToggleTheme} aria-label="Toggle theme">
           <SunMoonIcon theme={theme} />
         </button>
+        <button
+          type="button"
+          className="admin-header-btn"
+          onClick={onToggleLang}
+          title={`Bahasa: ${LANG_NAMES[lang]}`}
+          aria-label="Ganti bahasa"
+          style={{ display:'flex', alignItems:'center', gap:'3px', width:'auto', paddingInline:'6px' }}
+        >
+          <LangIcon/>
+          <span style={{ fontSize:'0.58rem', fontWeight:700, letterSpacing:'0.05em', lineHeight:1 }}>
+            {LANG_LABELS[lang]}
+          </span>
+        </button>
         <NotifikasiBell
           btnClassName="admin-header-btn"
         />
@@ -333,6 +366,7 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
   const [activePage,  setActivePage]  = useState('dashboard')
   const [collapsed,   setCollapsed]   = useState(false)
   const [theme,       setTheme]       = useState(() => localStorage.getItem(THEME_KEY) || 'light')
+  const [lang,        setLang]        = useState(() => localStorage.getItem(LANG_KEY) || 'id')
   const [logoutState, setLogoutState] = useState('idle')
   const [mobileOpen,  setMobileOpen]  = useState(false)
   const abortRef = useRef(null)
@@ -342,9 +376,14 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
     localStorage.setItem(THEME_KEY, theme)
   }, [theme])
 
+  useEffect(() => {
+    localStorage.setItem(LANG_KEY, lang)
+  }, [lang])
+
   useEffect(() => { setMobileOpen(false) }, [activePage])
 
   const handleToggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), [])
+  const handleToggleLang  = useCallback(() => setLang(l => LANGS[(LANGS.indexOf(l) + 1) % LANGS.length]), [])
 
   const handleToggle = useCallback(() => {
     if (window.innerWidth < 768) {
@@ -411,6 +450,8 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
         activePage={activePage}
         onToggleTheme={handleToggleTheme}
         theme={theme}
+        onToggleLang={handleToggleLang}
+        lang={lang}
         user={user}
       />
       <main className="admin-content">

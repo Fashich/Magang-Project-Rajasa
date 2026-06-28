@@ -153,6 +153,15 @@ export function App() {
     return localStorage.getItem(THEME_KEY) || 'light';
   });
 
+  const LANG_LABELS_APP = { id: 'ID', jw: 'JW', md: 'MD' }
+  const LANGS_APP       = ['id', 'jw', 'md']
+  const [lang, setLang] = useState(() => localStorage.getItem('rajasa-lang') || 'id')
+  const cycleLang = () => {
+    const next = LANGS_APP[(LANGS_APP.indexOf(lang) + 1) % LANGS_APP.length]
+    setLang(next)
+    localStorage.setItem('rajasa-lang', next)
+  }
+
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [remember, setRemember] = useState(false);
@@ -350,6 +359,24 @@ export function App() {
           aria-label={theme === 'light' ? 'Aktifkan mode gelap' : 'Aktifkan mode terang'}
         >
           <img src="/icon/circle-half-stroke-solid-full.svg" alt="" className="theme-toggle-icon" />
+        </button>
+        <button
+          type="button"
+          className="lang-toggle"
+          onClick={cycleLang}
+          title="Ganti bahasa / Change language"
+          aria-label="Ganti bahasa"
+        >
+          <svg viewBox="0 0 24 24" fill="none" width="16" height="16" style={{ flexShrink: 0 }}>
+            <path d="M4 17L7.5 8L11 17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+            <path d="M5.4 14h4.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+            <line x1="13.5" y1="5" x2="13.5" y2="19" stroke="currentColor" strokeWidth="0.7" strokeLinecap="round" opacity="0.35"/>
+            <path d="M15.5 8.5h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+            <path d="M18 8.5v2.8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+            <path d="M15.5 13.5c1.2 1.8 2.5 2.7 2.5 2.7s1.3-0.9 2.5-2.7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+            <path d="M16.3 17.5h3.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+          </svg>
+          <span>{LANG_LABELS_APP[lang]}</span>
         </button>
 
         <section className="brand-panel">

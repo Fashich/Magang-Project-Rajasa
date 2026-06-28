@@ -97,6 +97,30 @@ function SunMoonIcon({ theme }) {
   )
 }
 
+// ── Language config ───────────────────────────────────────────────────────────
+const LANG_KEY    = 'rajasa-lang'
+const LANGS       = ['id', 'jw', 'md']
+const LANG_LABELS = { id: 'ID', jw: 'JW', md: 'MD' }
+const LANG_NAMES  = { id: 'Indonesia', jw: 'Basa Jawa', md: 'Basa Madura' }
+
+// Ikon gaya Google Translate: "A" (Latin) + "文" (Kanji) dipisah garis tipis
+function LangIcon() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" width="18" height="18">
+      {/* Karakter 'A' — kiri */}
+      <path d="M4 17L7.5 8L11 17" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round"/>
+      <path d="M5.4 14h4.2" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+      {/* Pemisah */}
+      <line x1="13.5" y1="5" x2="13.5" y2="19" stroke="currentColor" strokeWidth="0.7" strokeLinecap="round" opacity="0.28"/>
+      {/* Karakter '文' — kanan (garis atas, batang tengah, kurva, garis bawah) */}
+      <path d="M15.5 8.5h5" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+      <path d="M18 8.5v2.8" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round"/>
+      <path d="M15.5 13.5c1.2 1.8 2.5 2.7 2.5 2.7s1.3-0.9 2.5-2.7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round"/>
+      <path d="M16.3 17.5h3.4" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round"/>
+    </svg>
+  )
+}
+
 // ── Nav config ────────────────────────────────────────────────────────────────
 const NAV_SECTIONS = [
   {
@@ -194,7 +218,7 @@ function GuruSidebar({ collapsed, activePage, onPageChange, onLogout }) {
 }
 
 // ── Header ────────────────────────────────────────────────────────────────────
-function GuruHeader({ onToggle, activePage, onToggleTheme, theme, user }) {
+function GuruHeader({ onToggle, activePage, onToggleTheme, theme, onToggleLang, lang, user }) {
   const initials = (user?.nama_lengkap || user?.username || 'G').charAt(0).toUpperCase()
 
   return (
@@ -215,6 +239,19 @@ function GuruHeader({ onToggle, activePage, onToggleTheme, theme, user }) {
       <div class="guru-header-actions">
         <button type="button" class="guru-header-btn" onClick={onToggleTheme}>
           <SunMoonIcon theme={theme} />
+        </button>
+        <button
+          type="button"
+          class="guru-header-btn"
+          onClick={onToggleLang}
+          title={`Bahasa: ${LANG_NAMES[lang]}`}
+          aria-label="Ganti bahasa"
+          style={{ display:'flex', alignItems:'center', gap:'3px', width:'auto', paddingInline:'6px' }}
+        >
+          <LangIcon/>
+          <span style={{ fontSize:'0.58rem', fontWeight:700, letterSpacing:'0.05em', lineHeight:1 }}>
+            {LANG_LABELS[lang]}
+          </span>
         </button>
         <NotifikasiBell
           btnClassName="guru-header-btn"
@@ -316,6 +353,7 @@ export default function GuruLayout({ user, onLogout, renderPage }) {
   })
   const [mobileOpen,  setMobileOpen]  = useState(false)
   const [theme,       setTheme]       = useState(() => localStorage.getItem(THEME_KEY) || 'light')
+  const [lang,        setLang]        = useState(() => localStorage.getItem(LANG_KEY) || 'id')
   const [logoutState, setLogoutState] = useState('idle')
   const abortRef = useRef(null)
 
@@ -323,6 +361,10 @@ export default function GuruLayout({ user, onLogout, renderPage }) {
     document.documentElement.dataset.theme = theme
     localStorage.setItem(THEME_KEY, theme)
   }, [theme])
+
+  useEffect(() => {
+    localStorage.setItem(LANG_KEY, lang)
+  }, [lang])
 
   useEffect(() => { setMobileOpen(false) }, [activePage])
 
@@ -347,6 +389,7 @@ export default function GuruLayout({ user, onLogout, renderPage }) {
   }, [])
 
   const handleToggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), [])
+  const handleToggleLang  = useCallback(() => setLang(l => LANGS[(LANGS.indexOf(l) + 1) % LANGS.length]), [])
 
   const handleToggle = useCallback(() => {
     // < 768px  → mobile drawer mode (toggle mobileOpen)
@@ -403,6 +446,8 @@ export default function GuruLayout({ user, onLogout, renderPage }) {
         activePage={activePage}
         onToggleTheme={handleToggleTheme}
         theme={theme}
+        onToggleLang={handleToggleLang}
+        lang={lang}
         user={user}
       />
       <main class="guru-content">
