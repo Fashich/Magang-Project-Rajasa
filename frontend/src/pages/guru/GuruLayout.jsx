@@ -14,6 +14,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
 import { T } from '../../utils/lang.js'
+import ProfileCard from '../../components/shared/ProfileCard.jsx'
 import NotifikasiBell from '../../components/shared/NotifikasiBell.jsx'
 import './GuruLayout.css'
 
@@ -270,6 +271,7 @@ function GuruSidebar({ collapsed, activePage, onPageChange, onLogout, lang }) {
 
 // ── Header ────────────────────────────────────────────────────────────────────
 function GuruHeader({ onToggle, activePage, onToggleTheme, theme, onChangeLang, lang, user }) {
+  const [profileOpen, setProfileOpen] = useState(false)
   const initials = (user?.nama_lengkap || user?.username || 'G').charAt(0).toUpperCase()
 
   return (
@@ -295,12 +297,24 @@ function GuruHeader({ onToggle, activePage, onToggleTheme, theme, onChangeLang, 
         <NotifikasiBell
           btnClassName="guru-header-btn"
         />
-        <div class="guru-header-user">
-          <div class="guru-user-avatar">{initials}</div>
-          <div>
-            <div class="guru-user-name">{user?.nama_lengkap || user?.username || 'Guru'}</div>
-            <div class="guru-user-role">Guru Pembimbing</div>
-          </div>
+        <div class="guru-header-user" style={{ position:'relative' }}>
+          <button type="button"
+            onClick={() => setProfileOpen(o => !o)}
+            style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', padding:0 }}
+          >
+            <div class="guru-user-avatar">{initials}</div>
+            <div>
+              <div class="guru-user-name">{user?.nama_lengkap || user?.username || 'Guru'}</div>
+              <div class="guru-user-role">Guru Pembimbing</div>
+            </div>
+          </button>
+          {profileOpen && (
+            <ProfileCard
+              onClose={() => setProfileOpen(false)}
+              theme={theme}
+              userType={user?.user_type ?? 'guru'}
+            />
+          )}
         </div>
       </div>
     </header>

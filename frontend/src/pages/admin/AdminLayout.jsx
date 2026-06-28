@@ -6,6 +6,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
 import { T } from '../../utils/lang.js'
+import ProfileCard from '../../components/shared/ProfileCard.jsx'
 import TwoFactorSetup from './TwoFactorSetup.jsx'
 import NotifikasiBell from '../../components/shared/NotifikasiBell.jsx'
 import './AdminLayout.css'
@@ -352,6 +353,7 @@ function AdminSidebar({ collapsed, activePage, onPageChange, onLogout, user, lan
 // ─── Header ───────────────────────────────────────────────────────────────────
 
 function AdminHeader({ onToggle, activePage, onToggleTheme, theme, onChangeLang, lang, user }) {
+  const [profileOpen, setProfileOpen] = useState(false)
   const PAGE_TITLES = {
     dashboard:           'Dashboard',
     analitik:            'Analitik Kehadiran',
@@ -392,12 +394,24 @@ function AdminHeader({ onToggle, activePage, onToggleTheme, theme, onChangeLang,
         <NotifikasiBell
           btnClassName="admin-header-btn"
         />
-        <div className="admin-header-user">
-          <div className="admin-user-avatar">{initials}</div>
-          <div>
-            <div className="admin-user-name">{user?.nama_lengkap || user?.username || 'Admin'}</div>
-            <div className="admin-user-role">Administrator</div>
-          </div>
+        <div className="admin-header-user" style={{ position:'relative' }}>
+          <button type="button"
+            onClick={() => setProfileOpen(o => !o)}
+            style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', padding:0 }}
+          >
+            <div className="admin-user-avatar">{initials}</div>
+            <div>
+              <div className="admin-user-name">{user?.nama_lengkap || user?.username || 'Admin'}</div>
+              <div className="admin-user-role">Administrator</div>
+            </div>
+          </button>
+          {profileOpen && (
+            <ProfileCard
+              onClose={() => setProfileOpen(false)}
+              theme={theme}
+              userType={user?.user_type ?? 'admin'}
+            />
+          )}
         </div>
       </div>
     </header>

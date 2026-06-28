@@ -17,6 +17,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
 import { T } from '../../utils/lang.js'
+import ProfileCard from '../shared/ProfileCard.jsx'
 import NotifikasiBell from '../shared/NotifikasiBell.jsx'
 import { authApi } from '../../utils/api'
 import './SiswaLayout.css'
@@ -248,6 +249,7 @@ function SiswaSidebar({ collapsed, activePage, onPageChange, onLogout, lang }) {
 
 // ── Header ────────────────────────────────────────────────────────────────────
 function SiswaHeader({ activePage, onToggle, onToggleTheme, theme, onChangeLang, lang, user }) {
+  const [profileOpen, setProfileOpen] = useState(false)
   const initials = (user?.nama_lengkap || user?.username || 'S').charAt(0).toUpperCase()
 
   return (
@@ -273,12 +275,24 @@ function SiswaHeader({ activePage, onToggle, onToggleTheme, theme, onChangeLang,
         <button type="button" className="siswa-header-btn">
           {I.bell}
         </button>
-        <div className="siswa-header-user">
-          <div className="siswa-user-avatar">{initials}</div>
-          <div>
-            <div className="siswa-user-name">{user?.nama_lengkap || user?.username || 'Siswa'}</div>
-            <div className="siswa-user-role">Siswa</div>
-          </div>
+        <div className="siswa-header-user" style={{ position:'relative' }}>
+          <button type="button"
+            onClick={() => setProfileOpen(o => !o)}
+            style={{ background:'none', border:'none', cursor:'pointer', display:'flex', alignItems:'center', gap:'8px', padding:0 }}
+          >
+            <div className="siswa-user-avatar">{initials}</div>
+            <div>
+              <div className="siswa-user-name">{user?.nama_lengkap || user?.username || 'Siswa'}</div>
+              <div className="siswa-user-role">Siswa</div>
+            </div>
+          </button>
+          {profileOpen && (
+            <ProfileCard
+              onClose={() => setProfileOpen(false)}
+              theme={theme}
+              userType="siswa"
+            />
+          )}
         </div>
       </div>
     </header>
