@@ -54,6 +54,7 @@ export default function ProfileCard({ onClose, theme, userType }) {
   const [error,     setError]     = useState('')
   const [uploading, setUploading] = useState(false)
   const [uploadErr, setUploadErr] = useState('')
+  const [isDragging, setIsDragging] = useState(false)
   const [editMode,  setEditMode]  = useState(false)
   const [editData,  setEditData]  = useState({})
   const [saving,    setSaving]    = useState(false)
@@ -98,23 +99,19 @@ export default function ProfileCard({ onClose, theme, userType }) {
   const saveEdit = async () => {
     setSaving(true)
     try {
-      // Kirim hanya field yang boleh diedit per role
       const payload = {}
       if (isAdmin) {
-        const allowed = ['nama_lengkap','nip','jabatan','email','no_telp']
-        allowed.forEach(f => { payload[f] = editData[f] })
+        ['nama_lengkap','nip','jabatan','email','no_telp'].forEach(f => { payload[f] = editData[f] })
       } else if (isGuru) {
-        const allowed = ['nama_lengkap','mapel_pengampu','no_telp']
-        allowed.forEach(f => { payload[f] = editData[f] })
+        ['nama_lengkap','mapel_pengampu','no_telp'].forEach(f => { payload[f] = editData[f] })
       } else {
-        const allowed = ['nama_lengkap','email','no_telp']
-        allowed.forEach(f => { payload[f] = editData[f] })
+        ['nama_lengkap','email','no_telp'].forEach(f => { payload[f] = editData[f] })
       }
       await api.put('/profile/kontak', payload)
       setProfile(p => ({ ...p, ...payload }))
       setEditMode(false)
     } catch (e) {
-      setUploadErr(e?.response?.data?.message ?? 'Gagal menyimpan.')
+      setUploadErr(e?.message ?? 'Gagal menyimpan.')
     } finally {
       setSaving(false)
     }
@@ -122,27 +119,56 @@ export default function ProfileCard({ onClose, theme, userType }) {
 
   const setField = (field) => (val) => setEditData(d => ({ ...d, [field]: val }))
 
-  // Upload foto
-  const handleFotoChange = async (e) => {
-    const file = e.currentTarget.files?.[0]
+  // ── Upload foto — dipakai oleh file input DAN drag & drop ─────────────────
+  const uploadFile = async (file) => {
     if (!file) return
     setUploadErr('')
-    if (file.size > 10 * 1024 * 1024) { setUploadErr('Maksimal 10 MB.'); return }
+    if (!['image/jpeg','image/png','image/webp'].includes(file.type)) {
+      setUploadErr('Format tidak didukung. Gunakan JPG, PNG, atau WEBP.')
+      return
+    }
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadErr('Ukuran foto maksimal 10 MB.')
+      return
+    }
     setUploading(true)
     try {
       const fd = new FormData()
       fd.append('foto', file)
       const res = await api.postForm('/profile/foto', fd)
-      const newUrl = res.data?.foto_url
+      const newUrl = res.data?.foto_url ?? res.foto_url
       if (newUrl) setProfile(p => ({ ...p, foto_url: newUrl + '?t=' + Date.now() }))
     } catch (err) {
-      setUploadErr(err?.response?.data?.message ?? 'Upload gagal.')
+      setUploadErr(err?.message ?? 'Upload gagal. Coba lagi.')
     } finally {
       setUploading(false)
-      e.currentTarget.value = ''
     }
   }
 
+  const handleFotoChange = (e) => {
+    uploadFile(e.currentTarget.files?.[0])
+    e.currentTarget.value = ''
+  }
+
+  // ── Drag & drop handlers ──────────────────────────────────────────────────
+  const handleDragOver = (e) => {
+    if (!editMode) return
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(true)
+  }
+  const handleDragLeave = (e) => {
+    e.preventDefault()
+    setIsDragging(false)
+  }
+  const handleDrop = (e) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setIsDragging(false)
+    if (!editMode) return
+    const file = e.dataTransfer?.files?.[0]
+    uploadFile(file)
+  }
   // ── Style helpers ─────────────────────────────────────────────────────────
   const cardBg   = dark ? '#1e293b' : '#ffffff'
   const headerBg = dark ? '#0f2545' : '#1e3a6e'
@@ -207,9 +233,51 @@ export default function ProfileCard({ onClose, theme, userType }) {
             justifyContent:'center', padding:'20px 14px', gap:'10px',
           }}>
 
-            {/* Foto — rasio 3:4 */}
+            {/* Foto — rasio 3:4 + drag & drop */}
             <div style={{ position:'relative', cursor: editMode ? 'pointer' : 'default' }}
-                 onClick={() => editMode && fileInputRef.current?.click()}>
+                 onClick={() => editMode && fileInputRef.current?.click()}
+                 onDragOver={handleDragOver}
+                 onDragLeave={handleDragLeave}
+                 onDrop={handleDrop}>
+              <div style={{
+                width:'111px', height:'148px', background:photoBg, borderRadius:'6px',
+                overflow:'hidden',
+                border: isDragging
+                  ? '2px dashed #6366f1'
+                  : `2px solid ${border}`,
+                flexShrink:0,
+                transition:'border-color 0.15s',
+              }}>
+                {loading ? null : profile?.foto_url ? (
+                  <img src={profile.foto_url} alt="Foto profil"
+                    style={{ width:'100%', height:'100%', objectFit:'fill', display:'block' }}/>
+                ) : (
+                  <div style={{ width:'100%', height:'100%', display:'flex', alignItems:'center',
+                                justifyContent:'center', color: dark ? '#475569' : '#94a3b8' }}>
+                    <NoPhotoIcon size={100}/>
+                  </div>
+                )}
+                {/* Overlay saat drag */}
+                {isDragging && (
+                  <div style={{
+                    position:'absolute', inset:0, background:'rgba(99,102,241,0.18)',
+                    display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
+                    gap:'4px', borderRadius:'4px',
+                  }}>
+                    <span style={{ fontSize:'1.5rem' }}>📁</span>
+                    <span style={{ color:'#6366f1', fontSize:'0.7rem', fontWeight:700 }}>Lepas di sini</span>
+                  </div>
+                )}
+                {/* Overlay saat uploading */}
+                {uploading && !isDragging && (
+                  <div style={{
+                    position:'absolute', inset:0, background:'rgba(0,0,0,0.5)',
+                    display:'flex', alignItems:'center', justifyContent:'center', borderRadius:'4px',
+                  }}>
+                    <span style={{ color:'#fff', fontSize:'0.7rem', fontWeight:600 }}>Mengupload…</span>
+                  </div>
+                )}
+              </div>
               <div style={{
                 width:'111px', height:'148px', background:photoBg, borderRadius:'6px',
                 overflow:'hidden', border:`2px solid ${border}`, flexShrink:0,
@@ -223,18 +291,6 @@ export default function ProfileCard({ onClose, theme, userType }) {
                     <NoPhotoIcon size={100}/>
                   </div>
                 )}
-                {/* Overlay upload saat mengupload */}
-                {uploading && (
-                  <div style={{
-                    position:'absolute', inset:0, background:'rgba(0,0,0,0.5)',
-                    display:'flex', alignItems:'center', justifyContent:'center',
-                    borderRadius:'4px',
-                  }}>
-                    <span style={{ color:'#fff', fontSize:'0.7rem', fontWeight:600 }}>Mengupload…</span>
-                  </div>
-                )}
-              </div>
-
               {/* Tombol "+" di pojok kanan bawah foto — hanya saat edit mode */}
               {editMode && (
                 <div style={{
@@ -254,6 +310,13 @@ export default function ProfileCard({ onClose, theme, userType }) {
 
             {uploadErr && (
               <div style={{ color:'#ef4444', fontSize:'0.7rem', textAlign:'center' }}>{uploadErr}</div>
+            )}
+
+            {/* Hint drag & drop — hanya saat edit mode */}
+            {editMode && !uploading && (
+              <div style={{ fontSize:'0.63rem', color:txtSub, textAlign:'center', lineHeight:1.4 }}>
+                Klik foto atau drag &amp; drop<br/>ke area foto di atas
+              </div>
             )}
 
             {/* Status badge */}

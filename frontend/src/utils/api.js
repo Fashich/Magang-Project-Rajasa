@@ -74,6 +74,42 @@ export const api = {
   },
 
   /**
+   * Upload FormData (multipart/form-data) — jangan set Content-Type manual,
+   * biarkan browser set boundary otomatis
+   */
+  async postForm(endpoint, formData) {
+    const url = `${API_BASE_URL}${endpoint}`;
+    const headers = {};
+
+    const token = auth.getToken();
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+
+    const response = await fetch(url, {
+      method: 'POST',
+      headers,
+      body: formData,
+    });
+
+    if (response.status === 401) {
+      auth.clearAuth();
+      window.location.href = '/';
+      throw new Error('Session expired. Please login again.');
+    }
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const err = new Error(data.message || `Upload failed: ${response.status}`);
+      err.response = { data };
+      throw err;
+    }
+
+    return data;
+  },
+
+  /**
    * Core request method with authentication and error handling
    * @param {string} endpoint - API endpoint
    * @param {Object} options - Fetch options
