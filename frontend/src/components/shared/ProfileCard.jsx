@@ -137,9 +137,22 @@ export default function ProfileCard({ onClose, theme, userType }) {
   }
 
   const onFileChange  = e => { uploadFile(e.currentTarget.files?.[0]); e.currentTarget.value = '' }
-  const onDragOver    = e => { e.preventDefault(); if (editMode) setIsDragging(true) }
-  const onDragLeave   = e => { e.preventDefault(); setIsDragging(false) }
-  const onDrop        = e => { e.preventDefault(); setIsDragging(false); if (editMode) uploadFile(e.dataTransfer?.files?.[0]) }
+  const onDragOver    = e => {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'copy'
+    if (editMode) setIsDragging(true)
+  }
+  const onDragLeave   = e => {
+    // Hanya reset jika mouse benar-benar keluar dari container (bukan pindah ke child)
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setIsDragging(false)
+    }
+  }
+  const onDrop = e => {
+    e.preventDefault()
+    setIsDragging(false)
+    if (editMode) uploadFile(e.dataTransfer?.files?.[0])
+  }
 
   // colours
   const cardBg  = dark ? '#1e293b' : '#ffffff'
@@ -228,11 +241,30 @@ export default function ProfileCard({ onClose, theme, userType }) {
               {/* Overlay drag */}
               {isDragging && (
                 <div style={{
-                  position:'absolute', inset:0, background:'rgba(99,102,241,0.25)',
-                  display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'4px',
+                  position:'absolute', inset:0, background:'rgba(99,102,241,0.35)',
+                  display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'6px',
+                  borderRadius:'4px',
                 }}>
-                  <span style={{ fontSize:'1.4rem' }}>📁</span>
-                  <span style={{ color:'#6366f1', fontSize:'0.68rem', fontWeight:700 }}>Lepas di sini</span>
+                  <span style={{ fontSize:'1.8rem' }}>📁</span>
+                  <span style={{ color:'#fff', fontSize:'0.7rem', fontWeight:700,
+                                 textShadow:'0 1px 3px rgba(0,0,0,0.5)', textAlign:'center' }}>
+                    Lepas di sini
+                  </span>
+                </div>
+              )}
+
+              {/* Overlay hint saat edit mode & tidak ada foto & tidak drag */}
+              {editMode && !isDragging && !uploading && !profile?.foto_url && (
+                <div style={{
+                  position:'absolute', inset:0,
+                  display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', gap:'4px',
+                  background:'rgba(0,0,0,0.05)',
+                }}>
+                  <span style={{ fontSize:'1.4rem' }}>📷</span>
+                  <span style={{ fontSize:'0.62rem', color: dark ? '#94a3b8' : '#64748b',
+                                 fontWeight:600, textAlign:'center', lineHeight:1.3 }}>
+                    Klik atau<br/>drag foto
+                  </span>
                 </div>
               )}
 
@@ -317,12 +349,6 @@ export default function ProfileCard({ onClose, theme, userType }) {
             {uploadErr && (
               <div style={{ color:'#ef4444', fontSize:'0.68rem', textAlign:'center', lineHeight:1.4 }}>
                 {uploadErr}
-              </div>
-            )}
-
-            {editMode && !uploading && (
-              <div style={{ fontSize:'0.62rem', color:txtSub, textAlign:'center', lineHeight:1.4 }}>
-                Klik foto atau<br/>drag &amp; drop
               </div>
             )}
           </div>
