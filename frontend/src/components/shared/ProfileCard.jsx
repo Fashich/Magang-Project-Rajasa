@@ -477,5 +477,6 @@ export default function ProfileCard({ onClose, theme, userType }) {
         )}
       </div>
     </div>
+  </div>
   )
 }
