@@ -107,15 +107,28 @@ final class ProfileController
         $user = $this->auth->user();
 
         if (!isset($_FILES['foto'])) {
-            Response::error('File foto tidak ditemukan.', [], 400);
+            Response::error(
+                'File tidak diterima. Pastikan format multipart/form-data dan ukuran ≤ 10 MB.',
+                ['php_post_max' => ini_get('post_max_size'), 'php_upload_max' => ini_get('upload_max_filesize')],
+                400
+            );
             return;
         }
 
         $file = $_FILES['foto'];
 
         // Validasi upload error
+        $phpErrors = [
+            UPLOAD_ERR_INI_SIZE   => 'File melebihi batas upload PHP (' . ini_get('upload_max_filesize') . '). Hubungi admin.',
+            UPLOAD_ERR_FORM_SIZE  => 'File terlalu besar.',
+            UPLOAD_ERR_PARTIAL    => 'File hanya terupload sebagian. Coba lagi.',
+            UPLOAD_ERR_NO_FILE    => 'Tidak ada file yang dipilih.',
+            UPLOAD_ERR_NO_TMP_DIR => 'Folder temp tidak tersedia. Hubungi admin.',
+            UPLOAD_ERR_CANT_WRITE => 'Gagal menulis file. Cek permission folder.',
+        ];
+
         if ($file['error'] !== UPLOAD_ERR_OK) {
-            Response::error('Upload gagal. Coba lagi.', [], 400);
+            Response::error($phpErrors[$file['error']] ?? 'Upload gagal (kode: ' . $file['error'] . ').', [], 400);
             return;
         }
 

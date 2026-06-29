@@ -22,6 +22,9 @@ COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 WORKDIR /var/www
 COPY . .
 
+# Konfigurasi PHP untuk upload foto (default upload_max_filesize = 2M, terlalu kecil)
+RUN cp /var/www/php/z-upload.ini /usr/local/etc/php/conf.d/z-upload.ini
+
 # Pastikan folder dimiliki oleh user baru
 RUN chown -R ${USER_ID}:${GROUP_ID} /var/www
 
