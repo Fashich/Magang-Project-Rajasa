@@ -163,7 +163,7 @@
     <button class="btn" onclick="window.location.reload()">
       🔄 Coba Lagi
     </button>
-    <button class="btn btn-sec" onclick="history.back()">
+    <button class="btn btn-sec" id="btn-secondary">
       ← Kembali
     </button>
 
@@ -176,16 +176,95 @@
   <script>
     // Auto-reload saat koneksi kembali
     window.addEventListener('online', () => {
-      document.getElementById('status-text').textContent = 'Koneksi tersambung! Memuat ulang...';
-      setTimeout(() => window.location.href = '/', 1000);
-    });
+      document.getElementById('status-text').textContent = 'Koneksi tersambung! Memuat ulang...'
+      setTimeout(() => window.location.href = '/', 1000)
+    })
     window.addEventListener('offline', () => {
-      document.getElementById('status-text').textContent = 'Offline — tidak ada koneksi';
-    });
+      document.getElementById('status-text').textContent = 'Offline — tidak ada koneksi'
+    })
     // Set status awal
     document.getElementById('status-text').textContent = navigator.onLine
       ? 'Koneksi tersambung — halaman tidak tersedia offline'
-      : 'Offline — tidak ada koneksi';
+      : 'Offline — tidak ada koneksi'
+
+    // ── Smart secondary button ─────────────────────────────────────────────
+    const $btn2 = document.getElementById('btn-secondary')
+
+    // Buka pengaturan WiFi sistem operasi
+    function openNetworkSettings() {
+      // Coba ms-settings (Windows 10/11 — Chrome/Edge/Firefox)
+      window.location.href = 'ms-settings:network-wifi'
+      // Fallback: jika protocol tidak dihandle (Linux/macOS), tampilkan panduan
+      setTimeout(() => {
+        // Kalau masih di halaman ini artinya settings tidak terbuka otomatis
+        alert('Buka Pengaturan Jaringan di perangkat Anda dan periksa koneksi Wi-Fi.')
+      }, 600)
+    }
+
+    async function checkAndUpdateBtn() {
+      // ── State 1: Tidak ada jaringan sama sekali ─────────────────────────
+      if (!navigator.onLine) {
+        $btn2.innerHTML = '📶 Cek Koneksi'
+        $btn2.onclick   = openNetworkSettings
+        $btn2.disabled  = false
+        return
+      }
+
+      // ── Ada jaringan — deteksi akses internet ───────────────────────────
+      $btn2.innerHTML  = '⏳ Memeriksa...'
+      $btn2.disabled   = true
+
+      let hasInternet = false
+      try {
+        const ctrl = new AbortController()
+        const tid  = setTimeout(() => ctrl.abort(), 4000)
+        // Google generate_204: response 204 jika internet ok, error jika tidak
+        await fetch('https://www.google.com/generate_204', {
+          method: 'HEAD',
+          mode:   'no-cors',
+          cache:  'no-store',
+          signal: ctrl.signal,
+        })
+        clearTimeout(tid)
+        hasInternet = true
+      } catch (_) {
+        hasInternet = false
+      }
+
+      if (hasInternet) {
+        // ── State 3: Internet tersedia ────────────────────────────────────
+        $btn2.innerHTML = '🔍 Cek Jaringan'
+        $btn2.disabled  = false
+        $btn2.onclick   = () =>
+          window.open(
+            'https://www.google.com/search?q=test+kecepatan+internet&hl=id',
+            '_blank'
+          )
+      } else {
+        // ── State 2: WiFi terhubung tapi tidak ada internet ───────────────
+        $btn2.innerHTML = '📡 Ganti Koneksi'
+        $btn2.disabled  = false
+        $btn2.onclick   = openNetworkSettings
+      }
+    }
+
+    // Jalankan saat muat + re-check tiap event online/offline
+    checkAndUpdateBtn()
+    window.addEventListener('online',  checkAndUpdateBtn)
+    window.addEventListener('offline', checkAndUpdateBtn)
+
+    // ── Polling otomatis tiap 5 detik ──────────────────────────────────────
+    // Diperlukan karena online/offline event TIDAK fire saat:
+    //   • WiFi tetap nyambung tapi internet pulih/mati (state 2 ↔ 3)
+    // Dengan polling, tombol update otomatis tanpa refresh manual.
+    let _checking = false
+    async function checkAndUpdateBtnSafe() {
+      if (_checking) return          // hindari concurrent fetch
+      _checking = true
+      await checkAndUpdateBtn()
+      _checking = false
+    }
+    setInterval(checkAndUpdateBtnSafe, 5000)
   </script>
 </body>
 </html>
