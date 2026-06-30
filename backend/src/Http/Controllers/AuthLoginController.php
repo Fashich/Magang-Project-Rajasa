@@ -82,6 +82,12 @@ final class AuthLoginController
         }
 
         // ── 6. Login normal (tanpa 2FA) ───────────────────────────────────────
+        if ($user && !empty($user['user_id'])) {
+            DB::table('users')
+                ->where('user_id', (int) $user['user_id'])
+                ->update(['last_login_at' => Carbon::now()->toDateTimeString()]);
+        }
+
         Response::success('Login berhasil.', $data);
     }
 

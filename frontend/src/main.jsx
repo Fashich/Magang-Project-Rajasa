@@ -72,3 +72,52 @@ if ('serviceWorker' in navigator) {
       .catch(err => console.warn('[SW] Registration failed:', err));
   });
 }
+
+// ── Presence tracking (Online / Idle / Offline) ──────────────────────────────
+// "Offline" tidak pernah dikirim ke server — itu murni disimpulkan di sisi
+// pembaca (UsersPage) dari basi-tidaknya last_heartbeat_at. Yang dikirim
+// client cuma 'online' atau 'idle', berdasarkan:
+//   - idle  : 10 detik tanpa gerakan mouse/keyboard, ATAU tab ini tidak fokus
+//             (pindah tab lain / aplikasi lain)
+//   - online: ada aktivitas dalam 10 detik terakhir DAN tab sedang fokus
+
+const IDLE_THRESHOLD_MS     = 10_000  // 10 detik tanpa gerakan → idle
+const HEARTBEAT_INTERVAL_MS = 5_000   // kirim heartbeat tiap 5 detik
+
+function getAuthToken() {
+  return localStorage.getItem('presensi_lab_rajasa:auth_token')
+      || localStorage.getItem('auth_token')
+      || ''
+}
+
+let lastActivityAt = Date.now()
+
+;['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart', 'click'].forEach(evt => {
+  window.addEventListener(evt, () => { lastActivityAt = Date.now() }, { passive: true })
+})
+
+async function sendHeartbeat() {
+  const token = getAuthToken()
+  if (!token) return // belum login — tidak perlu kirim heartbeat
+
+  const idleByInactivity = (Date.now() - lastActivityAt) > IDLE_THRESHOLD_MS
+  const idleByTabHidden  = document.hidden === true
+  const state = (idleByInactivity || idleByTabHidden) ? 'idle' : 'online'
+
+  try {
+    await fetch(`${import.meta.env.VITE_API_URL || '/api'}/presence/heartbeat`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Authorization: `Bearer ${token}`,
+      },
+      body: JSON.stringify({ state }),
+    })
+  } catch {
+    // Koneksi bermasalah — biarkan saja, akan dideteksi sistem offline
+    // terpisah (offline.html) dan dicoba lagi heartbeat berikutnya.
+  }
+}
+
+sendHeartbeat()
+setInterval(sendHeartbeat, HEARTBEAT_INTERVAL_MS)

@@ -26,6 +26,7 @@ final class UsersService
             ->select([
                 'u.user_id', 'u.username', 'u.email', 'u.user_type',
                 'u.status', 'u.last_login_at', 'u.created_at',
+                'u.last_heartbeat_at', 'u.presence_state',
                 'g.nip as nip',
                 's.nisn as nisn',
             ])

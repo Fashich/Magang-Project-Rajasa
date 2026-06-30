@@ -76,6 +76,35 @@ function buildDisplayId(u) {
   return code ? `${u.username}_${code}` : '—'
 }
 
+// ── Presence (Online / Idle / Offline) ──────────────────────────────────────
+// "Offline" diturunkan murni dari basi-tidaknya last_heartbeat_at (bukan
+// disimpan di server) — kalau heartbeat sudah lebih lama dari ambang batas,
+// dianggap offline berapa pun status terakhir yang dilaporkan client.
+const PRESENCE_OFFLINE_THRESHOLD_MS = 15_000 // 3x interval heartbeat (5 detik)
+
+function derivePresence(u) {
+  if (!u.last_heartbeat_at) return 'offline'
+  const elapsed = Date.now() - new Date(u.last_heartbeat_at).getTime()
+  if (elapsed > PRESENCE_OFFLINE_THRESHOLD_MS) return 'offline'
+  return u.presence_state === 'idle' ? 'idle' : 'online'
+}
+
+function PresenceBadge({ user }) {
+  const presence = derivePresence(user)
+  const config = {
+    online:  { label: 'Online',  cls: 'users-presence--online'  },
+    idle:    { label: 'Idle',    cls: 'users-presence--idle'    },
+    offline: { label: 'Offline', cls: 'users-presence--offline' },
+  }[presence]
+
+  return (
+    <span className={`users-presence ${config.cls}`}>
+      <span className="users-presence-dot" />
+      {config.label}
+    </span>
+  )
+}
+
 // ── Confirm modal ─────────────────────────────────────────────────────────────
 
 function ConfirmModal({ message, onConfirm, onCancel, danger }) {
@@ -434,16 +463,17 @@ export default function UsersPage() {
               <th>Email</th>
               <th>Tipe</th>
               <th>Status</th>
+              <th>Status Online</th>
               <th>Login Terakhir</th>
               <th>Aksi</th>
             </tr>
           </thead>
           <tbody>
             {loading && (
-              <tr><td colSpan={8} className="users-td-center">Memuat…</td></tr>
+              <tr><td colSpan={9} className="users-td-center">Memuat…</td></tr>
             )}
             {!loading && users.length === 0 && (
-              <tr><td colSpan={8} className="users-td-center users-td-empty">Tidak ada data.</td></tr>
+              <tr><td colSpan={9} className="users-td-center users-td-empty">Tidak ada data.</td></tr>
             )}
             {!loading && users.map((u, i) => (
               <tr key={u.user_id}>
@@ -453,6 +483,7 @@ export default function UsersPage() {
                 <td className="users-td-muted">{u.email ?? '—'}</td>
                 <td><TypeBadge type={u.user_type} /></td>
                 <td><StatusBadge status={u.status} /></td>
+                <td><PresenceBadge user={u} /></td>
                 <td className="users-td-muted">{u.last_login_at ? new Date(u.last_login_at).toLocaleString('id-ID') : '—'}</td>
                 <td>
                   <div className="users-actions">
