@@ -582,7 +582,7 @@ export function App() {
         >
           <SunMoonIcon theme={theme} />
         </button>
-        <div style={{ position:'absolute', top:'22px', right:'66px', zIndex:5 }} ref={langRef}>
+        <div style={{ position:'absolute', top:'22px', right:'68px', zIndex:5 }} ref={langRef}>
           <button
             type="button"
             className="lang-toggle"
