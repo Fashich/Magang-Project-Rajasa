@@ -38,12 +38,9 @@
   cursor: pointer;
 }
 
-/* Tombol ganti bahasa — di sebelah kiri theme toggle */
+/* Tombol ganti bahasa — wrapper di app.jsx sudah position:absolute, button cukup relative */
 .lang-toggle {
-  position: absolute;
-  top: 22px;
-  right: 66px;          /* 22 (margin kanan) + 34 (lebar theme-toggle) + 10 (gap) */
-  z-index: 5;
+  position: relative;
   height: 34px;
   padding: 0 8px;
   display: flex;
