@@ -33,6 +33,12 @@ Thumbs.db
 # Jika kamu menggunakan PHP-DI atau library DI yang meng-compile container
 /backend/cache/
 
+# Foto profil upload (guru & siswa) — file user-generated, jangan ikut commit
+/backend/server/foto/guru/*
+/backend/server/foto/siswa/*
+!/backend/server/foto/guru/.gitkeep
+!/backend/server/foto/siswa/.gitkeep
+
 ### --- [ FRONTEND (React / Node) ] --- ###
 **/node_modules/
 /frontend/build/
