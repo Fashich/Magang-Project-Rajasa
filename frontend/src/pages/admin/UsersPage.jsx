@@ -300,8 +300,8 @@ export default function UsersPage() {
     setTimeout(() => setToast(null), 3000)
   }, [])
 
-  const fetchUsers = useCallback(async () => {
-    setLoading(true)
+  const fetchUsers = useCallback(async (opts = {}) => {
+    if (!opts.silent) setLoading(true)
     setError(null)
     try {
       const params = new URLSearchParams({ page })
@@ -313,25 +313,38 @@ export default function UsersPage() {
       setUsers(res.data.data)
       setMeta(res.data.meta)
     } catch (err) {
-      setError(err.message)
+      if (!opts.silent) setError(err.message)
+      // fetch silent (background) yang gagal tidak menimpa data lama di layar
     } finally {
-      setLoading(false)
+      if (!opts.silent) setLoading(false)
     }
   }, [page, search, typeFilter, statusFilter])
 
-  useEffect(() => { fetchUsers() }, [fetchUsers])
+  // (fetch awal ditangani oleh poll loop di bawah — iterasi pertamanya
+  // langsung jalan begitu komponen mount, jadi tidak perlu effect terpisah)
 
-  // ── Realtime — refresh status & login terakhir tiap 15 detik ───────────────
+  // ── Realtime — refresh tanpa jeda (langsung lanjut begitu request selesai) ──
   // Dilewati kalau ada modal aktif, biar tidak ganggu admin yang lagi isi form.
+  // Pakai loop async, bukan setInterval, supaya tidak ada request menumpuk
+  // dan begitu satu fetch selesai langsung lanjut fetch berikutnya tanpa delay.
   useEffect(() => {
     const anyModalOpen = showCreateGuru || showCreateSiswa || editUser || resetUser || deleteTarget
     if (anyModalOpen) return
 
-    const interval = setInterval(() => {
-      fetchUsers()
-    }, 15000)
+    let active = true
 
-    return () => clearInterval(interval)
+    async function pollLoop() {
+      let first = true
+      while (active) {
+        await fetchUsers({ silent: !first })
+        first = false
+        if (!active) break
+        // tanpa jeda — langsung lanjut ke request berikutnya
+      }
+    }
+    pollLoop()
+
+    return () => { active = false }
   }, [fetchUsers, showCreateGuru, showCreateSiswa, editUser, resetUser, deleteTarget])
 
   // reset page saat filter berubah
