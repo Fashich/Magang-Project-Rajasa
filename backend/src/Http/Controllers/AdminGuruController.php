@@ -159,7 +159,7 @@ final class AdminGuruController
                 $namaLengkap, $username, $nip, $email, $noTelp,
                 $jabatan, $mapelPengampu, $statusKepegawaian, $jenisUser
             ) {
-                $now = now()->toDateTimeString();
+                $now = date('Y-m-d H:i:s');
 
                 // 1. Insert guru_staff dulu (trigger DB butuh ini sebelum users)
                 $guruId = DB::table('guru_staff')->insertGetId([
@@ -243,7 +243,7 @@ final class AdminGuruController
 
         $body    = $this->request->body();
         $updates = [];
-        $now     = now()->toDateTimeString();
+        $now     = date('Y-m-d H:i:s');
 
         $fields = ['nama_lengkap', 'nip', 'no_telp', 'email', 'jabatan',
                    'mapel_pengampu', 'status_kepegawaian', 'jenis_user', 'status'];
@@ -277,11 +277,11 @@ final class AdminGuruController
         // Soft delete — nonaktifkan saja
         DB::table('guru_staff')
             ->where('guru_id', $id)
-            ->update(['status' => 'nonaktif', 'updated_at' => now()->toDateTimeString()]);
+            ->update(['status' => 'nonaktif', 'updated_at' => date('Y-m-d H:i:s')]);
 
         DB::table('users')
             ->where('guru_id', $id)
-            ->update(['status' => 'nonaktif', 'updated_at' => now()->toDateTimeString()]);
+            ->update(['status' => 'nonaktif', 'updated_at' => date('Y-m-d H:i:s')]);
 
         Response::success('Akun guru berhasil dinonaktifkan.');
     }

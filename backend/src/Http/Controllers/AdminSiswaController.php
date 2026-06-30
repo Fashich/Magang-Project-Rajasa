@@ -149,7 +149,7 @@ final class AdminSiswaController
                 $namaLengkap, $username, $nisn, $nis, $email, $noTelp,
                 $angkatan, $jenisKelamin, $jurusanId, $rombelId, $kelasAktif
             ) {
-                $now = now()->toDateTimeString();
+                $now = date('Y-m-d H:i:s');
 
                 // 1. Insert siswa dulu
                 $siswaId = DB::table('siswa')->insertGetId([
@@ -245,7 +245,7 @@ final class AdminSiswaController
         }
 
         $body = $this->request->body();
-        $now  = now()->toDateTimeString();
+        $now  = date('Y-m-d H:i:s');
 
         $siswaUpdates = [];
         foreach (['nama_lengkap','nis','nisn','jenis_kelamin','angkatan',
@@ -296,11 +296,11 @@ final class AdminSiswaController
 
         DB::table('siswa')
             ->where('siswa_id', $id)
-            ->update(['status' => 'nonaktif', 'updated_at' => now()->toDateTimeString()]);
+            ->update(['status' => 'nonaktif', 'updated_at' => date('Y-m-d H:i:s')]);
 
         DB::table('users')
             ->where('siswa_id', $id)
-            ->update(['status' => 'nonaktif', 'updated_at' => now()->toDateTimeString()]);
+            ->update(['status' => 'nonaktif', 'updated_at' => date('Y-m-d H:i:s')]);
 
         Response::success('Akun siswa berhasil dinonaktifkan.');
     }

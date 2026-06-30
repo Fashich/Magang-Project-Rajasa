@@ -117,7 +117,6 @@ final class ProfileController
 
         $file = $_FILES['foto'];
 
-        // Validasi upload error
         $phpErrors = [
             UPLOAD_ERR_INI_SIZE   => 'File melebihi batas upload PHP (' . ini_get('upload_max_filesize') . '). Hubungi admin.',
             UPLOAD_ERR_FORM_SIZE  => 'File terlalu besar.',
@@ -157,68 +156,87 @@ final class ProfileController
         $isGuru = in_array($user->user_type, ['guru', 'staff', 'admin', 'intern'], true);
         $dir    = $isGuru ? self::FOTO_DIR_GURU : self::FOTO_DIR_SISWA;
         $type   = $isGuru ? 'guru' : 'siswa';
+        $now    = date('Y-m-d H:i:s');
 
-        // Buat folder jika belum ada
-        if (!is_dir($dir)) {
-            mkdir($dir, 0755, true);
-        }
+        try {
+            // Buat folder jika belum ada
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+            }
 
-        if ($isGuru) {
-            $row = DB::table('guru_staff as g')
-                ->join('users as u', 'u.guru_id', '=', 'g.guru_id')
-                ->where('u.user_id', '=', (int) $user->user_id)
-                ->select(['g.guru_id', 'g.foto_profil'])
-                ->first();
-
-            if (!$row) {
-                Response::error('Data guru tidak ditemukan.', [], 404);
+            if (!is_writable($dir)) {
+                Response::error("Folder upload tidak writable: {$dir}", [], 500);
                 return;
             }
 
-            // Hapus foto lama
-            if ($row->foto_profil && file_exists($dir . $row->foto_profil)) {
-                unlink($dir . $row->foto_profil);
-            }
+            if ($isGuru) {
+                $row = DB::table('guru_staff as g')
+                    ->join('users as u', 'u.guru_id', '=', 'g.guru_id')
+                    ->where('u.user_id', '=', (int) $user->user_id)
+                    ->select(['g.guru_id', 'g.foto_profil'])
+                    ->first();
 
-            $filename = "guru_{$row->guru_id}_" . time() . ".{$ext}";
-            move_uploaded_file($file['tmp_name'], $dir . $filename);
+                if (!$row) {
+                    Response::error('Data guru tidak ditemukan.', [], 404);
+                    return;
+                }
 
-            DB::table('guru_staff')
-                ->where('guru_id', $row->guru_id)
-                ->update(['foto_profil' => $filename, 'updated_at' => now()->toDateTimeString()]);
+                // Hapus foto lama
+                if ($row->foto_profil && file_exists($dir . $row->foto_profil)) {
+                    unlink($dir . $row->foto_profil);
+                }
 
-        } else {
-            $row = DB::table('siswa as s')
-                ->join('users as u', 'u.siswa_id', '=', 's.siswa_id')
-                ->leftJoin('profil_siswa as ps', 'ps.siswa_id', '=', 's.siswa_id')
-                ->where('u.user_id', '=', (int) $user->user_id)
-                ->select(['s.siswa_id', 'ps.profil_id', 'ps.foto_profil'])
-                ->first();
+                $filename = "guru_{$row->guru_id}_" . time() . ".{$ext}";
 
-            if (!$row) {
-                Response::error('Data siswa tidak ditemukan.', [], 404);
-                return;
-            }
+                if (!move_uploaded_file($file['tmp_name'], $dir . $filename)) {
+                    Response::error('Gagal menyimpan file foto ke server.', [], 500);
+                    return;
+                }
 
-            if ($row->foto_profil && file_exists($dir . $row->foto_profil)) {
-                unlink($dir . $row->foto_profil);
-            }
+                DB::table('guru_staff')
+                    ->where('guru_id', $row->guru_id)
+                    ->update(['foto_profil' => $filename, 'updated_at' => $now]);
 
-            $filename = "siswa_{$row->siswa_id}_" . time() . ".{$ext}";
-            move_uploaded_file($file['tmp_name'], $dir . $filename);
-
-            if ($row->profil_id) {
-                DB::table('profil_siswa')
-                    ->where('siswa_id', $row->siswa_id)
-                    ->update(['foto_profil' => $filename, 'updated_at' => now()->toDateTimeString()]);
             } else {
-                DB::table('profil_siswa')->insert([
-                    'siswa_id'    => $row->siswa_id,
-                    'foto_profil' => $filename,
-                    'created_at'  => now()->toDateTimeString(),
-                    'updated_at'  => now()->toDateTimeString(),
-                ]);
+                $row = DB::table('siswa as s')
+                    ->join('users as u', 'u.siswa_id', '=', 's.siswa_id')
+                    ->leftJoin('profil_siswa as ps', 'ps.siswa_id', '=', 's.siswa_id')
+                    ->where('u.user_id', '=', (int) $user->user_id)
+                    ->select(['s.siswa_id', 'ps.profil_id', 'ps.foto_profil'])
+                    ->first();
+
+                if (!$row) {
+                    Response::error('Data siswa tidak ditemukan.', [], 404);
+                    return;
+                }
+
+                if ($row->foto_profil && file_exists($dir . $row->foto_profil)) {
+                    unlink($dir . $row->foto_profil);
+                }
+
+                $filename = "siswa_{$row->siswa_id}_" . time() . ".{$ext}";
+
+                if (!move_uploaded_file($file['tmp_name'], $dir . $filename)) {
+                    Response::error('Gagal menyimpan file foto ke server.', [], 500);
+                    return;
+                }
+
+                if ($row->profil_id) {
+                    DB::table('profil_siswa')
+                        ->where('siswa_id', $row->siswa_id)
+                        ->update(['foto_profil' => $filename, 'updated_at' => $now]);
+                } else {
+                    DB::table('profil_siswa')->insert([
+                        'siswa_id'    => $row->siswa_id,
+                        'foto_profil' => $filename,
+                        'created_at'  => $now,
+                        'updated_at'  => $now,
+                    ]);
+                }
             }
+        } catch (\Throwable $e) {
+            Response::error('Gagal mengupload foto: ' . $e->getMessage(), [], 500);
+            return;
         }
 
         Response::success('Foto profil berhasil diperbarui.', [
