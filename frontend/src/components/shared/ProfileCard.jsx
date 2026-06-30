@@ -20,7 +20,7 @@ function KTPRow({ label, value, editable, editMode, editValue, onEditChange, dar
   const border = dark ? '#1e293b' : '#f1f5f9'
 
   return (
-    <div style={{ display:'flex', alignItems:'center', padding:'5px 0', borderBottom:`1px solid ${border}`, minHeight:'28px' }}>
+    <div style={{ display:'flex', alignItems:'center', padding:'3.5px 0', borderBottom:`1px solid ${border}`, minHeight:'23px' }}>
       <span style={{ width:'38%', fontSize:'0.68rem', fontWeight:600, color: dark ? '#64748b' : '#94a3b8',
                      textTransform:'uppercase', letterSpacing:'0.04em', flexShrink:0 }}>
         {label}
@@ -81,7 +81,7 @@ export default function ProfileCard({ onClose, theme, userType }) {
   const isSiswa = userType === 'siswa'
 
   const qrUrl    = `${window.location.origin}/profile-view.html?t=${auth.getToken() ?? ''}`
-  const qrImgSrc = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&margin=6&color=${dark?'e2e8f0':'1e293b'}&bgcolor=${dark?'1e293b':'ffffff'}&data=${encodeURIComponent(qrUrl)}`
+  const qrImgSrc = `https://api.qrserver.com/v1/create-qr-code/?size=130x130&margin=5&color=${dark?'e2e8f0':'1e293b'}&bgcolor=${dark?'1e293b':'ffffff'}&data=${encodeURIComponent(qrUrl)}`
 
   useEffect(() => {
     api.get('/profile/me')
@@ -221,7 +221,7 @@ export default function ProfileCard({ onClose, theme, userType }) {
 
   // Tinggi kartu DIPAKSA SAMA untuk kedua sisi — supaya flip tidak "menciut/
   // melar" pas pindah depan↔belakang, persis kartu fisik yang dimensinya tetap.
-  const CARD_HEIGHT = 480
+  const CARD_HEIGHT = 400
 
   // "Ketebalan" kartu — dibikin pakai box-shadow berlapis (bukan elemen 3D
   // terpisah), supaya tidak rawan bug render lintas-browser tapi tetap kerasa
@@ -240,7 +240,7 @@ export default function ProfileCard({ onClose, theme, userType }) {
       {/* Wrapper perspektif 3D — induk dari flip container */}
       <div
         onClick={e => e.stopPropagation()}
-        style={{ width:'100%', maxWidth:'620px', perspective:'1800px' }}
+        style={{ width:'100%', maxWidth:'720px', perspective:'1800px' }}
       >
         {/* Flip container — yang benar-benar berotasi, bisa di-drag bebas 2 sumbu */}
         <div
@@ -268,7 +268,7 @@ export default function ProfileCard({ onClose, theme, userType }) {
             display:'flex', flexDirection:'column',
           }}>
             {/* Header */}
-            <div style={{ background:headBg, padding:'14px 20px', flexShrink:0,
+            <div style={{ background:headBg, padding:'11px 18px', flexShrink:0,
                           display:'flex', alignItems:'center', justifyContent:'space-between' }}>
               <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
                 <div style={{ width:'36px', height:'36px', borderRadius:'8px', overflow:'hidden', flexShrink:0 }}>
@@ -291,15 +291,15 @@ export default function ProfileCard({ onClose, theme, userType }) {
 
               {/* Kolom foto */}
               <div style={{
-                width:'160px', flexShrink:0, height:'100%', background:colBg, borderRight:`1px solid ${border}`,
+                width:'150px', flexShrink:0, height:'100%', background:colBg, borderRight:`1px solid ${border}`,
                 display:'flex', flexDirection:'column', alignItems:'center',
-                justifyContent:'flex-start', padding:'20px 14px', gap:'10px', overflowY:'auto',
+                justifyContent:'flex-start', padding:'14px 14px', gap:'7px', overflowY:'auto',
               }}>
                 <div
                   onClick={() => editMode && fileRef.current?.click()}
                   onDragOver={onDragOver} onDragLeave={onDragLeave} onDrop={onDrop}
                   style={{
-                    position:'relative', width:'108px', height:'144px', borderRadius:'6px',
+                    position:'relative', width:'90px', height:'120px', borderRadius:'6px',
                     overflow:'hidden', flexShrink:0,
                     border: isDragging ? '2px dashed #6366f1' : `2px solid ${border}`,
                     background: dark ? '#1e293b' : '#e2e8f0',
@@ -353,27 +353,27 @@ export default function ProfileCard({ onClose, theme, userType }) {
                 )}
 
                 {!loading && !error && !editMode && (
-                  <div style={{ display:'flex', flexDirection:'column', gap:'6px', width:'100%' }}>
+                  <div style={{ display:'flex', flexDirection:'column', gap:'5px', width:'100%' }}>
                     <button type="button" onPointerDown={stopCardDrag} onClick={startEdit} style={{
-                      width:'100%', padding:'6px 0', borderRadius:'20px', border:'1.5px solid #6366f1',
+                      width:'100%', padding:'4px 0', borderRadius:'20px', border:'1.5px solid #6366f1',
                       background:'transparent', color:'#6366f1', cursor:'pointer', fontFamily:'inherit', fontSize:'0.74rem', fontWeight:600,
                     }}>✏️ Edit</button>
                     <button type="button" onPointerDown={stopCardDrag} onClick={() => setRotationY(r => r + 180)} style={{
-                      width:'100%', padding:'6px 0', borderRadius:'20px', border:`1.5px solid ${border}`,
+                      width:'100%', padding:'4px 0', borderRadius:'20px', border:`1.5px solid ${border}`,
                       background:'transparent', color:txtSub, cursor:'pointer', fontFamily:'inherit', fontSize:'0.74rem', fontWeight:600,
                     }}>📱 QR Code</button>
                   </div>
                 )}
 
                 {!loading && !error && editMode && (
-                  <div style={{ display:'flex', flexDirection:'column', gap:'6px', width:'100%' }}>
+                  <div style={{ display:'flex', flexDirection:'column', gap:'5px', width:'100%' }}>
                     <button type="button" onPointerDown={stopCardDrag} onClick={saveEdit} disabled={saving} style={{
-                      width:'100%', padding:'6px 0', borderRadius:'20px', border:'none',
+                      width:'100%', padding:'4px 0', borderRadius:'20px', border:'none',
                       background:'#6366f1', color:'#fff', cursor: saving ? 'not-allowed' : 'pointer',
                       fontFamily:'inherit', fontSize:'0.74rem', fontWeight:600, opacity: saving ? 0.7 : 1,
                     }}>{saving ? 'Menyimpan…' : '✓ Simpan'}</button>
                     <button type="button" onPointerDown={stopCardDrag} onClick={cancelEdit} style={{
-                      width:'100%', padding:'6px 0', borderRadius:'20px', border:`1.5px solid ${border}`,
+                      width:'100%', padding:'4px 0', borderRadius:'20px', border:`1.5px solid ${border}`,
                       background:'transparent', color:txtSub, cursor:'pointer', fontFamily:'inherit', fontSize:'0.74rem', fontWeight:600,
                     }}>Batal</button>
                   </div>
@@ -390,13 +390,13 @@ export default function ProfileCard({ onClose, theme, userType }) {
 
               {/* Kolom data */}
               <div onPointerDown={stopCardDrag}
-                style={{ flex:1, padding:'18px 20px', minWidth:0, overflowY:'auto', height:'100%', touchAction:'pan-y' }}>
+                style={{ flex:1, padding:'13px 18px', minWidth:0, overflowY:'auto', height:'100%', touchAction:'pan-y' }}>
                 {loading && <div style={{ color:txtSub, fontSize:'0.85rem' }}>Memuat profil…</div>}
                 {error   && <div style={{ color:'#ef4444', fontSize:'0.85rem' }}>{error}</div>}
 
                 {profile && !loading && (
                   <>
-                    <div style={{ marginBottom:'12px', paddingBottom:'10px', borderBottom:`2px solid ${border}` }}>
+                    <div style={{ marginBottom:'8px', paddingBottom:'7px', borderBottom:`2px solid ${border}` }}>
                       {editMode ? (
                         <input type="text" value={editData.nama_lengkap} onInput={e => setF('nama_lengkap')(e.currentTarget.value)}
                           style={{
@@ -462,7 +462,7 @@ export default function ProfileCard({ onClose, theme, userType }) {
             display:'flex', flexDirection:'column',
           }}>
             {/* Header belakang — senada, ada tombol kembali */}
-            <div style={{ background:headBg, padding:'14px 20px', flexShrink:0,
+            <div style={{ background:headBg, padding:'11px 18px', flexShrink:0,
                           display:'flex', alignItems:'center', justifyContent:'space-between' }}>
               <button type="button" onPointerDown={stopCardDrag} onClick={() => setRotationY(r => r - 180)} style={{
                 background:'rgba(255,255,255,0.15)', border:'none', cursor:'pointer',
@@ -481,21 +481,21 @@ export default function ProfileCard({ onClose, theme, userType }) {
 
               {/* QR kiri */}
               <div style={{
-                width:'200px', flexShrink:0, background:colBg, borderRight:`1px solid ${border}`,
+                width:'180px', flexShrink:0, background:colBg, borderRight:`1px solid ${border}`,
                 display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center',
-                padding:'24px 18px', gap:'12px',
+                padding:'16px 14px', gap:'9px',
               }}>
-                <div style={{ padding:'8px', borderRadius:'10px', background: dark ? '#1e293b' : '#ffffff', border:`1px solid ${border}` }}>
-                  <img src={qrImgSrc} alt="QR Profil" width="160" height="160" style={{ display:'block', borderRadius:'4px' }}/>
+                <div style={{ padding:'7px', borderRadius:'10px', background: dark ? '#1e293b' : '#ffffff', border:`1px solid ${border}` }}>
+                  <img src={qrImgSrc} alt="QR Profil" width="130" height="130" style={{ display:'block', borderRadius:'4px' }}/>
                 </div>
-                <div style={{ fontSize:'0.66rem', color:txtSub, textAlign:'center', fontWeight:600, letterSpacing:'0.03em' }}>
+                <div style={{ fontSize:'0.62rem', color:txtSub, textAlign:'center', fontWeight:600, letterSpacing:'0.03em' }}>
                   PINDAI UNTUK VERIFIKASI
                 </div>
               </div>
 
               {/* Teks kanan — gaya belakang kartu identitas resmi */}
               <div onPointerDown={stopCardDrag}
-                style={{ flex:1, padding:'22px 22px', display:'flex', flexDirection:'column',
+                style={{ flex:1, padding:'16px 18px', display:'flex', flexDirection:'column',
                          justifyContent:'center', gap:'22px', overflowY:'auto', touchAction:'pan-y' }}>
                 <div>
                   <div style={{ fontSize:'0.72rem', fontWeight:700, color: dark ? '#818cf8' : '#4f46e5',
