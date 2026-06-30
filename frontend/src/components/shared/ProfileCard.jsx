@@ -184,25 +184,10 @@ export default function ProfileCard({ onClose, theme, userType }) {
   const handleCardPointerUp = () => {
     if (!isCardDragging) return
     setIsCardDragging(false)
-
-    // Tentukan sisi yang akan ditampilkan dari posisi rotasi saat dilepas —
-    // berapa pun arah/diagonal drag-nya, hasil akhirnya cuma 2 kemungkinan:
-    // wajah depan atau belakang.
-    const normY = ((rotationY % 360) + 360) % 360
-    const normX = ((rotationX % 360) + 360) % 360
-    const willShowBack = (normY > 90 && normY < 270) !== (normX > 90 && normX < 270)
-
-    // Sumbu X selalu di-ratakan ke 0° — supaya sisi belakang tidak pernah
-    // kebalik/terbalik, tetap tegak & terbaca walau tadi di-drag diagonal.
-    setRotationX(r => Math.round(r / 360) * 360)
-
-    // Sumbu Y disnap ke posisi terdekat yang merepresentasikan sisi yang dituju
-    setRotationY(r => {
-      const base = Math.round(r / 360) * 360
-      if (!willShowBack) return base
-      const candidates = [base - 180, base + 180]
-      return candidates.reduce((best, c) => Math.abs(c - r) < Math.abs(best - r) ? c : best)
-    })
+    // Snap independen tiap sumbu ke kelipatan 180° terdekat — X dan Y
+    // sama-sama bisa "nyangkut" di posisi flip, tidak ada yang dipaksa rata.
+    setRotationX(r => Math.round(r / 180) * 180)
+    setRotationY(r => Math.round(r / 180) * 180)
   }
 
   // Cegah klik tombol ikut memicu drag-rotate kartu
@@ -215,6 +200,11 @@ export default function ProfileCard({ onClose, theme, userType }) {
   const yFlipped = (() => { const a = norm(rotationY); return a > 90 && a < 270 })()
   const xFlipped = (() => { const a = norm(rotationX); return a > 90 && a < 270 })()
   const showingBack = yFlipped !== xFlipped // XOR
+
+  // Kalau yang kebalik cuma sumbu X (bukan Y), isi belakang otomatis kebalik
+  // 180° secara visual (fisika kartu nyata: dibalik atas-bawah = kontennya
+  // jadi terbalik). Kompensasi dengan rotate 2D di kontennya biar tetap kebaca.
+  const backNeedsUprightFix = showingBack && xFlipped && !yFlipped
 
   // colours
   const cardBg  = dark ? '#1e293b' : '#ffffff'
@@ -232,17 +222,13 @@ export default function ProfileCard({ onClose, theme, userType }) {
   // Tinggi kartu DIPAKSA SAMA untuk kedua sisi — supaya flip tidak "menciut/
   // melar" pas pindah depan↔belakang, persis kartu fisik yang dimensinya tetap.
   const CARD_HEIGHT = 480
-  const THICKNESS    = 11 // px — "ketebalan" kartu, biar kerasa solid bukan kertas
 
-  // Strip sisi kartu (kiri/kanan/atas/bawah) — dipakai bareng buat ilusi 3D box.
-  // Teknik: tiap strip "dilipat keluar" dari batas kartu pakai transform-origin
-  // di tepi yang berhimpit, jadi otomatis nyambung tanpa perlu translateZ manual.
-  const edgeGradientH = dark ? 'linear-gradient(90deg, #0a0f1e, #334155)'  : 'linear-gradient(90deg, #94a3b8, #e2e8f0)'
-  const edgeGradientV = dark ? 'linear-gradient(180deg, #0a0f1e, #334155)' : 'linear-gradient(180deg, #94a3b8, #e2e8f0)'
-
-  const edgeBase = {
-    position:'absolute', backfaceVisibility:'hidden', WebkitBackfaceVisibility:'hidden',
-  }
+  // "Ketebalan" kartu — dibikin pakai box-shadow berlapis (bukan elemen 3D
+  // terpisah), supaya tidak rawan bug render lintas-browser tapi tetap kerasa
+  // solid, bukan selembar kertas tipis.
+  const cardDepthShadow = dark
+    ? '0 1px 0 #334155, 0 2px 0 #2a3749, 0 3px 0 #1e2a3a, 0 4px 0 #16202c, 0 5px 0 #0f161e, 0 32px 80px rgba(0,0,0,0.45)'
+    : '0 1px 0 #cbd5e1, 0 2px 0 #c0cad6, 0 3px 0 #b5c0cd, 0 4px 0 #aab6c4, 0 5px 0 #9fadbc, 0 32px 80px rgba(0,0,0,0.30)'
 
   return (
     <div onClick={onClose} style={{
@@ -272,27 +258,13 @@ export default function ProfileCard({ onClose, theme, userType }) {
             userSelect: 'none',
           }}
         >
-          {/* ── 4 sisi tebal kartu (kiri/kanan/atas/bawah) — ilusi solid 3D ── */}
-          <div style={{ ...edgeBase, top:0, right:0, width:`${THICKNESS}px`, height:'100%',
-                        background:edgeGradientH, borderRadius:'0 16px 16px 0',
-                        transformOrigin:'left center', transform:'rotateY(-90deg)' }}/>
-          <div style={{ ...edgeBase, top:0, left:0, width:`${THICKNESS}px`, height:'100%',
-                        background:edgeGradientH, borderRadius:'16px 0 0 16px',
-                        transformOrigin:'right center', transform:'rotateY(90deg)' }}/>
-          <div style={{ ...edgeBase, top:0, left:0, width:'100%', height:`${THICKNESS}px`,
-                        background:edgeGradientV, borderRadius:'16px 16px 0 0',
-                        transformOrigin:'center bottom', transform:'rotateX(90deg)' }}/>
-          <div style={{ ...edgeBase, bottom:0, left:0, width:'100%', height:`${THICKNESS}px`,
-                        background:edgeGradientV, borderRadius:'0 0 16px 16px',
-                        transformOrigin:'center top', transform:'rotateX(-90deg)' }}/>
-
           {/* ══════════════════ SISI DEPAN ══════════════════ */}
           <div style={{
             position:'absolute', inset: 0, width:'100%', height:'100%',
             backfaceVisibility:'hidden', WebkitBackfaceVisibility:'hidden',
             pointerEvents: showingBack ? 'none' : 'auto',
             background:cardBg, borderRadius:'16px', overflow:'hidden',
-            boxShadow:'0 32px 80px rgba(0,0,0,0.35)',
+            boxShadow: cardDepthShadow,
             display:'flex', flexDirection:'column',
           }}>
             {/* Header */}
@@ -484,9 +456,9 @@ export default function ProfileCard({ onClose, theme, userType }) {
             position:'absolute', inset: 0, width:'100%', height:'100%',
             backfaceVisibility:'hidden', WebkitBackfaceVisibility:'hidden',
             pointerEvents: showingBack ? 'auto' : 'none',
-            transform:'rotateY(180deg)',
+            transform: backNeedsUprightFix ? 'rotateY(180deg) rotateZ(180deg)' : 'rotateY(180deg)',
             background:cardBg, borderRadius:'16px', overflow:'hidden',
-            boxShadow:'0 32px 80px rgba(0,0,0,0.35)',
+            boxShadow: cardDepthShadow,
             display:'flex', flexDirection:'column',
           }}>
             {/* Header belakang — senada, ada tombol kembali */}
@@ -524,7 +496,7 @@ export default function ProfileCard({ onClose, theme, userType }) {
               {/* Teks kanan — gaya belakang kartu identitas resmi */}
               <div onPointerDown={stopCardDrag}
                 style={{ flex:1, padding:'22px 22px', display:'flex', flexDirection:'column',
-                         justifyContent:'space-between', overflowY:'auto', touchAction:'pan-y' }}>
+                         justifyContent:'center', gap:'22px', overflowY:'auto', touchAction:'pan-y' }}>
                 <div>
                   <div style={{ fontSize:'0.72rem', fontWeight:700, color: dark ? '#818cf8' : '#4f46e5',
                                 letterSpacing:'0.08em', marginBottom:'8px' }}>
