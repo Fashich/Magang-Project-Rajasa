@@ -66,10 +66,14 @@ export default function ProfileCard({ onClose, theme, userType }) {
   const [editMode,  setEditMode]  = useState(false)
   const [editData,  setEditData]  = useState({})
   const [saving,    setSaving]    = useState(false)
-  const [rotation,      setRotation]      = useState(0)     // derajat — bisa lebih dari 360, tidak di-clamp
+  const [rotationY, setRotationY] = useState(0)     // sumbu Y — flip kiri/kanan
+  const [rotationX, setRotationX] = useState(0)     // sumbu X — flip atas/bawah
   const [isCardDragging,setIsCardDragging]= useState(false)
-  const dragStartXRef        = useRef(0)
-  const dragStartRotationRef = useRef(0)
+  const dragStartXRef         = useRef(0)
+  const dragStartYRef         = useRef(0)
+  const dragStartRotationYRef = useRef(0)
+  const dragStartRotationXRef = useRef(0)
+  const dragAxisRef           = useRef(null) // 'y' | 'x' | null — dikunci begitu arah dominan ketahuan
   const fileRef = useRef(null)
   const dark    = theme === 'dark'
 
@@ -152,14 +156,20 @@ export default function ProfileCard({ onClose, theme, userType }) {
   const onDragLeave  = e => { if (!e.currentTarget.contains(e.relatedTarget)) setIsDragging(false) }
   const onDrop       = e => { e.preventDefault(); setIsDragging(false); if (editMode) uploadFile(e.dataTransfer?.files?.[0]) }
 
-  // ── Interaksi putar kartu 360° — Pointer Events: satu handler untuk mouse,
-  // touch, dan stylus sekaligus, jalan di semua device tanpa kode terpisah.
-  const ROTATE_SENSITIVITY = 0.5 // derajat per pixel pergeseran
+  // ── Interaksi putar kartu 360° (2 sumbu) — Pointer Events: satu handler
+  // untuk mouse, touch, dan stylus sekaligus, jalan di semua device.
+  // Geser horizontal → flip kiri/kanan (Y). Geser vertikal → flip atas/bawah (X).
+  // Arah dikunci begitu salah satu jadi dominan, supaya gesture tidak "goyang".
+  const ROTATE_SENSITIVITY = 0.5  // derajat per pixel pergeseran
+  const AXIS_LOCK_THRESHOLD = 6   // pixel minimum sebelum arah dikunci
 
   const handleCardPointerDown = (e) => {
     if (editMode) return // jangan rotate saat lagi edit, biar tidak ganggu form
     dragStartXRef.current = e.clientX
-    dragStartRotationRef.current = rotation
+    dragStartYRef.current = e.clientY
+    dragStartRotationYRef.current = rotationY
+    dragStartRotationXRef.current = rotationX
+    dragAxisRef.current = null
     setIsCardDragging(true)
     e.currentTarget.setPointerCapture?.(e.pointerId)
   }
@@ -167,22 +177,46 @@ export default function ProfileCard({ onClose, theme, userType }) {
   const handleCardPointerMove = (e) => {
     if (!isCardDragging) return
     const deltaX = e.clientX - dragStartXRef.current
-    setRotation(dragStartRotationRef.current + deltaX * ROTATE_SENSITIVITY)
+    const deltaY = e.clientY - dragStartYRef.current
+
+    if (dragAxisRef.current === null) {
+      if (Math.abs(deltaX) > AXIS_LOCK_THRESHOLD || Math.abs(deltaY) > AXIS_LOCK_THRESHOLD) {
+        dragAxisRef.current = Math.abs(deltaX) >= Math.abs(deltaY) ? 'y' : 'x'
+      } else {
+        return // belum cukup gerak buat nentuin arah
+      }
+    }
+
+    if (dragAxisRef.current === 'y') {
+      setRotationY(dragStartRotationYRef.current + deltaX * ROTATE_SENSITIVITY)
+    } else {
+      // Geser ke atas → sisi atas kartu "mendekat" ke pengguna (terasa natural)
+      setRotationX(dragStartRotationXRef.current - deltaY * ROTATE_SENSITIVITY)
+    }
   }
 
   const handleCardPointerUp = () => {
     if (!isCardDragging) return
     setIsCardDragging(false)
     // Snap otomatis ke wajah terdekat (kelipatan 180°) begitu dilepas
-    setRotation(r => Math.round(r / 180) * 180)
+    if (dragAxisRef.current === 'y') {
+      setRotationY(r => Math.round(r / 180) * 180)
+    } else if (dragAxisRef.current === 'x') {
+      setRotationX(r => Math.round(r / 180) * 180)
+    }
+    dragAxisRef.current = null
   }
 
   // Cegah klik tombol ikut memicu drag-rotate kartu
   const stopCardDrag = e => e.stopPropagation()
 
-  // Wajah mana yang sedang menghadap depan, diturunkan dari rotasi saat ini
-  const normalizedRotation = ((rotation % 360) + 360) % 360
-  const showingBack = normalizedRotation > 90 && normalizedRotation < 270
+  // Wajah yang menghadap depan — kalau TEPAT SATU sumbu yang "terbalik" (≈180°),
+  // berarti lagi lihat belakang. Kalau kedua sumbu terbalik atau tidak ada yang
+  // terbalik, otomatis balik nampilin depan lagi (persis kartu fisik beneran).
+  const norm = deg => ((deg % 360) + 360) % 360
+  const yFlipped = (() => { const a = norm(rotationY); return a > 90 && a < 270 })()
+  const xFlipped = (() => { const a = norm(rotationX); return a > 90 && a < 270 })()
+  const showingBack = yFlipped !== xFlipped // XOR
 
   // colours
   const cardBg  = dark ? '#1e293b' : '#ffffff'
@@ -197,6 +231,21 @@ export default function ProfileCard({ onClose, theme, userType }) {
 
   const cardTitle = isAdmin ? 'KARTU IDENTITAS ADMIN' : isGuru ? 'KARTU IDENTITAS GURU / STAFF' : 'KARTU IDENTITAS SISWA'
 
+  // Tinggi kartu DIPAKSA SAMA untuk kedua sisi — supaya flip tidak "menciut/
+  // melar" pas pindah depan↔belakang, persis kartu fisik yang dimensinya tetap.
+  const CARD_HEIGHT = 480
+  const THICKNESS    = 11 // px — "ketebalan" kartu, biar kerasa solid bukan kertas
+
+  // Strip sisi kartu (kiri/kanan/atas/bawah) — dipakai bareng buat ilusi 3D box.
+  // Teknik: tiap strip "dilipat keluar" dari batas kartu pakai transform-origin
+  // di tepi yang berhimpit, jadi otomatis nyambung tanpa perlu translateZ manual.
+  const edgeGradientH = dark ? 'linear-gradient(90deg, #0a0f1e, #334155)'  : 'linear-gradient(90deg, #94a3b8, #e2e8f0)'
+  const edgeGradientV = dark ? 'linear-gradient(180deg, #0a0f1e, #334155)' : 'linear-gradient(180deg, #94a3b8, #e2e8f0)'
+
+  const edgeBase = {
+    position:'absolute', backfaceVisibility:'hidden', WebkitBackfaceVisibility:'hidden',
+  }
+
   return (
     <div onClick={onClose} style={{
       position:'fixed', inset:0, zIndex:1000,
@@ -209,33 +258,47 @@ export default function ProfileCard({ onClose, theme, userType }) {
         onClick={e => e.stopPropagation()}
         style={{ width:'100%', maxWidth:'620px', perspective:'1800px' }}
       >
-        {/* Flip container — yang benar-benar berotasi, bisa di-drag bebas */}
+        {/* Flip container — yang benar-benar berotasi, bisa di-drag bebas 2 sumbu */}
         <div
           onPointerDown={handleCardPointerDown}
           onPointerMove={handleCardPointerMove}
           onPointerUp={handleCardPointerUp}
           onPointerCancel={handleCardPointerUp}
           style={{
-            position:'relative', width:'100%',
+            position:'relative', width:'100%', height:`${CARD_HEIGHT}px`,
             transformStyle:'preserve-3d',
-            transform: `rotateY(${rotation}deg)`,
-            transition: isCardDragging ? 'none' : 'transform 0.45s cubic-bezier(0.4, 0.15, 0.2, 1)',
+            transform: `rotateX(${rotationX}deg) rotateY(${rotationY}deg)`,
+            transition: isCardDragging ? 'none' : 'transform 0.5s cubic-bezier(0.4, 0.15, 0.2, 1)',
             cursor: editMode ? 'default' : (isCardDragging ? 'grabbing' : 'grab'),
-            touchAction: 'pan-y',
+            touchAction: 'none', // rotasi custom nangani kedua arah, scroll khusus di-override di data-col
             userSelect: 'none',
           }}
         >
+          {/* ── 4 sisi tebal kartu (kiri/kanan/atas/bawah) — ilusi solid 3D ── */}
+          <div style={{ ...edgeBase, top:0, right:0, width:`${THICKNESS}px`, height:'100%',
+                        background:edgeGradientH, borderRadius:'0 16px 16px 0',
+                        transformOrigin:'left center', transform:'rotateY(-90deg)' }}/>
+          <div style={{ ...edgeBase, top:0, left:0, width:`${THICKNESS}px`, height:'100%',
+                        background:edgeGradientH, borderRadius:'16px 0 0 16px',
+                        transformOrigin:'right center', transform:'rotateY(90deg)' }}/>
+          <div style={{ ...edgeBase, top:0, left:0, width:'100%', height:`${THICKNESS}px`,
+                        background:edgeGradientV, borderRadius:'16px 16px 0 0',
+                        transformOrigin:'center bottom', transform:'rotateX(90deg)' }}/>
+          <div style={{ ...edgeBase, bottom:0, left:0, width:'100%', height:`${THICKNESS}px`,
+                        background:edgeGradientV, borderRadius:'0 0 16px 16px',
+                        transformOrigin:'center top', transform:'rotateX(-90deg)' }}/>
 
           {/* ══════════════════ SISI DEPAN ══════════════════ */}
           <div style={{
-            position: showingBack ? 'absolute' : 'relative',
-            inset: 0, width:'100%',
+            position:'absolute', inset: 0, width:'100%', height:'100%',
             backfaceVisibility:'hidden', WebkitBackfaceVisibility:'hidden',
+            pointerEvents: showingBack ? 'none' : 'auto',
             background:cardBg, borderRadius:'16px', overflow:'hidden',
             boxShadow:'0 32px 80px rgba(0,0,0,0.35)',
+            display:'flex', flexDirection:'column',
           }}>
             {/* Header */}
-            <div style={{ background:headBg, padding:'14px 20px',
+            <div style={{ background:headBg, padding:'14px 20px', flexShrink:0,
                           display:'flex', alignItems:'center', justifyContent:'space-between' }}>
               <div style={{ display:'flex', alignItems:'center', gap:'12px' }}>
                 <div style={{ width:'36px', height:'36px', borderRadius:'8px', overflow:'hidden', flexShrink:0 }}>
@@ -254,13 +317,13 @@ export default function ProfileCard({ onClose, theme, userType }) {
             </div>
 
             {/* Body */}
-            <div style={{ display:'flex', flexDirection:'row' }}>
+            <div style={{ display:'flex', flexDirection:'row', flex:1, minHeight:0, overflow:'hidden' }}>
 
               {/* Kolom foto */}
               <div style={{
-                width:'160px', flexShrink:0, background:colBg, borderRight:`1px solid ${border}`,
+                width:'160px', flexShrink:0, height:'100%', background:colBg, borderRight:`1px solid ${border}`,
                 display:'flex', flexDirection:'column', alignItems:'center',
-                justifyContent:'flex-start', padding:'20px 14px', gap:'10px',
+                justifyContent:'flex-start', padding:'20px 14px', gap:'10px', overflowY:'auto',
               }}>
                 <div
                   onClick={() => editMode && fileRef.current?.click()}
@@ -325,7 +388,7 @@ export default function ProfileCard({ onClose, theme, userType }) {
                       width:'100%', padding:'6px 0', borderRadius:'20px', border:'1.5px solid #6366f1',
                       background:'transparent', color:'#6366f1', cursor:'pointer', fontFamily:'inherit', fontSize:'0.74rem', fontWeight:600,
                     }}>✏️ Edit</button>
-                    <button type="button" onPointerDown={stopCardDrag} onClick={() => setRotation(r => r + 180)} style={{
+                    <button type="button" onPointerDown={stopCardDrag} onClick={() => setRotationY(r => r + 180)} style={{
                       width:'100%', padding:'6px 0', borderRadius:'20px', border:`1.5px solid ${border}`,
                       background:'transparent', color:txtSub, cursor:'pointer', fontFamily:'inherit', fontSize:'0.74rem', fontWeight:600,
                     }}>📱 QR Code</button>
@@ -356,7 +419,8 @@ export default function ProfileCard({ onClose, theme, userType }) {
               </div>
 
               {/* Kolom data */}
-              <div style={{ flex:1, padding:'18px 20px', minWidth:0, overflowY:'auto', maxHeight:'520px' }}>
+              <div onPointerDown={stopCardDrag}
+                style={{ flex:1, padding:'18px 20px', minWidth:0, overflowY:'auto', height:'100%', touchAction:'pan-y' }}>
                 {loading && <div style={{ color:txtSub, fontSize:'0.85rem' }}>Memuat profil…</div>}
                 {error   && <div style={{ color:'#ef4444', fontSize:'0.85rem' }}>{error}</div>}
 
@@ -419,18 +483,18 @@ export default function ProfileCard({ onClose, theme, userType }) {
 
           {/* ══════════════════ SISI BELAKANG ══════════════════ */}
           <div style={{
-            position: showingBack ? 'relative' : 'absolute',
-            inset: 0, width:'100%',
+            position:'absolute', inset: 0, width:'100%', height:'100%',
             backfaceVisibility:'hidden', WebkitBackfaceVisibility:'hidden',
+            pointerEvents: showingBack ? 'auto' : 'none',
             transform:'rotateY(180deg)',
             background:cardBg, borderRadius:'16px', overflow:'hidden',
             boxShadow:'0 32px 80px rgba(0,0,0,0.35)',
             display:'flex', flexDirection:'column',
           }}>
             {/* Header belakang — senada, ada tombol kembali */}
-            <div style={{ background:headBg, padding:'14px 20px',
+            <div style={{ background:headBg, padding:'14px 20px', flexShrink:0,
                           display:'flex', alignItems:'center', justifyContent:'space-between' }}>
-              <button type="button" onPointerDown={stopCardDrag} onClick={() => setRotation(r => r - 180)} style={{
+              <button type="button" onPointerDown={stopCardDrag} onClick={() => setRotationY(r => r - 180)} style={{
                 background:'rgba(255,255,255,0.15)', border:'none', cursor:'pointer',
                 color:'#fff', height:'30px', padding:'0 12px', borderRadius:'15px', fontSize:'0.76rem', fontWeight:600,
                 display:'flex', alignItems:'center', gap:'6px', fontFamily:'inherit',
@@ -443,7 +507,7 @@ export default function ProfileCard({ onClose, theme, userType }) {
             </div>
 
             {/* Body belakang — QR kiri, teks kanan */}
-            <div style={{ flex:1, display:'flex', flexDirection:'row', minHeight:'300px' }}>
+            <div style={{ flex:1, display:'flex', flexDirection:'row', minHeight:0, overflow:'hidden' }}>
 
               {/* QR kiri */}
               <div style={{
@@ -460,7 +524,9 @@ export default function ProfileCard({ onClose, theme, userType }) {
               </div>
 
               {/* Teks kanan — gaya belakang kartu identitas resmi */}
-              <div style={{ flex:1, padding:'22px 22px', display:'flex', flexDirection:'column', justifyContent:'space-between' }}>
+              <div onPointerDown={stopCardDrag}
+                style={{ flex:1, padding:'22px 22px', display:'flex', flexDirection:'column',
+                         justifyContent:'space-between', overflowY:'auto', touchAction:'pan-y' }}>
                 <div>
                   <div style={{ fontSize:'0.72rem', fontWeight:700, color: dark ? '#818cf8' : '#4f46e5',
                                 letterSpacing:'0.08em', marginBottom:'8px' }}>
