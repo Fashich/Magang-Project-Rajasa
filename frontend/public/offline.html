@@ -160,7 +160,7 @@
       Periksa WiFi atau data seluler Anda, lalu coba lagi.
     </p>
 
-    <button class="btn" onclick="window.location.reload()">
+    <button class="btn" id="btn-retry">
       🔄 Coba Lagi
     </button>
     <button class="btn btn-sec" id="btn-secondary">
@@ -174,51 +174,20 @@
   </div>
 
   <script>
-    // Auto-reload saat koneksi kembali
-    window.addEventListener('online', () => {
-      document.getElementById('status-text').textContent = 'Koneksi tersambung! Memuat ulang...'
-      setTimeout(() => window.location.href = '/', 1000)
-    })
-    window.addEventListener('offline', () => {
-      document.getElementById('status-text').textContent = 'Offline — tidak ada koneksi'
-    })
-    // Set status awal
-    document.getElementById('status-text').textContent = navigator.onLine
-      ? 'Koneksi tersambung — halaman tidak tersedia offline'
-      : 'Offline — tidak ada koneksi'
+    const $statusText = document.getElementById('status-text')
+    const $btn1       = document.getElementById('btn-retry')
+    const $btn2       = document.getElementById('btn-secondary')
 
-    // ── Smart secondary button ─────────────────────────────────────────────
-    const $btn2 = document.getElementById('btn-secondary')
-
-    // Buka pengaturan WiFi sistem operasi
-    function openNetworkSettings() {
-      // Coba ms-settings (Windows 10/11 — Chrome/Edge/Firefox)
-      window.location.href = 'ms-settings:network-wifi'
-      // Fallback: jika protocol tidak dihandle (Linux/macOS), tampilkan panduan
-      setTimeout(() => {
-        // Kalau masih di halaman ini artinya settings tidak terbuka otomatis
-        alert('Buka Pengaturan Jaringan di perangkat Anda dan periksa koneksi Wi-Fi.')
-      }, 600)
-    }
-
-    async function checkAndUpdateBtn() {
-      // ── State 1: Tidak ada jaringan sama sekali ─────────────────────────
-      if (!navigator.onLine) {
-        $btn2.innerHTML = '📶 Cek Koneksi'
-        $btn2.onclick   = openNetworkSettings
-        $btn2.disabled  = false
-        return
-      }
-
-      // ── Ada jaringan — deteksi akses internet ───────────────────────────
-      $btn2.innerHTML  = '⏳ Memeriksa...'
-      $btn2.disabled   = true
-
-      let hasInternet = false
+    // ── Cek konektivitas SUNGGUHAN — bukan cuma navigator.onLine ────────────
+    // navigator.onLine bisa tetap "true" walau internet asli mati, karena
+    // OS masih melihat virtual adapter (Docker/WSL/VPN/Bluetooth) sebagai
+    // "interface aktif". Maka kebenaran akses internet hanya bisa dipastikan
+    // lewat fetch sungguhan ke endpoint luar.
+    async function checkRealConnectivity() {
       try {
         const ctrl = new AbortController()
         const tid  = setTimeout(() => ctrl.abort(), 4000)
-        // Google generate_204: response 204 jika internet ok, error jika tidak
+        // Google generate_204: respons 204 jika internet ok, error jika tidak
         await fetch('https://www.google.com/generate_204', {
           method: 'HEAD',
           mode:   'no-cors',
@@ -226,45 +195,90 @@
           signal: ctrl.signal,
         })
         clearTimeout(tid)
-        hasInternet = true
+        return true
       } catch (_) {
-        hasInternet = false
+        return false
+      }
+    }
+
+    function openNetworkSettings() {
+      // Coba ms-settings (Windows 10/11 — Chrome/Edge/Firefox)
+      window.location.href = 'ms-settings:network-wifi'
+      setTimeout(() => {
+        alert('Buka Pengaturan Jaringan di perangkat Anda dan periksa koneksi Wi-Fi.')
+      }, 600)
+    }
+
+    let redirected = false
+    function goToApp() {
+      if (redirected) return
+      redirected = true
+      $statusText.textContent = 'Koneksi tersambung! Mengarahkan ke aplikasi…'
+      window.location.href = '/'
+    }
+
+    // ── Satu fungsi sebagai single source of truth ──────────────────────────
+    // Dipakai oleh: polling otomatis, tombol "Coba Lagi", dan event online/offline
+    async function refreshConnectionState() {
+      // ── State 1: Tidak ada jaringan sama sekali ───────────────────────────
+      if (!navigator.onLine) {
+        $statusText.textContent = 'Offline — tidak ada koneksi'
+        $btn2.innerHTML = '📶 Cek Koneksi'
+        $btn2.onclick   = openNetworkSettings
+        $btn2.disabled  = false
+        return false
       }
 
+      // ── Ada jaringan — deteksi akses internet sungguhan ───────────────────
+      const hasInternet = await checkRealConnectivity()
+
       if (hasInternet) {
-        // ── State 3: Internet tersedia ────────────────────────────────────
+        // ── State 3: Internet tersedia → otomatis kembali ke aplikasi ───────
         $btn2.innerHTML = '🔍 Cek Jaringan'
         $btn2.disabled  = false
         $btn2.onclick   = () =>
-          window.open(
-            'https://www.google.com/search?q=test+kecepatan+internet&hl=id',
-            '_blank'
-          )
-      } else {
-        // ── State 2: WiFi terhubung tapi tidak ada internet ───────────────
-        $btn2.innerHTML = '📡 Ganti Koneksi'
-        $btn2.disabled  = false
-        $btn2.onclick   = openNetworkSettings
+          window.open('https://www.google.com/search?q=test+kecepatan+internet&hl=id', '_blank')
+        goToApp()
+        return true
       }
+
+      // ── State 2: WiFi/adapter terhubung tapi tidak ada internet ───────────
+      $statusText.textContent = 'Terhubung jaringan, tapi tidak ada akses internet'
+      $btn2.innerHTML = '📡 Ganti Koneksi'
+      $btn2.onclick   = openNetworkSettings
+      $btn2.disabled  = false
+      return false
     }
 
-    // Jalankan saat muat + re-check tiap event online/offline
-    checkAndUpdateBtn()
-    window.addEventListener('online',  checkAndUpdateBtn)
-    window.addEventListener('offline', checkAndUpdateBtn)
-
-    // ── Polling otomatis tiap 5 detik ──────────────────────────────────────
-    // Diperlukan karena online/offline event TIDAK fire saat:
-    //   • WiFi tetap nyambung tapi internet pulih/mati (state 2 ↔ 3)
-    // Dengan polling, tombol update otomatis tanpa refresh manual.
-    let _checking = false
-    async function checkAndUpdateBtnSafe() {
-      if (_checking) return          // hindari concurrent fetch
-      _checking = true
-      await checkAndUpdateBtn()
-      _checking = false
+    // ── Tombol "Coba Lagi" — cek dulu sebelum mutuskan reload/redirect ──────
+    $btn1.onclick = async () => {
+      $btn1.disabled  = true
+      $btn1.innerHTML = '⏳ Memeriksa...'
+      const online = await refreshConnectionState()
+      if (!online) {
+        $btn1.disabled  = false
+        $btn1.innerHTML = '🔄 Coba Lagi'
+      }
+      // Jika online, refreshConnectionState() sudah memanggil goToApp()
     }
-    setInterval(checkAndUpdateBtnSafe, 500)
+
+    // ── Polling otomatis tiap 0.5 detik ──────────────────────────────────────
+    // Diperlukan karena online/offline event TIDAK bisa diandalkan saat
+    // ada virtual adapter (Docker/WSL/VPN) yang membuat navigator.onLine
+    // selalu "true" walau internet asli mati/pulih.
+    let checking = false
+    async function pollSafe() {
+      if (checking || redirected) return
+      checking = true
+      await refreshConnectionState()
+      checking = false
+    }
+
+    window.addEventListener('online',  pollSafe)
+    window.addEventListener('offline', pollSafe)
+
+    pollSafe()
+    setInterval(pollSafe, 500)
   </script>
 </body>
 </html>
