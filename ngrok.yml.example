@@ -1,0 +1,48 @@
+# ============================================================================
+# ngrok.yml.example — TEMPLATE REFERENSI, BUKAN file config yang aktif dipakai
+# ============================================================================
+#
+# PENTING — baca dulu sebelum pakai:
+#
+# File ini TIDAK otomatis dibaca oleh ngrok. Ini cuma dokumentasi/contoh
+# buat anggota tim (Mahdi, Alfy, dst) yang mau setup ngrok sendiri di
+# komputer masing-masing untuk expose project ini.
+#
+# ngrok punya config sendiri yang lokasinya di LUAR folder project ini,
+# di folder user masing-masing orang:
+#   Windows : %USERPROFILE%\AppData\Local\ngrok\ngrok.yml
+#   macOS   : ~/Library/Application Support/ngrok/ngrok.yml
+#   Linux   : ~/.config/ngrok/ngrok.yml
+#
+# Cara setup yang BENAR (bukan copy-paste file ini):
+#   1. Daftar akun gratis di https://dashboard.ngrok.com/signup
+#   2. Copy authtoken dari dashboard
+#   3. Jalankan command ini di terminal — ngrok otomatis simpan ke lokasi
+#      yang benar di atas, tidak perlu edit file manual:
+#
+#        ngrok config add-authtoken <authtoken-kamu>
+#
+# Authtoken itu PERSONAL per akun ngrok masing-masing orang — jangan
+# saling pakai token punya orang lain, dan jangan pernah commit authtoken
+# asli ke Git (baik di file ini maupun di mana pun dalam project).
+#
+# ============================================================================
+
+version: "3"
+
+agent:
+  authtoken: GANTI_DENGAN_AUTHTOKEN_PUNYAMU_SENDIRI
+
+# ── Opsional: named tunnel buat project ini ─────────────────────────────────
+# Kalau sudah authtoken-nya kesimpen lewat command di atas, kamu BOLEH
+# (opsional) tambahkan blok ini ke ngrok.yml asli kamu sendiri (lokasi di
+# atas), supaya bisa jalanin tunnel dengan nama pendek:
+#
+#     ngrok start presensi-lab
+#
+# alih-alih ngetik ulang "ngrok http 3000" setiap kali.
+
+tunnels:
+  presensi-lab:
+    proto: http
+    addr: 3000          # port frontend Vite — JANGAN diganti ke 8080 (nginx)

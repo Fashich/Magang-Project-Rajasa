@@ -39,6 +39,10 @@ Thumbs.db
 !/backend/server/foto/guru/.gitkeep
 !/backend/server/foto/siswa/.gitkeep
 
+# ngrok config asli (kalau ada yang taruh di sini, bukan di folder user) —
+# ngrok.yml.example boleh ikut commit, ngrok.yml asli (ada authtoken) jangan
+/ngrok.yml
+
 ### --- [ FRONTEND (React / Node) ] --- ###
 **/node_modules/
 /frontend/build/
