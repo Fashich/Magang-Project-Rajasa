@@ -240,7 +240,7 @@ export default function ProfileCard({ onClose, theme, userType }) {
       {/* Wrapper perspektif 3D — induk dari flip container */}
       <div
         onClick={e => e.stopPropagation()}
-        style={{ width:'100%', maxWidth:'720px', perspective:'1800px' }}
+        style={{ width:'100%', maxWidth:'660px', perspective:'1800px' }}
       >
         {/* Flip container — yang benar-benar berotasi, bisa di-drag bebas 2 sumbu */}
         <div
@@ -293,7 +293,7 @@ export default function ProfileCard({ onClose, theme, userType }) {
               <div style={{
                 width:'150px', flexShrink:0, height:'100%', background:colBg, borderRight:`1px solid ${border}`,
                 display:'flex', flexDirection:'column', alignItems:'center',
-                justifyContent:'flex-start', padding:'14px 14px', gap:'7px', overflowY:'auto',
+                justifyContent:'center', padding:'14px 14px', gap:'7px', overflowY:'auto',
               }}>
                 <div
                   onClick={() => editMode && fileRef.current?.click()}
@@ -390,7 +390,8 @@ export default function ProfileCard({ onClose, theme, userType }) {
 
               {/* Kolom data */}
               <div onPointerDown={stopCardDrag}
-                style={{ flex:1, padding:'13px 18px', minWidth:0, overflowY:'auto', height:'100%', touchAction:'pan-y' }}>
+                style={{ flex:1, padding:'13px 18px', minWidth:0, overflowY:'auto', height:'100%',
+                         touchAction:'pan-y', display:'flex', flexDirection:'column', justifyContent:'center' }}>
                 {loading && <div style={{ color:txtSub, fontSize:'0.85rem' }}>Memuat profil…</div>}
                 {error   && <div style={{ color:'#ef4444', fontSize:'0.85rem' }}>{error}</div>}
 
