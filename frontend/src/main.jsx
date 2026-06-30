@@ -5,6 +5,16 @@ import { App } from './app.jsx';
 
 render(<App />, document.getElementById('app'));
 
+// ── Deteksi otomatis saat koneksi terputus di tengah sesi ────────────────────
+// Service worker (sw.js) hanya menangani offline saat ada NAVIGASI baru
+// (reload / buka tab). Untuk SPA yang sudah terbuka, mematikan WiFi tidak
+// memicu request apapun sehingga sw.js tidak pernah dapat kesempatan
+// mengarahkan ke /offline.html. Listener ini menutup celah tersebut —
+// begitu koneksi putus, user langsung diarahkan tanpa perlu refresh manual.
+window.addEventListener('offline', () => {
+  window.location.href = '/offline.html';
+});
+
 // ── Service Worker Registration (PWA) ────────────────────────────────────────
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
