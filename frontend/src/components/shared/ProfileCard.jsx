@@ -73,7 +73,6 @@ export default function ProfileCard({ onClose, theme, userType }) {
   const dragStartYRef         = useRef(0)
   const dragStartRotationYRef = useRef(0)
   const dragStartRotationXRef = useRef(0)
-  const dragAxisRef           = useRef(null) // 'y' | 'x' | null — dikunci begitu arah dominan ketahuan
   const fileRef = useRef(null)
   const dark    = theme === 'dark'
 
@@ -158,10 +157,9 @@ export default function ProfileCard({ onClose, theme, userType }) {
 
   // ── Interaksi putar kartu 360° (2 sumbu) — Pointer Events: satu handler
   // untuk mouse, touch, dan stylus sekaligus, jalan di semua device.
-  // Geser horizontal → flip kiri/kanan (Y). Geser vertikal → flip atas/bawah (X).
-  // Arah dikunci begitu salah satu jadi dominan, supaya gesture tidak "goyang".
+  // BEBAS ke segala arah — nyamping, ke atas/bawah, atau diagonal sekalipun,
+  // dua sumbu jalan BERSAMAAN mengikuti gerakan asli (bukan dikunci 1 arah).
   const ROTATE_SENSITIVITY = 0.5  // derajat per pixel pergeseran
-  const AXIS_LOCK_THRESHOLD = 6   // pixel minimum sebelum arah dikunci
 
   const handleCardPointerDown = (e) => {
     if (editMode) return // jangan rotate saat lagi edit, biar tidak ganggu form
@@ -169,7 +167,6 @@ export default function ProfileCard({ onClose, theme, userType }) {
     dragStartYRef.current = e.clientY
     dragStartRotationYRef.current = rotationY
     dragStartRotationXRef.current = rotationX
-    dragAxisRef.current = null
     setIsCardDragging(true)
     e.currentTarget.setPointerCapture?.(e.pointerId)
   }
@@ -178,33 +175,34 @@ export default function ProfileCard({ onClose, theme, userType }) {
     if (!isCardDragging) return
     const deltaX = e.clientX - dragStartXRef.current
     const deltaY = e.clientY - dragStartYRef.current
-
-    if (dragAxisRef.current === null) {
-      if (Math.abs(deltaX) > AXIS_LOCK_THRESHOLD || Math.abs(deltaY) > AXIS_LOCK_THRESHOLD) {
-        dragAxisRef.current = Math.abs(deltaX) >= Math.abs(deltaY) ? 'y' : 'x'
-      } else {
-        return // belum cukup gerak buat nentuin arah
-      }
-    }
-
-    if (dragAxisRef.current === 'y') {
-      setRotationY(dragStartRotationYRef.current + deltaX * ROTATE_SENSITIVITY)
-    } else {
-      // Geser ke atas → sisi atas kartu "mendekat" ke pengguna (terasa natural)
-      setRotationX(dragStartRotationXRef.current - deltaY * ROTATE_SENSITIVITY)
-    }
+    // Kedua sumbu update bareng — diagonal/serong otomatis kebentuk dari
+    // kombinasi keduanya, persis gerakan jari/mouse aslinya.
+    setRotationY(dragStartRotationYRef.current + deltaX * ROTATE_SENSITIVITY)
+    setRotationX(dragStartRotationXRef.current - deltaY * ROTATE_SENSITIVITY)
   }
 
   const handleCardPointerUp = () => {
     if (!isCardDragging) return
     setIsCardDragging(false)
-    // Snap otomatis ke wajah terdekat (kelipatan 180°) begitu dilepas
-    if (dragAxisRef.current === 'y') {
-      setRotationY(r => Math.round(r / 180) * 180)
-    } else if (dragAxisRef.current === 'x') {
-      setRotationX(r => Math.round(r / 180) * 180)
-    }
-    dragAxisRef.current = null
+
+    // Tentukan sisi yang akan ditampilkan dari posisi rotasi saat dilepas —
+    // berapa pun arah/diagonal drag-nya, hasil akhirnya cuma 2 kemungkinan:
+    // wajah depan atau belakang.
+    const normY = ((rotationY % 360) + 360) % 360
+    const normX = ((rotationX % 360) + 360) % 360
+    const willShowBack = (normY > 90 && normY < 270) !== (normX > 90 && normX < 270)
+
+    // Sumbu X selalu di-ratakan ke 0° — supaya sisi belakang tidak pernah
+    // kebalik/terbalik, tetap tegak & terbaca walau tadi di-drag diagonal.
+    setRotationX(r => Math.round(r / 360) * 360)
+
+    // Sumbu Y disnap ke posisi terdekat yang merepresentasikan sisi yang dituju
+    setRotationY(r => {
+      const base = Math.round(r / 360) * 360
+      if (!willShowBack) return base
+      const candidates = [base - 180, base + 180]
+      return candidates.reduce((best, c) => Math.abs(c - r) < Math.abs(best - r) ? c : best)
+    })
   }
 
   // Cegah klik tombol ikut memicu drag-rotate kartu
