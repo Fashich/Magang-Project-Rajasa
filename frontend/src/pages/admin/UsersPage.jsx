@@ -5,6 +5,8 @@
  */
 
 import { useState, useEffect, useCallback } from 'preact/hooks'
+import TambahGuruModal from './components/TambahGuruModal.jsx'
+import TambahSiswaModal from './components/TambahSiswaModal.jsx'
 import './UsersPage.css'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -280,7 +282,8 @@ export default function UsersPage() {
   const [page, setPage]         = useState(1)
 
   // modals
-  const [showCreate, setShowCreate]         = useState(false)
+  const [showCreateGuru, setShowCreateGuru]   = useState(false)
+  const [showCreateSiswa, setShowCreateSiswa] = useState(false)
   const [editUser, setEditUser]             = useState(null)
   const [resetUser, setResetUser]           = useState(null)
   const [deleteTarget, setDeleteTarget]     = useState(null)
@@ -344,13 +347,22 @@ export default function UsersPage() {
             {meta ? `${meta.total} pengguna terdaftar` : 'Memuat…'}
           </p>
         </div>
-        <button
-          type="button"
-          className="users-btn users-btn--primary"
-          onClick={() => setShowCreate(true)}
-        >
-          + Tambah Pengguna
-        </button>
+        <div className="users-page-actions" style={{ display: 'flex', gap: '0.625rem' }}>
+          <button
+            type="button"
+            className="users-btn users-btn--primary"
+            onClick={() => setShowCreateGuru(true)}
+          >
+            + Tambah Guru
+          </button>
+          <button
+            type="button"
+            className="users-btn users-btn--primary"
+            onClick={() => setShowCreateSiswa(true)}
+          >
+            + Tambah Siswa
+          </button>
+        </div>
       </div>
 
       {/* Filters */}
@@ -447,10 +459,16 @@ export default function UsersPage() {
       )}
 
       {/* Modals */}
-      {showCreate && (
-        <UserFormModal
-          onClose={() => setShowCreate(false)}
-          onSuccess={() => { showToast('Pengguna berhasil dibuat.'); fetchUsers() }}
+      {showCreateGuru && (
+        <TambahGuruModal
+          onClose={() => setShowCreateGuru(false)}
+          onSuccess={() => { showToast('Akun guru berhasil dibuat.'); fetchUsers() }}
+        />
+      )}
+      {showCreateSiswa && (
+        <TambahSiswaModal
+          onClose={() => setShowCreateSiswa(false)}
+          onSuccess={() => { showToast('Akun siswa berhasil dibuat.'); fetchUsers() }}
         />
       )}
       {editUser && (

@@ -61,6 +61,7 @@ use Rajasa\PresensiSiswa\Http\Controllers\GamifikasiController;
 use Rajasa\PresensiSiswa\Http\Controllers\ProfileController;
 use Rajasa\PresensiSiswa\Http\Controllers\AdminGuruController;
 use Rajasa\PresensiSiswa\Http\Controllers\AdminSiswaController;
+use Rajasa\PresensiSiswa\Http\Controllers\JurusanOptionsController;
 
 return function (RouteCollector $route): void {
     $route->get('/api/health', HealthController::class);
@@ -81,6 +82,7 @@ return function (RouteCollector $route): void {
     $route->get('/api/siswa/presensi', SiswaPresensiController::class);
     $route->get('/api/siswa/kalender-akademik', SiswaKalenderController::class);
     $route->get('/api/rombel/options', RombelController::class);
+    $route->get('/api/jurusan/options', JurusanOptionsController::class);
 
     // ── Users (admin) ────────────────────────────────────────────────────────
     $route->get('/api/users',                               UsersIndexController::class);
