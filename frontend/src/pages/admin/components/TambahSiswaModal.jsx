@@ -100,7 +100,7 @@ export default function TambahSiswaModal({ onClose, onSuccess }) {
 
   return (
     <div className="users-overlay" onClick={onClose}>
-      <div className="users-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
+      <div className="users-modal users-modal--wide" onClick={e => e.stopPropagation()}>
         <div className="users-modal-header">
           <h3>Tambah Siswa</h3>
           <button type="button" className="users-modal-close" onClick={onClose}>✕</button>
@@ -114,37 +114,42 @@ export default function TambahSiswaModal({ onClose, onSuccess }) {
             ℹ️ Password default = NISN yang dimasukkan. Sampaikan ke siswa untuk mengganti password setelah login pertama.
           </div>
 
-          <label className="users-label">Nama Lengkap <span className="users-required">*</span></label>
-          <input
-            className="users-input"
-            type="text"
-            placeholder="Nama lengkap siswa"
-            value={form.nama_lengkap}
-            onInput={set('nama_lengkap')}
-            autoFocus
-          />
+          <div className="users-form-grid">
+            <div className="users-form-grid--full">
+              <label className="users-label">Nama Lengkap <span className="users-required">*</span></label>
+              <input
+                className="users-input"
+                type="text"
+                placeholder="Nama lengkap siswa"
+                value={form.nama_lengkap}
+                onInput={set('nama_lengkap')}
+                autoFocus
+              />
+            </div>
 
-          <label className="users-label">Username <span className="users-required">*</span></label>
-          <input
-            className="users-input"
-            type="text"
-            placeholder="username untuk login (boleh berbeda dari nama)"
-            value={form.username}
-            onInput={set('username')}
-          />
+            <div>
+              <label className="users-label">Username <span className="users-required">*</span></label>
+              <input
+                className="users-input"
+                type="text"
+                placeholder="username untuk login"
+                value={form.username}
+                onInput={set('username')}
+              />
+            </div>
 
-          <div style={{ display: 'flex', gap: '0.625rem' }}>
-            <div style={{ flex: 1 }}>
+            <div>
               <label className="users-label">NISN <span className="users-required">*</span></label>
               <input
                 className="users-input"
                 type="text"
-                placeholder="10 digit"
+                placeholder="10 digit — jadi password default"
                 value={form.nisn}
                 onInput={set('nisn')}
               />
             </div>
-            <div style={{ flex: 1 }}>
+
+            <div>
               <label className="users-label">NIS</label>
               <input
                 className="users-input"
@@ -154,10 +159,8 @@ export default function TambahSiswaModal({ onClose, onSuccess }) {
                 onInput={set('nis')}
               />
             </div>
-          </div>
 
-          <div style={{ display: 'flex', gap: '0.625rem' }}>
-            <div style={{ flex: 1 }}>
+            <div>
               <label className="users-label">Jenis Kelamin</label>
               <select className="users-select" style={{ width: '100%' }} value={form.jenis_kelamin} onChange={set('jenis_kelamin')}>
                 <option value="">—</option>
@@ -165,7 +168,8 @@ export default function TambahSiswaModal({ onClose, onSuccess }) {
                 <option value="P">Perempuan</option>
               </select>
             </div>
-            <div style={{ flex: 1 }}>
+
+            <div>
               <label className="users-label">Angkatan <span className="users-required">*</span></label>
               <input
                 className="users-input"
@@ -175,41 +179,49 @@ export default function TambahSiswaModal({ onClose, onSuccess }) {
                 onInput={set('angkatan')}
               />
             </div>
+
+            <div>
+              <label className="users-label">Jurusan</label>
+              <select className="users-select" style={{ width: '100%' }} value={form.jurusan_id} onChange={set('jurusan_id')}>
+                <option value="">— Pilih jurusan —</option>
+                {jurusanList.map(j => (
+                  <option key={j.jurusan_id} value={j.jurusan_id}>{j.nama_jurusan}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="users-label">Rombel / Kelas</label>
+              <select className="users-select" style={{ width: '100%' }} value={form.rombel_id} onChange={set('rombel_id')}>
+                <option value="">— Pilih rombel —</option>
+                {rombelList.map(r => (
+                  <option key={r.rombel_id} value={r.rombel_id}>{r.label}</option>
+                ))}
+              </select>
+            </div>
+
+            <div>
+              <label className="users-label">Email</label>
+              <input
+                className="users-input"
+                type="email"
+                placeholder="email@student.smksrajasa.sch.id"
+                value={form.email}
+                onInput={set('email')}
+              />
+            </div>
+
+            <div>
+              <label className="users-label">No. Telepon</label>
+              <input
+                className="users-input"
+                type="text"
+                placeholder="08xxxxxxxxxx"
+                value={form.no_telp}
+                onInput={set('no_telp')}
+              />
+            </div>
           </div>
-
-          <label className="users-label">Jurusan</label>
-          <select className="users-select" style={{ width: '100%' }} value={form.jurusan_id} onChange={set('jurusan_id')}>
-            <option value="">— Pilih jurusan —</option>
-            {jurusanList.map(j => (
-              <option key={j.jurusan_id} value={j.jurusan_id}>{j.nama_jurusan}</option>
-            ))}
-          </select>
-
-          <label className="users-label">Rombel / Kelas</label>
-          <select className="users-select" style={{ width: '100%' }} value={form.rombel_id} onChange={set('rombel_id')}>
-            <option value="">— Pilih rombel —</option>
-            {rombelList.map(r => (
-              <option key={r.rombel_id} value={r.rombel_id}>{r.label}</option>
-            ))}
-          </select>
-
-          <label className="users-label">Email</label>
-          <input
-            className="users-input"
-            type="email"
-            placeholder="email@student.smksrajasa.sch.id"
-            value={form.email}
-            onInput={set('email')}
-          />
-
-          <label className="users-label">No. Telepon</label>
-          <input
-            className="users-input"
-            type="text"
-            placeholder="08xxxxxxxxxx"
-            value={form.no_telp}
-            onInput={set('no_telp')}
-          />
         </div>
 
         <div className="users-modal-actions">

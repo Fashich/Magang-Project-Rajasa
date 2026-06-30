@@ -96,7 +96,7 @@ export default function TambahGuruModal({ onClose, onSuccess }) {
 
   return (
     <div className="users-overlay" onClick={onClose}>
-      <div className="users-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: 480 }}>
+      <div className="users-modal users-modal--wide" onClick={e => e.stopPropagation()}>
         <div className="users-modal-header">
           <h3>Tambah Guru / Staff</h3>
           <button type="button" className="users-modal-close" onClick={onClose}>✕</button>
@@ -109,83 +109,101 @@ export default function TambahGuruModal({ onClose, onSuccess }) {
             ℹ️ Password default = NIP yang dimasukkan. Sampaikan ke guru untuk mengganti password setelah login pertama.
           </div>
 
-          <label className="users-label">Nama Lengkap <span className="users-required">*</span></label>
-          <input
-            className="users-input"
-            type="text"
-            placeholder="Contoh: Budi Santoso, S.Pd."
-            value={form.nama_lengkap}
-            onInput={set('nama_lengkap')}
-            autoFocus
-          />
+          <div className="users-form-grid">
+            <div className="users-form-grid--full">
+              <label className="users-label">Nama Lengkap <span className="users-required">*</span></label>
+              <input
+                className="users-input"
+                type="text"
+                placeholder="Contoh: Budi Santoso, S.Pd."
+                value={form.nama_lengkap}
+                onInput={set('nama_lengkap')}
+                autoFocus
+              />
+            </div>
 
-          <label className="users-label">Username <span className="users-required">*</span></label>
-          <input
-            className="users-input"
-            type="text"
-            placeholder="username untuk login (boleh berbeda dari nama)"
-            value={form.username}
-            onInput={set('username')}
-          />
+            <div>
+              <label className="users-label">Username <span className="users-required">*</span></label>
+              <input
+                className="users-input"
+                type="text"
+                placeholder="username untuk login"
+                value={form.username}
+                onInput={set('username')}
+              />
+            </div>
 
-          <label className="users-label">
-            Jenis User <span className="users-required">*</span>
-          </label>
-          <select className="users-select" style={{ width: '100%' }} value={form.jenis_user} onChange={set('jenis_user')}>
-            {Object.entries(JENIS_USER_OPTIONS).map(([v, l]) => (
-              <option key={v} value={v}>{l}</option>
-            ))}
-          </select>
+            <div>
+              <label className="users-label">Jenis User <span className="users-required">*</span></label>
+              <select className="users-select" style={{ width: '100%' }} value={form.jenis_user} onChange={set('jenis_user')}>
+                {Object.entries(JENIS_USER_OPTIONS).map(([v, l]) => (
+                  <option key={v} value={v}>{l}</option>
+                ))}
+              </select>
+            </div>
 
-          <label className="users-label">
-            NIP {isNipRequired && <span className="users-required">*</span>}
-          </label>
-          <input
-            className="users-input"
-            type="text"
-            placeholder="Min. 8 digit — akan jadi password default"
-            value={form.nip}
-            onInput={set('nip')}
-          />
+            <div>
+              <label className="users-label">
+                NIP {isNipRequired && <span className="users-required">*</span>}
+              </label>
+              <input
+                className="users-input"
+                type="text"
+                placeholder="Min. 8 digit — jadi password default"
+                value={form.nip}
+                onInput={set('nip')}
+              />
+            </div>
 
-          <label className="users-label">Jabatan</label>
-          <select className="users-select" style={{ width: '100%' }} value={form.jabatan} onChange={set('jabatan')}>
-            <option value="">— Pilih jabatan —</option>
-            {JABATAN_OPTIONS.map(j => <option key={j} value={j}>{j}</option>)}
-          </select>
+            <div>
+              <label className="users-label">Jabatan</label>
+              <select className="users-select" style={{ width: '100%' }} value={form.jabatan} onChange={set('jabatan')}>
+                <option value="">— Pilih jabatan —</option>
+                {JABATAN_OPTIONS.map(j => <option key={j} value={j}>{j}</option>)}
+              </select>
+            </div>
 
-          <label className="users-label">Mata Pelajaran</label>
-          <input
-            className="users-input"
-            type="text"
-            placeholder="Pisahkan dengan koma: Matematika, Fisika"
-            value={form.mapel_pengampu}
-            onInput={set('mapel_pengampu')}
-          />
+            <div className="users-form-grid--full">
+              <label className="users-label">Mata Pelajaran</label>
+              <input
+                className="users-input"
+                type="text"
+                placeholder="Pisahkan dengan koma: Matematika, Fisika"
+                value={form.mapel_pengampu}
+                onInput={set('mapel_pengampu')}
+              />
+            </div>
 
-          <label className="users-label">Status Kepegawaian</label>
-          <select className="users-select" style={{ width: '100%' }} value={form.status_kepegawaian} onChange={set('status_kepegawaian')}>
-            <option value="">— Pilih status —</option>
-            {STATUS_KEPEGAWAIAN_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
-          </select>
+            <div>
+              <label className="users-label">Status Kepegawaian</label>
+              <select className="users-select" style={{ width: '100%' }} value={form.status_kepegawaian} onChange={set('status_kepegawaian')}>
+                <option value="">— Pilih status —</option>
+                {STATUS_KEPEGAWAIAN_OPTIONS.map(s => <option key={s} value={s}>{s}</option>)}
+              </select>
+            </div>
 
-          <label className="users-label">Email</label>
-          <input
-            className="users-input"
-            type="email"
-            placeholder="email@smksrajasa.sch.id"
-            value={form.email}
-            onInput={set('email')}
-          />
+            <div>
+              <label className="users-label">Email</label>
+              <input
+                className="users-input"
+                type="email"
+                placeholder="email@smksrajasa.sch.id"
+                value={form.email}
+                onInput={set('email')}
+              />
+            </div>
 
-          <label className="users-label">No. Telepon</label>
-          <input
-            className="users-input"
-            type="text"
-            placeholder="08xxxxxxxxxx"
-            value={form.no_telp}
-            onInput={set('no_telp')}
-          />
+            <div className="users-form-grid--full">
+              <label className="users-label">No. Telepon</label>
+              <input
+                className="users-input"
+                type="text"
+                placeholder="08xxxxxxxxxx"
+                value={form.no_telp}
+                onInput={set('no_telp')}
+              />
+            </div>
+          </div>
         </div>
 
         <div className="users-modal-actions">

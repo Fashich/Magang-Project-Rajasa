@@ -20,26 +20,31 @@ final class UsersService
 
     public function list(array $params): array
     {
-        $query = DB::table('users')
+        $query = DB::table('users as u')
+            ->leftJoin('guru_staff as g', 'g.guru_id', '=', 'u.guru_id')
+            ->leftJoin('siswa as s', 's.siswa_id', '=', 'u.siswa_id')
             ->select([
-                'user_id', 'username', 'email', 'user_type',
-                'status', 'last_login_at', 'created_at'])
-            ->orderBy('created_at', 'desc');
+                'u.user_id', 'u.username', 'u.email', 'u.user_type',
+                'u.status', 'u.last_login_at', 'u.created_at',
+                'g.nip as nip',
+                's.nisn as nisn',
+            ])
+            ->orderBy('u.created_at', 'desc');
 
         if (!empty($params['search'])) {
             $keyword = '%' . $params['search'] . '%';
             $query->where(function ($q) use ($keyword) {
-                $q->where('username', 'LIKE', $keyword)
-                  ->orWhere('email',    'LIKE', $keyword);
+                $q->where('u.username', 'LIKE', $keyword)
+                  ->orWhere('u.email',    'LIKE', $keyword);
             });
         }
 
         if (!empty($params['user_type'])) {
-            $query->where('user_type', $params['user_type']);
+            $query->where('u.user_type', $params['user_type']);
         }
 
         if (!empty($params['status'])) {
-            $query->where('status', $params['status']);
+            $query->where('u.status', $params['status']);
         }
 
         $page    = max(1, (int) ($params['page'] ?? 1));

@@ -70,6 +70,12 @@ function TypeBadge({ type }) {
   return <span className="users-badge users-badge--type">{USER_TYPE_LABELS[type] ?? type}</span>
 }
 
+// Kolom ID — kode identifikasi gabungan: {username}_{NIP-atau-NISN}
+function buildDisplayId(u) {
+  const code = u.nip || u.nisn
+  return code ? `${u.username}_${code}` : '—'
+}
+
 // ── Confirm modal ─────────────────────────────────────────────────────────────
 
 function ConfirmModal({ message, onConfirm, onCancel, danger }) {
@@ -315,6 +321,19 @@ export default function UsersPage() {
 
   useEffect(() => { fetchUsers() }, [fetchUsers])
 
+  // ── Realtime — refresh status & login terakhir tiap 15 detik ───────────────
+  // Dilewati kalau ada modal aktif, biar tidak ganggu admin yang lagi isi form.
+  useEffect(() => {
+    const anyModalOpen = showCreateGuru || showCreateSiswa || editUser || resetUser || deleteTarget
+    if (anyModalOpen) return
+
+    const interval = setInterval(() => {
+      fetchUsers()
+    }, 15000)
+
+    return () => clearInterval(interval)
+  }, [fetchUsers, showCreateGuru, showCreateSiswa, editUser, resetUser, deleteTarget])
+
   // reset page saat filter berubah
   useEffect(() => { setPage(1) }, [search, typeFilter, statusFilter])
 
@@ -397,6 +416,7 @@ export default function UsersPage() {
           <thead>
             <tr>
               <th>#</th>
+              <th>ID</th>
               <th>Username</th>
               <th>Email</th>
               <th>Tipe</th>
@@ -407,14 +427,15 @@ export default function UsersPage() {
           </thead>
           <tbody>
             {loading && (
-              <tr><td colSpan={7} className="users-td-center">Memuat…</td></tr>
+              <tr><td colSpan={8} className="users-td-center">Memuat…</td></tr>
             )}
             {!loading && users.length === 0 && (
-              <tr><td colSpan={7} className="users-td-center users-td-empty">Tidak ada data.</td></tr>
+              <tr><td colSpan={8} className="users-td-center users-td-empty">Tidak ada data.</td></tr>
             )}
             {!loading && users.map((u, i) => (
               <tr key={u.user_id}>
                 <td className="users-td-num">{((meta?.current_page ?? 1) - 1) * (meta?.per_page ?? 15) + i + 1}</td>
+                <td className="users-td-mono">{buildDisplayId(u)}</td>
                 <td className="users-td-bold">{u.username}</td>
                 <td className="users-td-muted">{u.email ?? '—'}</td>
                 <td><TypeBadge type={u.user_type} /></td>
