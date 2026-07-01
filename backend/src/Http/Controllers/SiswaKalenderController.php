@@ -63,7 +63,9 @@ final class SiswaKalenderController
                 // Return a root-relative path so the browser can request it
                 // via /server/... regardless of hostname (works via Vite proxy
                 // at localhost:3000 and also direct nginx at localhost:8080).
-                $pdfUrl  = "/server/kalender-akademik/{$pdfName}";
+                // Pakai absolute URL agar bekerja di production (frontend & backend beda domain)
+                $appUrl  = rtrim($_ENV['APP_URL'] ?? ($_SERVER['HTTP_X_FORWARDED_PROTO'] ?? 'https') . '://' . ($_SERVER['HTTP_HOST'] ?? 'localhost'), '/');
+                $pdfUrl  = "{$appUrl}/server/kalender-akademik/{$pdfName}";
             }
         }
 

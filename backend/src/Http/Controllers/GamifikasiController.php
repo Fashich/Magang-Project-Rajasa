@@ -32,11 +32,13 @@ final class GamifikasiController
     {
         $user   = $this->auth->user();
         $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
-        $path   = $_SERVER['PATH_INFO'] ?? $_SERVER['REQUEST_URI'] ?? '';
+        // Resolve sub-route: strip query string dulu biar production tidak crash
+        $rawUri = $_SERVER['PATH_INFO'] ?? $_SERVER['REQUEST_URI'] ?? '';
+        $path   = strtok($rawUri, '?') ?: $rawUri; // hapus ?param=val
 
-        // Resolve sub-route dari path: /api/gamifikasi/profil → 'profil'
+        // /api/gamifikasi/profil → 'profil'
         $parts = explode('/', trim($path, '/'));
-        $sub   = end($parts); // ambil segment terakhir
+        $sub   = end($parts);
 
         match ($sub) {
             'profil'      => $this->profil($user),

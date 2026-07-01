@@ -62,6 +62,7 @@ use Rajasa\PresensiSiswa\Http\Controllers\ProfileController;
 use Rajasa\PresensiSiswa\Http\Controllers\AdminGuruController;
 use Rajasa\PresensiSiswa\Http\Controllers\AdminSiswaController;
 use Rajasa\PresensiSiswa\Http\Controllers\JurusanOptionsController;
+use Rajasa\PresensiSiswa\Http\Controllers\JamPembelajaranOptionsController;
 use Rajasa\PresensiSiswa\Http\Controllers\PresenceController;
 
 return function (RouteCollector $route): void {
@@ -84,6 +85,7 @@ return function (RouteCollector $route): void {
     $route->get('/api/siswa/kalender-akademik', SiswaKalenderController::class);
     $route->get('/api/rombel/options', RombelController::class);
     $route->get('/api/jurusan/options', JurusanOptionsController::class);
+    $route->get('/api/jam-pembelajaran/options', JamPembelajaranOptionsController::class);
     $route->post('/api/presence/heartbeat', [PresenceController::class, 'heartbeat']);
 
     // ── Users (admin) ────────────────────────────────────────────────────────

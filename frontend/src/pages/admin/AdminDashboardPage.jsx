@@ -7,6 +7,9 @@
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
 
+// ─── API Base URL ──────────────────────────────────────────────────────────
+const API_BASE = import.meta.env.VITE_API_URL || '/api'
+
 // ─── Auth helper ─────────────────────────────────────────────────────────────
 function getToken() {
   return localStorage.getItem('presensi_lab_rajasa:auth_token')
@@ -200,7 +203,7 @@ function RecentSessions() {
   const [loading,  setLoading]  = useState(true)
 
   useEffect(() => {
-    fetch('/api/presensi/sesi/aktif', { headers: authHeaders() })
+    fetch(`${API_BASE}/presensi/sesi/aktif`, { headers: authHeaders() })
       .then(r => r.json())
       .then(d => setSessions(d.data?.sessions ?? []))
       .catch(() => setSessions([]))
@@ -288,7 +291,7 @@ export default function AdminDashboardPage({ onNav }) {
     setLoading(true)
     setError(null)
     try {
-      const res  = await fetch('/api/dashboard', { headers: authHeaders() })
+      const res  = await fetch(`${API_BASE}/dashboard`, { headers: authHeaders() })
       const json = await res.json()
       if (!res.ok || !json.success) throw new Error(json.message || 'Gagal memuat dashboard.')
       setData(json.data)

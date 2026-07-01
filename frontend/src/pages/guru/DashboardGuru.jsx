@@ -198,6 +198,19 @@ function PageSesi() {
   const [err, setErr] = useState('')
   const pollRef = useRef(null)
 
+  // ── Form buat sesi baru ──────────────────────────────────────────────────
+  const [showForm, setShowForm] = useState(false)
+  const [rombels, setRombels] = useState([])
+  const [jams, setJams] = useState([])
+  const [formMode, setFormMode] = useState('rombel')
+  const [formRombel, setFormRombel] = useState('')
+  const [formJams, setFormJams] = useState([])
+
+  useEffect(() => {
+    apiFetch('/rombel/options').then(r => setRombels(r.data?.rombel ?? [])).catch(() => {})
+    apiFetch('/jam-pembelajaran/options').then(r => setJams(r.data?.jams ?? [])).catch(() => {})
+  }, [])
+
   const loadSesi = useCallback(async () => {
     try { const r = await apiFetch('/presensi/sesi/aktif'); setSesi(r.data?.sesi ?? null) }
     catch { setSesi(null) } finally { setLoading(false) }
@@ -212,10 +225,27 @@ function PageSesi() {
     return () => clearInterval(pollRef.current)
   }, [loadSesi, loadLog])
 
-  async function act(endpoint) {
+  async function act(endpoint, body = {}) {
     setErr(''); setActing(true)
-    try { await apiFetch(endpoint, { method: 'POST', body: JSON.stringify({}) }); await loadSesi() }
+    try { await apiFetch(endpoint, { method: 'POST', body: JSON.stringify(body) }); await loadSesi() }
     catch (e) { setErr(e.message) } finally { setActing(false) }
+  }
+
+  async function buatSesi() {
+    if (formJams.length === 0) { setErr('Pilih setidaknya 1 jam pelajaran.'); return }
+    if (formMode === 'rombel' && !formRombel) { setErr('Pilih rombel terlebih dahulu.'); return }
+    const body = {
+      mode_presensi: formMode,
+      jam_ids: formJams.map(Number),
+      ...(formMode === 'rombel' ? { rombel_id: Number(formRombel) } : {}),
+    }
+    setShowForm(false)
+    await act('/presensi/sesi', body)
+  }
+
+  function toggleJam(jamId) {
+    const id = Number(jamId)
+    setFormJams(prev => prev.includes(id) ? prev.filter(j => j !== id) : [...prev, id].sort((a,b)=>a-b))
   }
 
   const SC = { aktif: '#15803d', paused: '#d97706', selesai: '#64748b' }
@@ -249,9 +279,49 @@ function PageSesi() {
               </div>
             </div>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
               <p style={{ margin: 0, color: 'var(--guru-text-muted)', fontSize: '0.875rem' }}>Tidak ada sesi aktif.</p>
-              <button class="guru-btn-primary" onClick={() => act('/presensi/sesi')} disabled={acting}>{acting ? 'Memulai…' : '▶ Mulai Sesi Baru'}</button>
+              <button class="guru-btn-primary" onClick={() => { setErr(''); setShowForm(true) }} disabled={acting}>▶ Mulai Sesi Baru</button>
+              {showForm && (
+                <div style={{ padding: '1rem', background: 'var(--guru-surface)', borderRadius: '10px', border: '1px solid var(--guru-border)', display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--guru-text-muted)', display: 'block', marginBottom: '0.25rem' }}>Mode Presensi</label>
+                    <select value={formMode} onChange={e => setFormMode(e.target.value)} style={{ width: '100%', padding: '0.45rem 0.75rem', border: '1px solid var(--guru-border)', borderRadius: '8px', fontFamily: 'var(--guru-font)', fontSize: '0.875rem', background: 'var(--guru-bg)', color: 'var(--guru-text)' }}>
+                      <option value="rombel">Rombel (kelas reguler)</option>
+                      <option value="piket">Piket (siswa terlambat)</option>
+                    </select>
+                  </div>
+                  {formMode === 'rombel' && (
+                    <div>
+                      <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--guru-text-muted)', display: 'block', marginBottom: '0.25rem' }}>Rombel</label>
+                      <select value={formRombel} onChange={e => setFormRombel(e.target.value)} style={{ width: '100%', padding: '0.45rem 0.75rem', border: '1px solid var(--guru-border)', borderRadius: '8px', fontFamily: 'var(--guru-font)', fontSize: '0.875rem', background: 'var(--guru-bg)', color: 'var(--guru-text)' }}>
+                        <option value="">-- Pilih Rombel --</option>
+                        {rombels.map(r => <option key={r.rombel_id} value={r.rombel_id}>{r.label}</option>)}
+                      </select>
+                    </div>
+                  )}
+                  <div>
+                    <label style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--guru-text-muted)', display: 'block', marginBottom: '0.25rem' }}>Jam Pelajaran (pilih max 3 jam berurutan)</label>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+                      {jams.length > 0 ? jams.map(j => (
+                        <label key={j.jam_id} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', fontSize: '0.8125rem', padding: '0.3rem 0.6rem', border: `1px solid ${formJams.includes(j.jam_id) ? 'var(--guru-primary)' : 'var(--guru-border)'}`, borderRadius: '6px', background: formJams.includes(j.jam_id) ? 'var(--guru-primary-light, #eff6ff)' : 'transparent' }}>
+                          <input type="checkbox" checked={formJams.includes(j.jam_id)} onChange={() => toggleJam(j.jam_id)} style={{ margin: 0 }} />
+                          {j.label ?? `Jam ${j.jam_ke}`}
+                        </label>
+                      )) : [1,2,3,4,5,6,7,8].map(n => (
+                        <label key={n} style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', cursor: 'pointer', fontSize: '0.8125rem', padding: '0.3rem 0.6rem', border: `1px solid ${formJams.includes(n) ? 'var(--guru-primary)' : 'var(--guru-border)'}`, borderRadius: '6px', background: formJams.includes(n) ? 'var(--guru-primary-light, #eff6ff)' : 'transparent' }}>
+                          <input type="checkbox" checked={formJams.includes(n)} onChange={() => toggleJam(n)} style={{ margin: 0 }} />
+                          Jam {n}
+                        </label>
+                      ))}
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.5rem' }}>
+                    <button class="guru-btn-primary" onClick={buatSesi} disabled={acting}>{acting ? 'Memulai…' : '✅ Mulai Sesi'}</button>
+                    <button class="guru-btn-ghost" onClick={() => setShowForm(false)} disabled={acting}>Batal</button>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </div>
