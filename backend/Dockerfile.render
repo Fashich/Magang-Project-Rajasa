@@ -1,0 +1,35 @@
+FROM php:8.2-fpm
+
+# Install system deps + Nginx + Supervisor
+RUN apt-get update && apt-get install -y \
+    nginx supervisor \
+    libpng-dev libjpeg-dev libfreetype6-dev libzip-dev zip git unzip \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd pdo pdo_mysql zip \
+    && rm -rf /var/lib/apt/lists/*
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+WORKDIR /var/www
+COPY . .
+
+# PHP upload config
+RUN cp /var/www/php/z-upload.ini /usr/local/etc/php/conf.d/z-upload.ini
+
+# Install PHP dependencies (production only)
+RUN composer install --no-dev --optimize-autoloader
+
+# Copy configs
+COPY nginx-render.conf /etc/nginx/sites-available/default
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
+
+# Permissions
+RUN chown -R www-data:www-data /var/www \
+    && chmod -R 755 /var/www \
+    && rm -f /etc/nginx/sites-enabled/default \
+    && ln -s /etc/nginx/sites-available/default /etc/nginx/sites-enabled/default
+
+EXPOSE 80
+
+CMD ["/usr/bin/supervisord", "-n", "-c", "/etc/supervisor/conf.d/supervisord.conf"]
