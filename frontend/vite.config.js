@@ -7,6 +7,12 @@ export default defineConfig({
     include: ['chart.js', 'chart.js/auto'],
   },
   plugins: [preact(), tailwindcss()],
+  resolve: {
+    alias: [
+      { find: 'chart.js/auto', replacement: 'chart.js' },
+      { find: 'chart.js/auto/auto.js', replacement: 'chart.js' },
+    ],
+  },
   server: {
     host: true,
     port: 3000,
