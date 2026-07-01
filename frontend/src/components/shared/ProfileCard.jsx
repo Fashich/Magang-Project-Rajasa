@@ -44,11 +44,11 @@ function KTPRow({ label, value, editable, editMode, editValue, onEditChange, dar
 function BarcodeStrip({ dark }) {
   const bars = [2,1,3,1,2,2,1,3,2,1,1,3,2,1,2,3,1,2,1,3,2,2,1,2,3,1,2,1,3,2]
   return (
-    <div style={{ display:'flex', alignItems:'flex-end', gap:'2px', height:'22px', opacity: dark ? 0.35 : 0.25 }}>
+    <div style={{ display:'flex', alignItems:'flex-end', gap:'2px', height:'22px', opacity: 1 }}>
       {bars.map((w, i) => (
         <div key={i} style={{
           width:`${w}px`, height: i % 3 === 0 ? '100%' : '65%',
-          background: dark ? '#94a3b8' : '#1e293b',
+          background: dark ? '#cbd5e1' : '#0f172a',
         }}/>
       ))}
     </div>
@@ -517,8 +517,8 @@ export default function ProfileCard({ onClose, theme, userType }) {
                   </p>
                 </div>
 
-                <div>
-                  <div style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'0.7rem', color:txtSub, marginBottom:'10px' }}>
+                <div style={{ display:'flex', alignItems:'center', justifyContent:'space-between', gap:'12px' }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:'6px', fontSize:'0.7rem', color:txtSub, flexShrink:0 }}>
                     <span>⏱</span>
                     <span>Berlaku selama sesi akun aktif</span>
                   </div>
