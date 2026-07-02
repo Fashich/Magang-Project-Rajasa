@@ -594,7 +594,7 @@ function PageIzin() {
       const p = new URLSearchParams({ per_page: '50' })
       if (filter) p.set('status', filter)
       const r = await apiFetch(`/e-izin?${p}`)
-      setItems(r.data?.items ?? [])
+      setItems(r.data?.data ?? [])
     } catch (e) { console.error(e) } finally { setLoading(false) }
   }, [filter])
   useEffect(() => { load() }, [load])

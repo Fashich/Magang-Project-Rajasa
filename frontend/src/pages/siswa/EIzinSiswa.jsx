@@ -126,7 +126,7 @@ export default function EIzinSiswa() {
     setLoading(true)
     try {
       const res = await apiFetch('/e-izin?per_page=50')
-      setItems(res.data?.items ?? [])
+      setItems(res.data?.data ?? [])
     } catch (e) { console.error(e) }
     finally { setLoading(false) }
   }, [])
