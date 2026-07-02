@@ -6,11 +6,12 @@ use Rajasa\PresensiSiswa\Support\Env;
 
 return [
     'app' => [
-        'name'     => Env::get('APP_NAME', 'Presensi Siswa Rajasa'),
-        'env'      => Env::get('APP_ENV', 'local'),
-        'debug'    => Env::bool('APP_DEBUG', true),
-        'url'      => Env::get('APP_URL', 'http://localhost:8080'),
-        'timezone' => Env::get('APP_TIMEZONE', 'Asia/Jakarta'),
+        'name'         => Env::get('APP_NAME', 'Presensi Siswa Rajasa'),
+        'env'          => Env::get('APP_ENV', 'local'),
+        'debug'        => Env::bool('APP_DEBUG', true),
+        'url'          => Env::get('APP_URL', 'http://localhost:8080'),
+        'frontend_url' => Env::get('FRONTEND_URL', 'https://presensi-rajasa-frontend.vercel.app'),
+        'timezone'     => Env::get('APP_TIMEZONE', 'Asia/Jakarta'),
     ],
 
     'database' => [
@@ -39,5 +40,15 @@ return [
     'presensi' => [
         'session_timeout_minutes' => Env::int('PRESENSI_SESSION_TIMEOUT_MINUTES', 20),
         'max_jam_per_sesi'        => Env::int('PRESENSI_MAX_JAM_PER_SESI', 3),
+    ],
+
+    // Cloudflare R2 (opsional) — file storage persisten untuk kalender akademik, dll.
+    // Jika tidak diisi, sistem fallback ke local disk storage (tidak persisten di Render).
+    'r2' => [
+        'account_id' => Env::get('R2_ACCOUNT_ID'),
+        'access_key' => Env::get('R2_ACCESS_KEY_ID'),
+        'secret_key' => Env::get('R2_SECRET_KEY'),
+        'bucket'     => Env::get('R2_BUCKET'),
+        'public_url' => Env::get('R2_PUBLIC_URL'),
     ],
 ];

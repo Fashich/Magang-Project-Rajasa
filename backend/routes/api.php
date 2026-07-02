@@ -63,6 +63,11 @@ use Rajasa\PresensiSiswa\Http\Controllers\AdminGuruController;
 use Rajasa\PresensiSiswa\Http\Controllers\AdminSiswaController;
 use Rajasa\PresensiSiswa\Http\Controllers\JurusanOptionsController;
 use Rajasa\PresensiSiswa\Http\Controllers\JamPembelajaranOptionsController;
+use Rajasa\PresensiSiswa\Http\Controllers\AnalitikExportController;
+use Rajasa\PresensiSiswa\Http\Controllers\SiswaQrMassalController;
+use Rajasa\PresensiSiswa\Http\Controllers\AdminKalenderUploadController;
+use Rajasa\PresensiSiswa\Http\Controllers\OrtuPortalController;
+use Rajasa\PresensiSiswa\Http\Controllers\AdminOrtuTokenController;
 use Rajasa\PresensiSiswa\Http\Controllers\PresenceController;
 
 return function (RouteCollector $route): void {
@@ -202,4 +207,21 @@ return function (RouteCollector $route): void {
     $route->get('/api/presensi/jam-siswa',                  PresensiJamSiswaController::class);
     $route->patch('/api/presensi/jam-siswa/{id:\d+}',       PresensiManualEditController::class);
     $route->get('/api/presensi/edit-reasons',               PresensiEditReasonController::class);
+
+    // ── Analitik Export (Excel) ──────────────────────────────────────────────
+    $route->get('/api/analitik/export', AnalitikExportController::class);
+
+    // ── Cetak QR Massal ───────────────────────────────────────────────────────
+    $route->get('/api/siswa/qr-massal', SiswaQrMassalController::class);
+
+    // ── Upload Kalender Akademik (R2 cloud storage dengan fallback local) ─────
+    $route->post('/api/admin/kalender-akademik', AdminKalenderUploadController::class);
+
+    // ── Portal Orang Tua ──────────────────────────────────────────────────────
+    // PUBLIK — tanpa login, akses via token unik yang dikirim ke WhatsApp orang tua
+    $route->get('/api/portal-ortu/{token}', OrtuPortalController::class);
+
+    // Admin: kelola link portal ortu per siswa
+    $route->get('/api/admin/siswa/{id:\d+}/portal-ortu-link',              [AdminOrtuTokenController::class, 'get']);
+    $route->post('/api/admin/siswa/{id:\d+}/portal-ortu-link/regenerate', [AdminOrtuTokenController::class, 'regenerate']);
 };
