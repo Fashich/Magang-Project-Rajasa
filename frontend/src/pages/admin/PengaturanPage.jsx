@@ -357,6 +357,336 @@ function JurusanTab({ data, onReload, showToast }) {
   )
 }
 
+// ── Tab: Rombel ─────────────────────────────────────────────────────────────
+function RombelTab({ data, jurusanList, tahunAjaranList, onReload, showToast }) {
+  const [addOpen,  setAddOpen]  = useState(false)
+  const [editItem, setEditItem] = useState(null)
+  const [saving,   setSaving]   = useState(false)
+  const [form,     setForm]     = useState({
+    tahun_ajaran_id: '', tingkatan: 'X', jurusan_id: '', nomor_rombel: 1, label_rombel: '',
+  })
+
+  const resetForm = () => setForm({
+    tahun_ajaran_id: '', tingkatan: 'X', jurusan_id: '', nomor_rombel: 1, label_rombel: '',
+  })
+
+  async function handleAdd(e) {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      await apiFetch('/admin/pengaturan/rombel', { method: 'POST', body: JSON.stringify(form) })
+      showToast('Rombel berhasil ditambahkan.')
+      setAddOpen(false); resetForm(); onReload()
+    } catch (err) { showToast(err.message, 'error') }
+    finally { setSaving(false) }
+  }
+
+  async function handleEdit(e) {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      await apiFetch(`/admin/pengaturan/rombel/${editItem.rombel_id}`, {
+        method: 'PATCH',
+        body: JSON.stringify({ label_rombel: form.label_rombel, nomor_rombel: form.nomor_rombel }),
+      })
+      showToast('Rombel berhasil diperbarui.')
+      setEditItem(null); resetForm(); onReload()
+    } catch (err) { showToast(err.message, 'error') }
+    finally { setSaving(false) }
+  }
+
+  async function handleDelete(id, label) {
+    if (!confirm(`Nonaktifkan rombel "${label}"?`)) return
+    setSaving(true)
+    try {
+      await apiFetch(`/admin/pengaturan/rombel/${id}`, { method: 'DELETE' })
+      showToast('Rombel berhasil dinonaktifkan.')
+      onReload()
+    } catch (err) { showToast(err.message, 'error') }
+    finally { setSaving(false) }
+  }
+
+  function openEdit(item) {
+    setEditItem(item)
+    setForm(f => ({ ...f, label_rombel: item.label_rombel ?? '', nomor_rombel: item.nomor_rombel ?? 1 }))
+  }
+
+  const AddForm = (
+    <form onSubmit={handleAdd} class="pg-form">
+      <div class="pg-field">
+        <label class="pg-label">Tahun Ajaran <span class="pg-req">*</span></label>
+        <select class="pg-input" value={form.tahun_ajaran_id}
+          onChange={e => setForm(f => ({ ...f, tahun_ajaran_id: e.target.value }))} required>
+          <option value="">-- Pilih Tahun Ajaran --</option>
+          {tahunAjaranList.map(ta => (
+            <option key={ta.tahun_ajaran_id} value={ta.tahun_ajaran_id}>{ta.nama_tahun_ajaran}</option>
+          ))}
+        </select>
+      </div>
+      <div class="pg-field-row">
+        <div class="pg-field">
+          <label class="pg-label">Tingkatan <span class="pg-req">*</span></label>
+          <select class="pg-input" value={form.tingkatan}
+            onChange={e => setForm(f => ({ ...f, tingkatan: e.target.value }))}>
+            <option value="X">X</option>
+            <option value="XI">XI</option>
+            <option value="XII">XII</option>
+            <option value="XIII">XIII</option>
+          </select>
+        </div>
+        <div class="pg-field" style={{ flex: 2 }}>
+          <label class="pg-label">Jurusan <span class="pg-req">*</span></label>
+          <select class="pg-input" value={form.jurusan_id}
+            onChange={e => setForm(f => ({ ...f, jurusan_id: e.target.value }))} required>
+            <option value="">-- Pilih Jurusan --</option>
+            {jurusanList.filter(j => j.status === 'aktif').map(j => (
+              <option key={j.jurusan_id} value={j.jurusan_id}>{j.kode_jurusan} — {j.nama_jurusan}</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <div class="pg-field">
+        <label class="pg-label">Nomor Rombel</label>
+        <input class="pg-input" type="number" min="1" value={form.nomor_rombel}
+          onInput={e => setForm(f => ({ ...f, nomor_rombel: e.target.value }))} />
+      </div>
+      <div class="pg-field">
+        <label class="pg-label">Label Custom (opsional)</label>
+        <input class="pg-input" placeholder="Kosongkan untuk auto: contoh X TKJ 1" value={form.label_rombel}
+          onInput={e => setForm(f => ({ ...f, label_rombel: e.target.value }))} />
+      </div>
+      <div class="pg-form-actions">
+        <button type="button" class="pg-btn pg-btn--outline"
+          onClick={() => { setAddOpen(false); resetForm() }}>Batal</button>
+        <button type="submit" class="pg-btn pg-btn--primary" disabled={saving}>
+          {saving ? 'Menyimpan…' : 'Tambah'}
+        </button>
+      </div>
+    </form>
+  )
+
+  const EditForm = (
+    <form onSubmit={handleEdit} class="pg-form">
+      <div class="pg-field">
+        <label class="pg-label">Label Rombel</label>
+        <input class="pg-input" value={form.label_rombel}
+          onInput={e => setForm(f => ({ ...f, label_rombel: e.target.value }))} />
+      </div>
+      <div class="pg-field">
+        <label class="pg-label">Nomor Rombel</label>
+        <input class="pg-input" type="number" min="1" value={form.nomor_rombel}
+          onInput={e => setForm(f => ({ ...f, nomor_rombel: e.target.value }))} />
+      </div>
+      <div class="pg-form-actions">
+        <button type="button" class="pg-btn pg-btn--outline"
+          onClick={() => { setEditItem(null); resetForm() }}>Batal</button>
+        <button type="submit" class="pg-btn pg-btn--primary" disabled={saving}>
+          {saving ? 'Menyimpan…' : 'Simpan Perubahan'}
+        </button>
+      </div>
+    </form>
+  )
+
+  return (
+    <div class="pg-section">
+      <div class="pg-section-toolbar">
+        <span class="pg-section-info">{data.length} rombel</span>
+        <button class="pg-btn pg-btn--primary" onClick={() => setAddOpen(true)}>
+          + Tambah Rombel
+        </button>
+      </div>
+
+      <div class="pg-card-grid">
+        {data.length === 0 && <div class="pg-empty">Belum ada rombel.</div>}
+        {data.map(r => (
+          <div key={r.rombel_id} class={`pg-jurusan-card${r.status === 'nonaktif' ? ' pg-jurusan-card--nonaktif' : ''}`}>
+            <div class="pg-jurusan-kode">{r.tingkatan}</div>
+            <div class="pg-jurusan-nama">{r.label_rombel}</div>
+            {r.nama_jurusan && <div class="pg-jurusan-ketua">🎓 {r.nama_jurusan}</div>}
+            <div class="pg-jurusan-footer">
+              <span class={`pg-status-badge pg-status-badge--${r.status}`}>{r.status}</span>
+              <div class="pg-action-row">
+                <button class="pg-btn-sm pg-btn-sm--outline" onClick={() => openEdit(r)}>Edit</button>
+                {r.status === 'aktif' && (
+                  <button class="pg-btn-sm pg-btn-sm--danger"
+                    onClick={() => handleDelete(r.rombel_id, r.label_rombel)}
+                    disabled={saving}>Nonaktifkan</button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <Modal open={addOpen} title="Tambah Rombel" onClose={() => { setAddOpen(false); resetForm() }}>
+        {AddForm}
+      </Modal>
+      <Modal open={!!editItem} title={`Edit Rombel — ${editItem?.label_rombel}`} onClose={() => { setEditItem(null); resetForm() }}>
+        {EditForm}
+      </Modal>
+    </div>
+  )
+}
+
+// ── Tab: Mata Pelajaran ───────────────────────────────────────────────────────
+function MapelTab({ data, jurusanList, onReload, showToast }) {
+  const [addOpen,  setAddOpen]  = useState(false)
+  const [editItem, setEditItem] = useState(null)
+  const [saving,   setSaving]   = useState(false)
+  const [form,     setForm]     = useState({
+    kode_mapel: '', nama_mapel: '', kelompok: 'umum', tingkatan: 'semua', jurusan_id: '', kkm: 75,
+  })
+
+  const resetForm = () => setForm({
+    kode_mapel: '', nama_mapel: '', kelompok: 'umum', tingkatan: 'semua', jurusan_id: '', kkm: 75,
+  })
+
+  async function handleAdd(e) {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      await apiFetch('/admin/pengaturan/mapel', { method: 'POST', body: JSON.stringify(form) })
+      showToast('Mata pelajaran berhasil ditambahkan.')
+      setAddOpen(false); resetForm(); onReload()
+    } catch (err) { showToast(err.message, 'error') }
+    finally { setSaving(false) }
+  }
+
+  async function handleEdit(e) {
+    e.preventDefault()
+    setSaving(true)
+    try {
+      await apiFetch(`/admin/pengaturan/mapel/${editItem.mapel_id}`, { method: 'PATCH', body: JSON.stringify(form) })
+      showToast('Mata pelajaran berhasil diperbarui.')
+      setEditItem(null); resetForm(); onReload()
+    } catch (err) { showToast(err.message, 'error') }
+    finally { setSaving(false) }
+  }
+
+  async function handleDelete(id, nama) {
+    if (!confirm(`Nonaktifkan mata pelajaran "${nama}"?`)) return
+    setSaving(true)
+    try {
+      await apiFetch(`/admin/pengaturan/mapel/${id}`, { method: 'DELETE' })
+      showToast('Mata pelajaran berhasil dinonaktifkan.')
+      onReload()
+    } catch (err) { showToast(err.message, 'error') }
+    finally { setSaving(false) }
+  }
+
+  function openEdit(item) {
+    setEditItem(item)
+    setForm({
+      kode_mapel: item.kode_mapel, nama_mapel: item.nama_mapel, kelompok: item.kelompok ?? 'umum',
+      tingkatan: item.tingkatan ?? 'semua', jurusan_id: item.jurusan_id ?? '', kkm: item.kkm ?? 75,
+    })
+  }
+
+  const MapelForm = ({ onSubmit, submitLabel }) => (
+    <form onSubmit={onSubmit} class="pg-form">
+      <div class="pg-field-row">
+        <div class="pg-field">
+          <label class="pg-label">Kode Mapel <span class="pg-req">*</span></label>
+          <input class="pg-input" placeholder="MTK" value={form.kode_mapel}
+            onInput={e => setForm(f => ({ ...f, kode_mapel: e.target.value.toUpperCase() }))}
+            disabled={!!editItem} required />
+        </div>
+        <div class="pg-field" style={{ flex: 2 }}>
+          <label class="pg-label">Nama Mapel <span class="pg-req">*</span></label>
+          <input class="pg-input" placeholder="Matematika" value={form.nama_mapel}
+            onInput={e => setForm(f => ({ ...f, nama_mapel: e.target.value }))} required />
+        </div>
+      </div>
+      <div class="pg-field-row">
+        <div class="pg-field">
+          <label class="pg-label">Kelompok</label>
+          <select class="pg-input" value={form.kelompok}
+            onChange={e => setForm(f => ({ ...f, kelompok: e.target.value }))}>
+            <option value="umum">Umum</option>
+            <option value="kejuruan">Kejuruan</option>
+            <option value="muatan_lokal">Muatan Lokal</option>
+          </select>
+        </div>
+        <div class="pg-field">
+          <label class="pg-label">Tingkatan</label>
+          <select class="pg-input" value={form.tingkatan}
+            onChange={e => setForm(f => ({ ...f, tingkatan: e.target.value }))}>
+            <option value="semua">Semua Tingkat</option>
+            <option value="X">X</option>
+            <option value="XI">XI</option>
+            <option value="XII">XII</option>
+          </select>
+        </div>
+      </div>
+      <div class="pg-field-row">
+        <div class="pg-field" style={{ flex: 2 }}>
+          <label class="pg-label">Jurusan (opsional, khusus mapel kejuruan)</label>
+          <select class="pg-input" value={form.jurusan_id}
+            onChange={e => setForm(f => ({ ...f, jurusan_id: e.target.value }))}>
+            <option value="">-- Semua Jurusan --</option>
+            {jurusanList.filter(j => j.status === 'aktif').map(j => (
+              <option key={j.jurusan_id} value={j.jurusan_id}>{j.kode_jurusan} — {j.nama_jurusan}</option>
+            ))}
+          </select>
+        </div>
+        <div class="pg-field">
+          <label class="pg-label">KKM</label>
+          <input class="pg-input" type="number" min="0" max="100" value={form.kkm}
+            onInput={e => setForm(f => ({ ...f, kkm: e.target.value }))} />
+        </div>
+      </div>
+      <div class="pg-form-actions">
+        <button type="button" class="pg-btn pg-btn--outline"
+          onClick={() => { setAddOpen(false); setEditItem(null); resetForm() }}>Batal</button>
+        <button type="submit" class="pg-btn pg-btn--primary" disabled={saving}>
+          {saving ? 'Menyimpan…' : submitLabel}
+        </button>
+      </div>
+    </form>
+  )
+
+  return (
+    <div class="pg-section">
+      <div class="pg-section-toolbar">
+        <span class="pg-section-info">{data.length} mata pelajaran</span>
+        <button class="pg-btn pg-btn--primary" onClick={() => setAddOpen(true)}>
+          + Tambah Mata Pelajaran
+        </button>
+      </div>
+
+      <div class="pg-card-grid">
+        {data.length === 0 && <div class="pg-empty">Belum ada mata pelajaran.</div>}
+        {data.map(m => (
+          <div key={m.mapel_id} class={`pg-jurusan-card${m.status === 'nonaktif' ? ' pg-jurusan-card--nonaktif' : ''}`}>
+            <div class="pg-jurusan-kode">{m.kode_mapel}</div>
+            <div class="pg-jurusan-nama">{m.nama_mapel}</div>
+            <div class="pg-jurusan-ketua">📚 {m.kelompok} · {m.tingkatan} · KKM {m.kkm}</div>
+            {m.jurusan && m.jurusan !== 'Semua Jurusan' && <div class="pg-jurusan-desc">{m.jurusan}</div>}
+            <div class="pg-jurusan-footer">
+              <span class={`pg-status-badge pg-status-badge--${m.status}`}>{m.status}</span>
+              <div class="pg-action-row">
+                <button class="pg-btn-sm pg-btn-sm--outline" onClick={() => openEdit(m)}>Edit</button>
+                {m.status === 'aktif' && (
+                  <button class="pg-btn-sm pg-btn-sm--danger"
+                    onClick={() => handleDelete(m.mapel_id, m.nama_mapel)}
+                    disabled={saving}>Nonaktifkan</button>
+                )}
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <Modal open={addOpen} title="Tambah Mata Pelajaran" onClose={() => { setAddOpen(false); resetForm() }}>
+        <MapelForm onSubmit={handleAdd} submitLabel="Tambah" />
+      </Modal>
+      <Modal open={!!editItem} title={`Edit Mapel — ${editItem?.kode_mapel}`} onClose={() => { setEditItem(null); resetForm() }}>
+        <MapelForm onSubmit={handleEdit} submitLabel="Simpan Perubahan" />
+      </Modal>
+    </div>
+  )
+}
+
 // ── Tab: Konfigurasi ──────────────────────────────────────────────────────────
 
 const CONFIG_GROUPS = [
@@ -485,6 +815,8 @@ export default function PengaturanPage() {
   const [tahunAjaran,  setTA]     = useState([])
   const [jurusan,      setJur]    = useState([])
   const [konfigurasi,  setKfg]    = useState([])
+  const [rombel,       setRombel] = useState([])
+  const [mapel,        setMapel]  = useState([])
   const [loading,      setLoad]   = useState(false)
   const [error,        setError]  = useState(null)
   const [toast,        showToast] = useToast()
@@ -492,10 +824,16 @@ export default function PengaturanPage() {
   const load = useCallback(async () => {
     setLoad(true); setError(null)
     try {
-      const res = await apiFetch('/admin/pengaturan')
-      setTA(res.data?.tahun_ajaran ?? [])
-      setJur(res.data?.jurusan     ?? [])
-      setKfg(res.data?.konfigurasi ?? [])
+      const [pgRes, rombelRes, mapelRes] = await Promise.all([
+        apiFetch('/admin/pengaturan'),
+        apiFetch('/rombel/options'),
+        apiFetch('/nilai/mapel'),
+      ])
+      setTA(pgRes.data?.tahun_ajaran ?? [])
+      setJur(pgRes.data?.jurusan     ?? [])
+      setKfg(pgRes.data?.konfigurasi ?? [])
+      setRombel(rombelRes.data?.rombel ?? [])
+      setMapel(mapelRes.data?.mapel    ?? [])
     } catch (e) { setError(e.message) }
     finally { setLoad(false) }
   }, [])
@@ -503,9 +841,11 @@ export default function PengaturanPage() {
   useEffect(() => { load() }, [load])
 
   const tabs = [
-    { id: 'tahun_ajaran', label: 'Tahun Ajaran', icon: '📅' },
-    { id: 'jurusan',      label: 'Jurusan',       icon: '🎓' },
-    { id: 'konfigurasi',  label: 'Konfigurasi',   icon: '⚙️' },
+    { id: 'tahun_ajaran', label: 'Tahun Ajaran',    icon: '📅' },
+    { id: 'jurusan',      label: 'Jurusan',          icon: '🎓' },
+    { id: 'rombel',       label: 'Rombel',           icon: '🏫' },
+    { id: 'mapel',        label: 'Mata Pelajaran',   icon: '📚' },
+    { id: 'konfigurasi',  label: 'Konfigurasi',      icon: '⚙️' },
   ]
 
   return (
@@ -540,6 +880,12 @@ export default function PengaturanPage() {
       )}
       {!loading && !error && tab === 'jurusan' && (
         <JurusanTab data={jurusan} onReload={load} showToast={showToast} />
+      )}
+      {!loading && !error && tab === 'rombel' && (
+        <RombelTab data={rombel} jurusanList={jurusan} tahunAjaranList={tahunAjaran} onReload={load} showToast={showToast} />
+      )}
+      {!loading && !error && tab === 'mapel' && (
+        <MapelTab data={mapel} jurusanList={jurusan} onReload={load} showToast={showToast} />
       )}
       {!loading && !error && tab === 'konfigurasi' && (
         <KonfigurasiTab data={konfigurasi} onReload={load} showToast={showToast} />

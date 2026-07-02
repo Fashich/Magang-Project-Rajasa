@@ -44,6 +44,8 @@ use Rajasa\PresensiSiswa\Http\Controllers\AnalitikController;
 use Rajasa\PresensiSiswa\Http\Controllers\PengaturanGetController;
 use Rajasa\PresensiSiswa\Http\Controllers\PengaturanTahunAjaranController;
 use Rajasa\PresensiSiswa\Http\Controllers\PengaturanJurusanController;
+use Rajasa\PresensiSiswa\Http\Controllers\PengaturanRombelController;
+use Rajasa\PresensiSiswa\Http\Controllers\PengaturanMapelController;
 use Rajasa\PresensiSiswa\Http\Controllers\PengaturanKonfigurasiController;
 use Rajasa\PresensiSiswa\Http\Controllers\EarlyWarningController;
 use Rajasa\PresensiSiswa\Http\Controllers\EIzinIndexController;
@@ -123,6 +125,12 @@ return function (RouteCollector $route): void {
     $route->post('/api/admin/pengaturan/jurusan',                   PengaturanJurusanController::class);
     $route->patch('/api/admin/pengaturan/jurusan/{id:\d+}',         PengaturanJurusanController::class);
     $route->delete('/api/admin/pengaturan/jurusan/{id:\d+}',        PengaturanJurusanController::class);
+    $route->post('/api/admin/pengaturan/rombel',                    PengaturanRombelController::class);
+    $route->patch('/api/admin/pengaturan/rombel/{id:\d+}',          PengaturanRombelController::class);
+    $route->delete('/api/admin/pengaturan/rombel/{id:\d+}',         PengaturanRombelController::class);
+    $route->post('/api/admin/pengaturan/mapel',                     PengaturanMapelController::class);
+    $route->patch('/api/admin/pengaturan/mapel/{id:\d+}',           PengaturanMapelController::class);
+    $route->delete('/api/admin/pengaturan/mapel/{id:\d+}',          PengaturanMapelController::class);
     $route->patch('/api/admin/pengaturan/konfigurasi',              PengaturanKonfigurasiController::class);
 
     // ── Early Warning ─────────────────────────────────────────────────────────

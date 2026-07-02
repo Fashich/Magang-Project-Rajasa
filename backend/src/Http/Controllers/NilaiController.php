@@ -262,6 +262,7 @@ final class NilaiController
                 'kelompok'   => $r->kelompok,
                 'tingkatan'  => $r->tingkatan,
                 'kkm'        => (int) $r->kkm,
+                'jurusan_id' => $r->jurusan_id ? (int) $r->jurusan_id : null,
                 'jurusan'    => $r->nama_jurusan ?? 'Semua Jurusan',
             ])->values()->all(),
         ]);
