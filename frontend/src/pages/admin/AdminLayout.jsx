@@ -310,9 +310,12 @@ function AdminSidebar({ collapsed, activePage, onPageChange, onLogout, user, lan
     <aside className="admin-sidebar">
       <div className="admin-sidebar-logo">
         <div className="admin-sidebar-logo-icon">
-          {window.__RAJASA_LOGO__
-            ? <img src="/images/logo/Rajasa-Logo.png" alt="Logo SMK Rajasa" />
-            : I.school}
+          <img
+            src="/images/logo/Rajasa-Logo.png"
+            alt="Logo SMK Rajasa"
+            onError={(e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex' }}
+          />
+          <span style={{ display: 'none' }}>{I.school}</span>
         </div>
         {!collapsed && (
           <div className="admin-sidebar-logo-text">
