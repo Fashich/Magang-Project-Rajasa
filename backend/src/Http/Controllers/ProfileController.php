@@ -8,13 +8,23 @@ use Illuminate\Database\Capsule\Manager as DB;
 use Rajasa\PresensiSiswa\Core\Request;
 use Rajasa\PresensiSiswa\Core\Response;
 use Rajasa\PresensiSiswa\Http\Middleware\AuthMiddleware;
+use Rajasa\PresensiSiswa\Services\FileStorageService;
+use Rajasa\PresensiSiswa\Support\Config;
 
 /**
  * ProfileController
  *
- * GET  /api/profile/me       → profil lengkap user yang login
- * POST /api/profile/foto     → upload foto profil (max 10 MB)
- * PUT  /api/profile/kontak   → update email + no_telp (guru & admin)
+ * GET  /api/profile/me       -> profil lengkap user yang login
+ * POST /api/profile/foto     -> upload foto profil (max 10 MB)
+ * PUT  /api/profile/kontak   -> update email + no_telp (guru & admin)
+ *
+ * CATATAN PENTING soal foto_profil:
+ *   Kolom `foto_profil` di database sekarang menyimpan FULL URL (bukan cuma
+ *   nama file) begitu foto di-upload lewat versi ini, agar konsisten baik
+ *   memakai Cloudflare R2 (persisten) maupun fallback local disk.
+ *   Untuk foto lama (format lama = cuma nama file, sebelum fix ini) tetap
+ *   didukung lewat resolveFotoUrl() yang mendeteksi apakah value sudah
+ *   berupa URL absolut atau masih nama file saja.
  */
 final class ProfileController
 {
@@ -26,6 +36,7 @@ final class ProfileController
     public function __construct(
         private readonly AuthMiddleware $auth,
         private readonly Request        $request,
+        private readonly FileStorageService $storage,
     ) {}
 
     // ── GET /api/profile/me ───────────────────────────────────────────────────
@@ -61,9 +72,7 @@ final class ProfileController
         }
 
         $data = (array) $row;
-        $data['foto_url'] = $data['foto_profil']
-            ? '/server/foto/guru/' . $data['foto_profil']
-            : null;
+        $data['foto_url'] = $this->resolveFotoUrl($data['foto_profil'], 'guru');
         unset($data['foto_profil']);
 
         Response::success('Profil guru.', ['profile' => $data]);
@@ -92,12 +101,36 @@ final class ProfileController
         }
 
         $data = (array) $row;
-        $data['foto_url'] = $data['foto_profil']
-            ? '/server/foto/siswa/' . $data['foto_profil']
-            : null;
+        $data['foto_url'] = $this->resolveFotoUrl($data['foto_profil'], 'siswa');
         unset($data['foto_profil']);
 
         Response::success('Profil siswa.', ['profile' => $data]);
+    }
+
+    /**
+     * Ubah value foto_profil dari database menjadi URL yang bisa langsung
+     * dipakai <img src>. Mendukung 3 kemungkinan bentuk value:
+     *   1. NULL / kosong           -> null (frontend tampilkan placeholder)
+     *   2. Sudah full URL (http... dari R2)  -> dipakai apa adanya
+     *   3. Cuma nama file (format lama, local disk) -> di-prefix APP_URL
+     */
+    private function resolveFotoUrl(?string $fotoProfil, string $type): ?string
+    {
+        if (!$fotoProfil) {
+            return null;
+        }
+
+        // Sudah full URL (upload via R2 setelah fix ini)
+        if (str_starts_with($fotoProfil, 'http://') || str_starts_with($fotoProfil, 'https://')) {
+            return $fotoProfil;
+        }
+
+        // Format lama: cuma nama file, disimpan di local disk. Bangun
+        // absolute URL memakai APP_URL agar tidak salah resolve ke domain
+        // frontend (bug lama: path relatif /server/... di-resolve browser
+        // ke domain Vercel, bukan Render).
+        $appUrl = rtrim(Config::get('app.url', 'http://localhost:8080'), '/');
+        return "{$appUrl}/server/foto/{$type}/{$fotoProfil}";
     }
 
     // ── POST /api/profile/foto ────────────────────────────────────────────────
@@ -108,7 +141,7 @@ final class ProfileController
 
         if (!isset($_FILES['foto'])) {
             Response::error(
-                'File tidak diterima. Pastikan format multipart/form-data dan ukuran ≤ 10 MB.',
+                'File tidak diterima. Pastikan format multipart/form-data dan ukuran <= 10 MB.',
                 ['php_post_max' => ini_get('post_max_size'), 'php_upload_max' => ini_get('upload_max_filesize')],
                 400
             );
@@ -131,13 +164,11 @@ final class ProfileController
             return;
         }
 
-        // Validasi ukuran max 10MB
         if ($file['size'] > self::FOTO_MAX_BYTES) {
             Response::error('Ukuran foto maksimal 10 MB.', [], 422);
             return;
         }
 
-        // Validasi MIME type (pakai finfo, bukan extension)
         $finfo    = new \finfo(FILEINFO_MIME_TYPE);
         $mimeType = $finfo->file($file['tmp_name']);
 
@@ -154,81 +185,99 @@ final class ProfileController
         };
 
         $isGuru = in_array($user->user_type, ['guru', 'staff', 'admin', 'intern'], true);
-        $dir    = $isGuru ? self::FOTO_DIR_GURU : self::FOTO_DIR_SISWA;
         $type   = $isGuru ? 'guru' : 'siswa';
         $now    = date('Y-m-d H:i:s');
 
         try {
-            // Buat folder jika belum ada
-            if (!is_dir($dir)) {
-                mkdir($dir, 0755, true);
-            }
-
-            if (!is_writable($dir)) {
-                Response::error("Folder upload tidak writable: {$dir}", [], 500);
-                return;
-            }
-
-            if ($isGuru) {
-                $row = DB::table('guru_staff as g')
+            $ownerRow = $isGuru
+                ? DB::table('guru_staff as g')
                     ->join('users as u', 'u.guru_id', '=', 'g.guru_id')
                     ->where('u.user_id', '=', (int) $user->user_id)
-                    ->select(['g.guru_id', 'g.foto_profil'])
-                    ->first();
-
-                if (!$row) {
-                    Response::error('Data guru tidak ditemukan.', [], 404);
-                    return;
-                }
-
-                // Hapus foto lama
-                if ($row->foto_profil && file_exists($dir . $row->foto_profil)) {
-                    unlink($dir . $row->foto_profil);
-                }
-
-                $filename = "guru_{$row->guru_id}_" . time() . ".{$ext}";
-
-                if (!move_uploaded_file($file['tmp_name'], $dir . $filename)) {
-                    Response::error('Gagal menyimpan file foto ke server.', [], 500);
-                    return;
-                }
-
-                DB::table('guru_staff')
-                    ->where('guru_id', $row->guru_id)
-                    ->update(['foto_profil' => $filename, 'updated_at' => $now]);
-
-            } else {
-                $row = DB::table('siswa as s')
+                    ->select(['g.guru_id as owner_id', 'g.foto_profil'])
+                    ->first()
+                : DB::table('siswa as s')
                     ->join('users as u', 'u.siswa_id', '=', 's.siswa_id')
                     ->leftJoin('profil_siswa as ps', 'ps.siswa_id', '=', 's.siswa_id')
                     ->where('u.user_id', '=', (int) $user->user_id)
-                    ->select(['s.siswa_id', 'ps.profil_id', 'ps.foto_profil'])
+                    ->select(['s.siswa_id as owner_id', 'ps.profil_id', 'ps.foto_profil'])
                     ->first();
 
-                if (!$row) {
-                    Response::error('Data siswa tidak ditemukan.', [], 404);
+            if (!$ownerRow) {
+                Response::error('Data pemilik profil tidak ditemukan.', [], 404);
+                return;
+            }
+
+            $ownerId  = (int) $ownerRow->owner_id;
+            $filename = "{$type}_{$ownerId}_" . time() . ".{$ext}";
+            $contents = file_get_contents($file['tmp_name']);
+
+            $fotoUrlToStore = null;
+
+            // ── Prioritas 1: Upload ke R2 (persisten, survive redeploy) ────────
+            if ($this->storage->isEnabled()) {
+                try {
+                    $fotoUrlToStore = $this->storage->put(
+                        "foto-profil/{$type}/{$filename}",
+                        $contents,
+                        $mimeType
+                    );
+
+                    // Hapus foto lama di R2 kalau formatnya juga full URL R2
+                    if ($ownerRow->foto_profil && str_starts_with($ownerRow->foto_profil, 'http')) {
+                        $oldKey = $this->extractR2Key($ownerRow->foto_profil, $type);
+                        if ($oldKey) {
+                            $this->storage->delete($oldKey);
+                        }
+                    }
+                } catch (\Throwable $e) {
+                    error_log('[ProfileController] R2 upload gagal, fallback ke local: ' . $e->getMessage());
+                    $fotoUrlToStore = null; // lanjut ke fallback di bawah
+                }
+            }
+
+            // ── Fallback: Local disk (tidak persisten di Render) ────────────────
+            if ($fotoUrlToStore === null) {
+                $dir = $isGuru ? self::FOTO_DIR_GURU : self::FOTO_DIR_SISWA;
+
+                if (!is_dir($dir)) {
+                    mkdir($dir, 0755, true);
+                }
+                if (!is_writable($dir)) {
+                    Response::error("Folder upload tidak writable: {$dir}", [], 500);
                     return;
                 }
 
-                if ($row->foto_profil && file_exists($dir . $row->foto_profil)) {
-                    unlink($dir . $row->foto_profil);
+                // Hapus foto lama lokal (kalau formatnya nama file, bukan URL R2)
+                if ($ownerRow->foto_profil
+                    && !str_starts_with($ownerRow->foto_profil, 'http')
+                    && file_exists($dir . $ownerRow->foto_profil)
+                ) {
+                    unlink($dir . $ownerRow->foto_profil);
                 }
-
-                $filename = "siswa_{$row->siswa_id}_" . time() . ".{$ext}";
 
                 if (!move_uploaded_file($file['tmp_name'], $dir . $filename)) {
                     Response::error('Gagal menyimpan file foto ke server.', [], 500);
                     return;
                 }
 
-                if ($row->profil_id) {
+                $appUrl = rtrim(Config::get('app.url', 'http://localhost:8080'), '/');
+                $fotoUrlToStore = "{$appUrl}/server/foto/{$type}/{$filename}";
+            }
+
+            // ── Simpan referensi ke database (selalu full URL) ──────────────────
+            if ($isGuru) {
+                DB::table('guru_staff')
+                    ->where('guru_id', $ownerId)
+                    ->update(['foto_profil' => $fotoUrlToStore, 'updated_at' => $now]);
+            } else {
+                if ($ownerRow->profil_id) {
                     DB::table('profil_siswa')
-                        ->where('siswa_id', $row->siswa_id)
-                        ->update(['foto_profil' => $filename, 'updated_at' => $now]);
+                        ->where('siswa_id', $ownerId)
+                        ->update(['foto_profil' => $fotoUrlToStore, 'updated_at' => $now]);
                 } else {
                     DB::table('profil_siswa')->insert([
-                        'siswa_id'    => $row->siswa_id,
-                        'foto_profil' => $filename,
+                        'siswa_id'    => $ownerId,
+                        'foto_profil' => $fotoUrlToStore,
                         'created_at'  => $now,
                         'updated_at'  => $now,
                     ]);
@@ -240,8 +289,20 @@ final class ProfileController
         }
 
         Response::success('Foto profil berhasil diperbarui.', [
-            'foto_url' => "/server/foto/{$type}/{$filename}",
+            'foto_url' => $fotoUrlToStore,
         ]);
+    }
+
+    /**
+     * Ekstrak R2 object key dari full URL, dipakai untuk hapus foto lama.
+     * Contoh: https://pub-xxx.r2.dev/foto-profil/guru/guru_5_123.jpg
+     *      -> foto-profil/guru/guru_5_123.jpg
+     */
+    private function extractR2Key(string $url, string $type): ?string
+    {
+        $marker = "foto-profil/{$type}/";
+        $pos = strpos($url, $marker);
+        return $pos !== false ? substr($url, $pos) : null;
     }
 
     // ── PUT /api/profile/kontak ───────────────────────────────────────────────
@@ -261,7 +322,6 @@ final class ProfileController
         try {
             if (in_array($user->user_type, ['guru', 'staff', 'admin', 'intern'], true)) {
 
-                // Field yang boleh diedit per jenis user
                 if ($user->user_type === 'admin') {
                     $allowedFields = ['nama_lengkap', 'nip', 'jabatan', 'email', 'no_telp'];
                 } else {
@@ -284,7 +344,6 @@ final class ProfileController
                     return;
                 }
 
-                // Cek duplikat NIP hanya jika NIP berubah
                 if (
                     !empty($body['nip'])
                     && trim((string) $body['nip']) !== (string) ($row->existing_nip ?? '')
@@ -316,7 +375,6 @@ final class ProfileController
                 DB::table('guru_staff')->where('guru_id', (int) $row->guru_id)->update($updates);
 
             } else {
-                // Siswa — bisa edit nama_lengkap, email, no_telp
                 $row = DB::table('siswa as s')
                     ->join('users as u', 'u.siswa_id', '=', 's.siswa_id')
                     ->where('u.user_id', '=', (int) $user->user_id)
