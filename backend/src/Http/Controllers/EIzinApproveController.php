@@ -94,8 +94,13 @@ final class EIzinApproveController
         }
 
         // ── Approval level 1: Wali Kelas ──────────────────────────────────────
+        // CATATAN: sistem tidak punya role/akun 'ortu' formal (lihat ENUM
+        // user_type), jadi izin siswa selalu berhenti di 'menunggu_ortu' dan
+        // tidak pernah otomatis naik ke 'pending'. Wali kelas diperbolehkan
+        // approve langsung dari kedua status ini, sekaligus mengisi jejak
+        // audit ortu_status='approved' agar riwayat tetap konsisten.
         if (in_array($type, ['guru'], true)) {
-            if ($izin->status !== 'pending') {
+            if (!in_array($izin->status, ['menunggu_ortu', 'pending'], true)) {
                 Response::error('Izin ini sudah tidak bisa diproses (status: '.$izin->status.').', [], 409); return;
             }
 
@@ -110,13 +115,25 @@ final class EIzinApproveController
             }
 
             $newStatus = $action === 'approve' ? 'disetujui_wali' : 'ditolak_wali';
-            DB::table('e_izin')->where('izin_id', $id)->update([
+            $updateData = [
                 'status'           => $newStatus,
                 'wali_approved_by' => (int) $user->user_id,
                 'wali_approved_at' => Carbon::now()->toDateTimeString(),
                 'wali_catatan'     => $catatan ?: null,
                 'updated_at'       => Carbon::now()->toDateTimeString(),
-            ]);
+            ];
+
+            // Kalau masih di tahap 'menunggu_ortu', isi juga jejak ortu
+            // sekaligus supaya audit trail tetap konsisten (tidak ada gap).
+            // ortu_status ENUM hanya terima pending/approved/rejected, jadi
+            // detail "siapa yang approve" ditaruh di ortu_catatan.
+            if ($izin->status === 'menunggu_ortu') {
+                $updateData['ortu_status']      = 'approved';
+                $updateData['ortu_approved_at'] = Carbon::now()->toDateTimeString();
+                $updateData['ortu_catatan']     = 'Disetujui otomatis oleh wali kelas (belum ada akun orang tua terdaftar di sistem).';
+            }
+
+            DB::table('e_izin')->where('izin_id', $id)->update($updateData);
 
             // Notifikasi admin jika disetujui wali
             if ($newStatus === 'disetujui_wali') {
