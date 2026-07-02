@@ -114,10 +114,10 @@ export default function EIzinSiswa() {
   const today = new Date().toISOString().slice(0, 10)
 
   const [form, setForm] = useState({
-    jenis_izin:     'sakit',
+    jenis:          'sakit',
     tanggal_mulai:  today,
     tanggal_selesai: today,
-    keterangan:     '',
+    alasan:         '',
   })
 
   const setF = (k, v) => setForm(f => ({ ...f, [k]: v }))
@@ -135,7 +135,7 @@ export default function EIzinSiswa() {
 
   async function handleSubmit() {
     setGlobalErr('')
-    if (!form.keterangan.trim()) {
+    if (!form.alasan.trim()) {
       setGlobalErr('Keterangan wajib diisi.'); return
     }
     setSubmitting(true)
@@ -143,7 +143,7 @@ export default function EIzinSiswa() {
       await apiFetch('/e-izin', { method: 'POST', body: JSON.stringify(form) })
       setSuccessMsg('Pengajuan izin berhasil dikirim.')
       setShowForm(false)
-      setForm({ jenis_izin: 'sakit', tanggal_mulai: today, tanggal_selesai: today, keterangan: '' })
+      setForm({ jenis: 'sakit', tanggal_mulai: today, tanggal_selesai: today, alasan: '' })
       await load()
     } catch (e) {
       setGlobalErr(e.message)
@@ -203,7 +203,7 @@ export default function EIzinSiswa() {
 
             <div style={s.field}>
               <label style={s.label}>Jenis</label>
-              <select value={form.jenis_izin} onChange={e => setF('jenis_izin', e.target.value)}
+              <select value={form.jenis} onChange={e => setF('jenis', e.target.value)}
                 style={s.input}>
                 <option value="sakit">🏥 Sakit</option>
                 <option value="izin">📋 Izin</option>
@@ -228,8 +228,8 @@ export default function EIzinSiswa() {
             <div style={s.field}>
               <label style={s.label}>Keterangan <span style={{ color: '#dc2626' }}>*</span></label>
               <textarea rows={4} placeholder="Jelaskan alasan izin/sakit..."
-                value={form.keterangan}
-                onInput={e => setF('keterangan', e.target.value)}
+                value={form.alasan}
+                onInput={e => setF('alasan', e.target.value)}
                 style={{ ...s.input, resize: 'vertical' }} />
             </div>
 
@@ -280,7 +280,7 @@ export default function EIzinSiswa() {
               {items.map(item => (
                 <tr key={item.izin_id} style={{ borderBottom: '1px solid var(--clr-border)' }}>
                   <td style={{ padding: '0.75rem 1rem' }}>
-                    {TYPE_LBL[item.jenis_izin] ?? item.jenis_izin}
+                    {TYPE_LBL[item.jenis] ?? item.jenis}
                   </td>
                   <td style={{ padding: '0.75rem 1rem', whiteSpace: 'nowrap', fontSize: '0.8rem' }}>
                     {fmtDate(item.tanggal_mulai)}
@@ -291,7 +291,7 @@ export default function EIzinSiswa() {
                     padding: '0.75rem 1rem', maxWidth: 200,
                     overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
                   }}>
-                    {item.keterangan || '—'}
+                    {item.alasan || '—'}
                   </td>
                   <td style={{ padding: '0.75rem 1rem' }}>
                     <span style={{
