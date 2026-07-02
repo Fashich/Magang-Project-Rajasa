@@ -19,8 +19,9 @@ final class PengaturanJurusanController
         private readonly Request        $request,
     ) {}
 
-    public function __invoke(int $id = 0): void
+    public function __invoke(string $id = '0'): void
     {
+        $id   = (int) $id;
         $user = $this->auth->user();
         if ($user->user_type !== 'admin') { Response::error('Akses ditolak.', [], 403); return; }
 

@@ -20,8 +20,9 @@ final class UsersDeleteController
         private readonly UsersService   $service,
     ) {}
 
-    public function __invoke(int $id): void
+    public function __invoke(string $id): void
     {
+        $id   = (int) $id;
         $user = $this->auth->user();
 
         if ($user->user_type !== 'admin') {

@@ -33,8 +33,9 @@ final class EIzinApproveController
         private readonly Request        $request,
     ) {}
 
-    public function __invoke(int $id): void
+    public function __invoke(string $id): void
     {
+        $id     = (int) $id;
         $user   = $this->auth->user();
         $type   = $user->user_type;
         $body   = $this->request->body();
