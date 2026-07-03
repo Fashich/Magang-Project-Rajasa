@@ -23,9 +23,14 @@ final class PresensiSesiActiveController
     public function __invoke(): void
     {
         $this->timeout->expireInactiveSessions();
-        $this->permission->require('attendance.session.read');
 
         $user = $this->auth->user();
+
+        // Admin & guru boleh cek sesi aktif tanpa permission khusus
+        // Role lain (siswa) tetap butuh permission
+        if (!in_array($user->user_type, ['admin', 'guru'], true)) {
+            $this->permission->require('attendance.session.read');
+        }
 
         Response::success('Sesi aktif.', [
             'sessions' => $this->service->activeForUser((int) $user->user_id),

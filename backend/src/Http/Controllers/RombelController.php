@@ -6,18 +6,19 @@ namespace Rajasa\PresensiSiswa\Http\Controllers;
 
 use Illuminate\Database\Capsule\Manager as DB;
 use Rajasa\PresensiSiswa\Core\Response;
-use Rajasa\PresensiSiswa\Http\Middleware\PermissionMiddleware;
+use Rajasa\PresensiSiswa\Http\Middleware\AuthMiddleware;
 
 final class RombelController
 {
     public function __construct(
-        private readonly PermissionMiddleware $permission
+        private readonly AuthMiddleware $auth
     ) {
     }
 
     public function __invoke(): void
     {
-        $this->permission->require('attendance.session.read');
+        // Rombel list = dropdown publik untuk semua role yang sudah login
+        $this->auth->user();
 
         $rombel = DB::table('rombel')
             ->leftJoin('jurusan', 'jurusan.jurusan_id', '=', 'rombel.jurusan_id')
@@ -57,17 +58,17 @@ final class RombelController
         }
 
         return [
-            'rombel_id' => (int) $row->rombel_id,
-            'label' => $label,
-            'label_rombel' => $row->label_rombel,
+            'rombel_id'        => (int) $row->rombel_id,
+            'label'            => $label,
+            'label_rombel'     => $row->label_rombel,
             'label_rombel_raw' => $row->label_rombel_raw,
-            'tingkatan' => $row->tingkatan,
-            'tingkat_angka' => $row->tingkat_angka !== null ? (int) $row->tingkat_angka : null,
-            'nomor_rombel' => (int) $row->nomor_rombel,
-            'jurusan_id' => (int) $row->jurusan_id,
-            'kode_jurusan' => $row->kode_jurusan,
-            'nama_jurusan' => $row->nama_jurusan,
-            'status' => $row->status,
+            'tingkatan'        => $row->tingkatan,
+            'tingkat_angka'    => $row->tingkat_angka !== null ? (int) $row->tingkat_angka : null,
+            'nomor_rombel'     => (int) $row->nomor_rombel,
+            'jurusan_id'       => (int) $row->jurusan_id,
+            'kode_jurusan'     => $row->kode_jurusan,
+            'nama_jurusan'     => $row->nama_jurusan,
+            'status'           => $row->status,
         ];
     }
 }
