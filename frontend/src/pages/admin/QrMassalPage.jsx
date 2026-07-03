@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect, useRef } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 import QRCode from 'qrcode'
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api'
@@ -55,7 +56,8 @@ function QrCard({ siswa }) {
   )
 }
 
-export default function QrMassalPage() {
+export default function QrMassalPage({ lang }) {
+  const t = T[lang] || T.id
   const [rombels, setRombels]         = useState([])
   const [selectedRombel, setSelected] = useState('')
   const [data, setData]               = useState(null)
@@ -110,7 +112,7 @@ export default function QrMassalPage() {
           {rombels.map(r => <option key={r.rombel_id} value={r.rombel_id}>{r.label}</option>)}
         </select>
         <button onClick={loadQr} disabled={!selectedRombel || loading}>
-          {loading ? 'Memuat…' : 'Tampilkan QR'}
+          {loading ? t.ad_memuat : 'Tampilkan QR'}
         </button>
         {data && (
           <button onClick={() => window.print()} style={{ background: '#10b981' }}>

@@ -12,6 +12,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 import './LaporanPage.css'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -70,7 +71,7 @@ async function downloadFile(params, filename) {
     const res = await fetch(`/api/admin/laporan/export?${params.toString()}`, {
       headers: { Authorization: `Bearer ${token}` },
     })
-    if (!res.ok) { alert('Export gagal. Coba lagi.'); return }
+    if (!res.ok) { alert(t.ad_export_gagal); return }
     const blob = await res.blob()
     const url  = URL.createObjectURL(blob)
     const a    = document.createElement('a')
@@ -559,7 +560,8 @@ function EmptyState() {
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export default function LaporanPage() {
+export default function LaporanPage({ lang }) {
+  const t = T[lang] || T.id
   const [tab,    setTab]    = useState('rekap_rombel')
   const [dari,   setDari]   = useState(startOfMonth)
   const [sampai, setSampai] = useState(todayString)
@@ -569,9 +571,9 @@ export default function LaporanPage() {
     : `${formatDate(dari)} – ${formatDate(sampai)}`
 
   const tabs = [
-    { id: 'rekap_rombel', label: 'Per Rombel',  icon: '🏫' },
-    { id: 'rekap_siswa',  label: 'Per Siswa',   icon: '👤' },
-    { id: 'rekap_harian', label: 'Per Hari',    icon: '📅' },
+    { id: 'rekap_rombel', label: t.ad_per_rombel, icon: '🏫' },
+    { id: 'rekap_siswa',  label: t.ad_per_siswa,  icon: '👤' },
+    { id: 'rekap_harian', label: t.ad_per_hari,   icon: '📅' },
   ]
 
   return (
@@ -612,9 +614,9 @@ export default function LaporanPage() {
         </div>
         <div class="lp-date-shortcuts">
           {[
-            { label: 'Bulan ini',  dari: startOfMonth(), sampai: todayString() },
-            { label: '7 hari',     dari: (() => { const d = new Date(); d.setDate(d.getDate()-6); return d.toISOString().slice(0,10) })(), sampai: todayString() },
-            { label: 'Bulan lalu', dari: (() => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth()-1); return d.toISOString().slice(0,10) })(),
+            { label: t.ad_bulan_ini,  dari: startOfMonth(), sampai: todayString() },
+            { label: t.ad_7_hari,     dari: (() => { const d = new Date(); d.setDate(d.getDate()-6); return d.toISOString().slice(0,10) })(), sampai: todayString() },
+            { label: t.ad_bulan_lalu, dari: (() => { const d = new Date(); d.setDate(1); d.setMonth(d.getMonth()-1); return d.toISOString().slice(0,10) })(),
                                    sampai: (() => { const d = new Date(); d.setDate(0); return d.toISOString().slice(0,10) })() },
           ].map(({ label, dari: d, sampai: s }) => {
             const active = dari === d && sampai === s

@@ -21,6 +21,7 @@
 
 import { useState, useEffect, useCallback } from 'preact/hooks'
 import { siswaApi } from '../../utils/api'
+import { T } from '../../utils/lang.js'
 import './KalenderAkademik.css'
 
 // ─── Zoom configuration ───────────────────────────────────────────────────────
@@ -85,11 +86,11 @@ function IconError() {
 /**
  * Loading skeleton shown while fetching PDF URL.
  */
-function LoadingState() {
+function LoadingState({ t }) {
   return (
-    <div className="kalender-loading" role="status" aria-label="Memuat kalender akademik">
+    <div className="kalender-loading" role="status" aria-label={t.ka_memuat}>
       <div className="kalender-loading-spinner" aria-hidden="true" />
-      <span>Memuat kalender akademik...</span>
+      <span>{t.ka_memuat}</span>
     </div>
   )
 }
@@ -97,25 +98,24 @@ function LoadingState() {
 /**
  * Empty state shown when no PDF has been uploaded yet.
  */
-function EmptyState() {
+function EmptyState({ t }) {
   return (
-    <div className="kalender-empty" role="status" aria-label="Kalender akademik belum tersedia">
+    <div className="kalender-empty" role="status" aria-label={t.ka_kosong_judul}>
       <div className="kalender-empty-icon" aria-hidden="true">
         <IconCalendar />
       </div>
 
       <h3 className="kalender-empty-title">
-        Kalender Akademik Belum Tersedia
+        {t.ka_kosong_judul}
       </h3>
 
       <p className="kalender-empty-desc">
-        File kalender akademik belum diunggah oleh admin.
-        Silakan hubungi pihak sekolah atau cek kembali nanti.
+        {t.ka_kosong_desc}
       </p>
 
       <span className="kalender-empty-badge">
         <IconInfo />
-        Menunggu unggahan dari admin
+        {t.ka_kosong_badge}
       </span>
     </div>
   )
@@ -124,11 +124,11 @@ function EmptyState() {
 /**
  * PDF toolbar — zoom controls + download button (Level 5 features).
  *
- * @param {{ zoom: number, pdfUrl: string, pdfName: string, onZoomIn: Function, onZoomOut: Function, onReset: Function }} props
+ * @param {{ zoom: number, pdfUrl: string, pdfName: string, onZoomIn: Function, onZoomOut: Function, onReset: Function, t: object }} props
  */
-function PdfToolbar({ zoom, pdfUrl, pdfName, onZoomIn, onZoomOut, onReset }) {
+function PdfToolbar({ zoom, pdfUrl, pdfName, onZoomIn, onZoomOut, onReset, t }) {
   return (
-    <div className="kalender-toolbar" role="toolbar" aria-label="Kontrol PDF">
+    <div className="kalender-toolbar" role="toolbar" aria-label={t.ka_judul}>
       {/* Zoom controls */}
       <div className="zoom-group">
         <button
@@ -136,8 +136,8 @@ function PdfToolbar({ zoom, pdfUrl, pdfName, onZoomIn, onZoomOut, onReset }) {
           className="zoom-btn"
           onClick={onZoomOut}
           disabled={zoom <= ZOOM_MIN}
-          aria-label="Perkecil tampilan PDF"
-          title="Perkecil"
+          aria-label={t.ka_perkecil}
+          title={t.ka_perkecil}
         >
           <IconZoomOut />
         </button>
@@ -151,8 +151,8 @@ function PdfToolbar({ zoom, pdfUrl, pdfName, onZoomIn, onZoomOut, onReset }) {
           className="zoom-btn"
           onClick={onZoomIn}
           disabled={zoom >= ZOOM_MAX}
-          aria-label="Perbesar tampilan PDF"
-          title="Perbesar"
+          aria-label={t.ka_perbesar}
+          title={t.ka_perbesar}
         >
           <IconZoomIn />
         </button>
@@ -162,10 +162,10 @@ function PdfToolbar({ zoom, pdfUrl, pdfName, onZoomIn, onZoomOut, onReset }) {
         type="button"
         className="zoom-reset-btn"
         onClick={onReset}
-        aria-label="Reset zoom ke 100%"
-        title="Reset zoom"
+        aria-label={t.ka_reset}
+        title={t.ka_reset}
       >
-        Reset
+        {t.ka_reset}
       </button>
 
       {/* Download button */}
@@ -173,10 +173,10 @@ function PdfToolbar({ zoom, pdfUrl, pdfName, onZoomIn, onZoomOut, onReset }) {
         href={pdfUrl}
         download={pdfName ?? 'kalender-akademik.pdf'}
         className="kalender-download-btn"
-        aria-label="Download kalender akademik PDF"
+        aria-label={t.ka_download}
       >
         <IconDownload />
-        Download
+        {t.ka_download}
       </a>
     </div>
   )
@@ -193,7 +193,9 @@ function PdfToolbar({ zoom, pdfUrl, pdfName, onZoomIn, onZoomOut, onReset }) {
  *
  * @returns {preact.VNode}
  */
-export default function KalenderAkademik() {
+export default function KalenderAkademik({ lang }) {
+  const t = T[lang] || T.id
+
   const [pdfUrl,    setPdfUrl]    = useState(null)
   const [pdfName,   setPdfName]   = useState(null)
   const [isLoading, setLoading]   = useState(true)
@@ -210,7 +212,7 @@ export default function KalenderAkademik() {
       setPdfName(res.data?.pdf_name ?? null)
     } catch (err) {
       console.error('[KalenderAkademik] Fetch error:', err)
-      setError(err.message || 'Gagal memuat kalender akademik.')
+      setError(err.message || t.ka_gagal_muat)
     } finally {
       setLoading(false)
     }
@@ -226,14 +228,14 @@ export default function KalenderAkademik() {
   const handleReset   = useCallback(() => setZoom(ZOOM_DEFAULT), [])
 
   return (
-    <section className="kalender-section" aria-label="Kalender Akademik">
+    <section className="kalender-section" aria-label={t.ka_judul}>
 
       {/* ── Page header ── */}
       <div className="kalender-header">
         <header>
-          <h2 className="kalender-title">Kalender Akademik</h2>
+          <h2 className="kalender-title">{t.ka_judul}</h2>
           <p className="kalender-subtitle">
-            Jadwal kegiatan akademik sekolah tahun ini.
+            {t.ka_subtitle}
           </p>
         </header>
 
@@ -246,6 +248,7 @@ export default function KalenderAkademik() {
             onZoomIn={handleZoomIn}
             onZoomOut={handleZoomOut}
             onReset={handleReset}
+            t={t}
           />
         )}
       </div>
@@ -256,13 +259,13 @@ export default function KalenderAkademik() {
           <IconError />
           <span>{error}</span>
           <button type="button" className="kalender-retry-btn" onClick={fetchKalender}>
-            Coba Lagi
+            {t.sc_coba_lagi}
           </button>
         </div>
       )}
 
       {/* ── Loading state ── */}
-      {isLoading && <LoadingState />}
+      {isLoading && <LoadingState t={t} />}
 
       {/* ── Content: PDF viewer or empty state ── */}
       {!isLoading && !error && (
@@ -273,8 +276,8 @@ export default function KalenderAkademik() {
                 className="kalender-viewer-embed"
                 src={`${pdfUrl}#toolbar=0&navpanes=0&scrollbar=1`}
                 type="application/pdf"
-                title="Kalender Akademik PDF"
-                aria-label="Tampilan PDF Kalender Akademik"
+                title={t.ka_judul}
+                aria-label={t.ka_judul}
                 style={{
                   transform: `scale(${zoom / 100})`,
                   height:    `${zoom}%`,
@@ -282,7 +285,7 @@ export default function KalenderAkademik() {
               />
             </div>
           )
-          : <EmptyState />
+          : <EmptyState t={t} />
       )}
     </section>
   )

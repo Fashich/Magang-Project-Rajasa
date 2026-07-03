@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 import './SesiPage.css'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -44,12 +45,12 @@ function formatTime(dt) {
   return new Date(dt).toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
 }
 
-function formatDuration(startedAt, endedAt) {
+function formatDuration(startedAt, endedAt, t) {
   if (!startedAt) return '—'
   const start = new Date(startedAt)
   const end   = endedAt ? new Date(endedAt) : new Date()
   const mins  = Math.floor((end - start) / 60000)
-  if (mins < 1) return '< 1 mnt'
+  if (mins < 1) return t.ad_kurang_1_mnt
   if (mins < 60) return `${mins} mnt`
   return `${Math.floor(mins / 60)}j ${mins % 60}mnt`
 }
@@ -62,23 +63,16 @@ function formatTanggal(str) {
 
 // ── Badge ─────────────────────────────────────────────────────────────────────
 
-function StatusBadge({ status }) {
-  const map = {
-    aktif:     { label: 'Aktif',    cls: 'sp-badge sp-badge--aktif' },
-    suspended: { label: 'Dijeda',   cls: 'sp-badge sp-badge--suspended' },
-    selesai:   { label: 'Selesai',  cls: 'sp-badge sp-badge--selesai' },
-    gagal:     { label: 'Gagal',    cls: 'sp-badge sp-badge--error' },
-    expired:   { label: 'Expired',  cls: 'sp-badge sp-badge--error' },
-    terputus:  { label: 'Terputus', cls: 'sp-badge sp-badge--error' },
-  }
+function StatusBadge({ status, t }) {
+  const map = buildStatusMap(t)
   const { label, cls } = map[status] || { label: status, cls: 'sp-badge' }
   return <span class={cls}>{label}</span>
 }
 
-function ModeBadge({ mode }) {
+function ModeBadge({ mode, t }) {
   return (
     <span class={`sp-mode-badge sp-mode-badge--${mode}`}>
-      {mode === 'rombel' ? 'Rombel' : 'Piket'}
+      {mode === 'rombel' ? t.gm_col_rombel : t.gu_mode_piket.split(' ')[0]}
     </span>
   )
 }
@@ -96,17 +90,11 @@ function LiveDot() {
 
 // ── Summary cards ─────────────────────────────────────────────────────────────
 
-const CARD_DEFS = [
-  { key: 'total',          label: 'Total Sesi',       mod: '',        icon: '≡' },
-  { key: 'sedang_berjalan',label: 'Sedang Berjalan',  mod: '--green', icon: '▶' },
-  { key: 'selesai',        label: 'Selesai',          mod: '--blue',  icon: '✓' },
-  { key: 'bermasalah',     label: 'Bermasalah',       mod: '--red',   icon: '!' },
-]
-
-function SummaryCards({ summary, isToday }) {
+function SummaryCards({ summary, isToday, t }) {
+  const cardDefs = buildCounterConfig(t)
   return (
     <div class="sp-stats">
-      {CARD_DEFS.map(({ key, label, mod, icon }) => (
+      {cardDefs.map(({ key, label, mod, icon }) => (
         <div key={key} class={`sp-stat${mod}`}>
           <div class="sp-stat-icon-wrap">
             <span class="sp-stat-icon">{icon}</span>
@@ -126,7 +114,7 @@ function SummaryCards({ summary, isToday }) {
 
 // ── Confirm modal ─────────────────────────────────────────────────────────────
 
-function ConfirmModal({ sesi, onConfirm, onCancel, loading }) {
+function ConfirmModal({ sesi, onConfirm, onCancel, loading, t }) {
   if (!sesi) return null
   return (
     <div class="sp-overlay" onClick={onCancel}>
@@ -134,47 +122,36 @@ function ConfirmModal({ sesi, onConfirm, onCancel, loading }) {
         <div class="sp-modal-header">
           <div class="sp-modal-icon">⏹</div>
           <div>
-            <h3 class="sp-modal-title">Paksa Selesaikan Sesi</h3>
-            <p class="sp-modal-sub">Tindakan ini tidak bisa dibatalkan</p>
+            <h3 class="sp-modal-title">{t.ad_sesi_akhiri}</h3>
+            <p class="sp-modal-sub">{t.ei_keterangan_wajib}</p>
           </div>
         </div>
         <div class="sp-modal-body">
           <div class="sp-modal-detail">
             <div class="sp-detail-row">
-              <span class="sp-detail-key">Guru</span>
+              <span class="sp-detail-key">{t.ad_role_guru}</span>
               <span class="sp-detail-val">{sesi.dibuka_oleh?.nama || sesi.dibuka_oleh?.username || '—'}</span>
             </div>
             <div class="sp-detail-row">
-              <span class="sp-detail-key">Mode</span>
+              <span class="sp-detail-key">{t.ad_col_mode}</span>
               <span class="sp-detail-val">
                 {sesi.mode_presensi === 'rombel'
-                  ? `Rombel — ${sesi.rombel?.label_rombel ?? '—'}`
-                  : 'Piket'}
+                  ? `${t.gm_col_rombel} — ${sesi.rombel?.label_rombel ?? '—'}`
+                  : t.gu_mode_piket.split(' ')[0]}
               </span>
             </div>
             <div class="sp-detail-row">
-              <span class="sp-detail-key">Ruang</span>
-              <span class="sp-detail-val">{sesi.ruang || '—'}</span>
-            </div>
-            <div class="sp-detail-row">
-              <span class="sp-detail-key">Mulai</span>
-              <span class="sp-detail-val">{formatTime(sesi.started_at)}</span>
-            </div>
-            <div class="sp-detail-row">
               <span class="sp-detail-key">Status</span>
-              <span class="sp-detail-val"><StatusBadge status={sesi.status} /></span>
+              <span class="sp-detail-val"><StatusBadge status={sesi.status} t={t} /></span>
             </div>
           </div>
-          <p class="sp-modal-warn">
-            Guru atau staff tidak akan bisa melanjutkan sesi ini setelah diakhiri paksa.
-          </p>
         </div>
         <div class="sp-modal-footer">
           <button class="sp-btn sp-btn--ghost" onClick={onCancel} disabled={loading}>
-            Batal
+            {t.gu_batal}
           </button>
           <button class="sp-btn sp-btn--danger" onClick={onConfirm} disabled={loading}>
-            {loading ? 'Memproses…' : 'Akhiri Paksa'}
+            {loading ? t.ad_memproses : t.ad_sesi_akhiri}
           </button>
         </div>
       </div>
@@ -196,7 +173,7 @@ function Toast({ toast }) {
 
 // ── Empty / Error states ──────────────────────────────────────────────────────
 
-function EmptyState({ tanggal }) {
+function EmptyState({ tanggal, t }) {
   const isToday = tanggal === todayString()
   return (
     <tr>
@@ -204,12 +181,10 @@ function EmptyState({ tanggal }) {
         <div class="sp-empty">
           <div class="sp-empty-icon">📋</div>
           <p class="sp-empty-title">
-            {isToday ? 'Belum ada sesi hari ini' : 'Tidak ada sesi pada tanggal ini'}
+            {isToday ? t.ad_sesi_belum_ada : t.ad_sesi_tidak_ada}
           </p>
           <p class="sp-empty-sub">
-            {isToday
-              ? 'Data akan muncul otomatis saat guru membuka sesi presensi.'
-              : 'Coba pilih tanggal lain.'}
+            {isToday ? t.ad_sesi_auto_muncul : t.ad_sesi_coba_tgl_lain}
           </p>
         </div>
       </td>
@@ -219,7 +194,8 @@ function EmptyState({ tanggal }) {
 
 // ── Main component ─────────────────────────────────────────────────────────────
 
-export default function SesiPage({ pageActive = true }) {
+export default function SesiPage({ pageActive = true, lang }) {
+  const t = T[lang] || T.id
   const [tanggal, setTanggal]     = useState(todayString)
   const [statusFilter, setStatus] = useState('semua')
   const [modeFilter, setMode]     = useState('semua')
@@ -284,7 +260,7 @@ export default function SesiPage({ pageActive = true }) {
     setFinishing(true)
     try {
       await apiFetch(`/admin/sesi/${confirmSesi.presensi_sesi_id}/force-finish`, { method: 'POST' })
-      showToast('Sesi berhasil diakhiri.')
+      showToast(t.ad_sesi_diakhiri)
       setConfirm(null)
       fetchData(false)
     } catch (e) {
@@ -320,7 +296,7 @@ export default function SesiPage({ pageActive = true }) {
       </div>
 
       {/* ── Summary cards ── */}
-      <SummaryCards summary={summary} isToday={isToday} />
+      <SummaryCards summary={summary} isToday={isToday} t={t} />
 
       {/* ── Filter bar ── */}
       <div class="sp-filter-bar">
@@ -386,7 +362,7 @@ export default function SesiPage({ pageActive = true }) {
                 </tr>
               )}
               {!loading && rows.length === 0 && (
-                <EmptyState tanggal={tanggal} />
+                <EmptyState tanggal={tanggal} t={t} />
               )}
               {rows.map((row, i) => {
                 const isActive = ['aktif', 'suspended'].includes(row.status)
@@ -395,7 +371,7 @@ export default function SesiPage({ pageActive = true }) {
                   <tr key={row.presensi_sesi_id} class={isActive ? 'sp-row-live' : ''}>
                     <td class="sp-td-num">{(page - 1) * 20 + i + 1}</td>
                     <td>
-                      <ModeBadge mode={row.mode_presensi} />
+                      <ModeBadge mode={row.mode_presensi} t={t} />
                     </td>
                     <td class="sp-td-guru">
                       <span class="sp-guru-nama">{row.dibuka_oleh?.nama || '—'}</span>
@@ -415,14 +391,14 @@ export default function SesiPage({ pageActive = true }) {
                     <td class="sp-td-time">{formatTime(row.started_at)}</td>
                     <td class="sp-td-time">
                       {isActive
-                        ? <span class="sp-duration-live">{formatDuration(row.started_at, null)}</span>
-                        : formatDuration(row.started_at, row.ended_at)}
+                        ? <span class="sp-duration-live">{formatDuration(row.started_at, null, t)}</span>
+                        : formatDuration(row.started_at, row.ended_at, t)}
                     </td>
                     <td class="sp-td-c">
                       <span class="sp-hadir">{row.total_hadir ?? 0}</span>
                     </td>
                     <td class="sp-td-c">
-                      <StatusBadge status={row.status} />
+                      <StatusBadge status={row.status} t={t} />
                     </td>
                     <td class="sp-td-c">
                       {isActive
@@ -474,6 +450,7 @@ export default function SesiPage({ pageActive = true }) {
         onConfirm={handleForceFinish}
         onCancel={() => setConfirm(null)}
         loading={finishing}
+        t={t}
       />
 
       {/* ── Toast ── */}

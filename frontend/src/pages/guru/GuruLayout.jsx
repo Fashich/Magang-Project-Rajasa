@@ -513,7 +513,7 @@ export default function GuruLayout({ user, onLogout, renderPage }) {
         user={user}
       />
       <main class="guru-content">
-        {typeof renderPage === 'function' ? renderPage(activePage, setActivePage) : null}
+        {typeof renderPage === 'function' ? renderPage(activePage, setActivePage, lang) : null}
       </main>
       <LogoutOverlay
         state={logoutState}

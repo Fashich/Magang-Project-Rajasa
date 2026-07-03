@@ -16,6 +16,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 import './GamifikasiPage.css'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -54,18 +55,20 @@ function fmtDate(d) {
   return new Date(d).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })
 }
 
-const TIPE_LABEL = {
-  hadir_tepat_waktu: 'Hadir Tepat Waktu',
-  hadir_terlambat:   'Hadir (Terlambat)',
-  izin_surat:        'Izin dengan Surat',
-  streak_7:          'Bonus Streak 7 Hari',
-  streak_30:         'Bonus Streak 30 Hari',
-  perfect_month:     'Bonus Perfect Month',
-  submit_logbook:    'Submit Logbook',
-  logbook_approved:  'Logbook Disetujui',
-  tiket_selesai:     'Tiket Diselesaikan',
-  early_bird:        'Early Bird',
-  bonus_admin:       'Bonus dari Admin',
+function buildTipeLabel(t) {
+  return {
+    hadir_tepat_waktu: t.gm_tipe_hadir_tepat,
+    hadir_terlambat:   t.gm_tipe_hadir_terlambat,
+    izin_surat:        t.gm_tipe_izin_surat,
+    streak_7:          t.gm_tipe_streak7,
+    streak_30:         t.gm_tipe_streak30,
+    perfect_month:     t.gm_tipe_perfect_month,
+    submit_logbook:    t.gm_tipe_submit_logbook,
+    logbook_approved:  t.gm_tipe_logbook_approved,
+    tiket_selesai:     t.gm_tipe_tiket_selesai,
+    early_bird:        t.gm_tipe_early_bird,
+    bonus_admin:       t.gm_tipe_bonus_admin,
+  }
 }
 
 const TIPE_ICON = {
@@ -95,7 +98,8 @@ function PoinBar({ value, max = 500, color = '#6366f1' }) {
 
 // ── Tab: Profil ───────────────────────────────────────────────────────────────
 
-function TabProfil({ userType, siswaId }) {
+function TabProfil({ userType, siswaId, t }) {
+  const TIPE_LABEL = buildTipeLabel(t)
   const [data,    setData]    = useState(null)
   const [loading, setLoading] = useState(true)
   const [err,     setErr]     = useState('')
@@ -113,9 +117,9 @@ function TabProfil({ userType, siswaId }) {
 
   useEffect(() => { load() }, [load])
 
-  if (loading) return <div class="gm-loading">Memuat profil gamifikasi…</div>
+  if (loading) return <div class="gm-loading">{t.gm_memuat_profil}</div>
   if (err)     return <div class="gm-alert gm-alert-error">{err}</div>
-  if (!data)   return <div class="gm-empty">Data tidak tersedia.</div>
+  if (!data)   return <div class="gm-empty">{t.gm_data_kosong}</div>
 
   // Admin/guru tanpa siswa_id → tampilkan statistik global
   if (data.is_global) {
@@ -125,29 +129,29 @@ function TabProfil({ userType, siswaId }) {
           <div class="gm-stat-card">
             <div class="gm-stat-icon">🏅</div>
             <div class="gm-stat-value">{data.total_siswa_aktif}</div>
-            <div class="gm-stat-label">Siswa Aktif</div>
+            <div class="gm-stat-label">{t.gm_siswa_aktif}</div>
           </div>
           <div class="gm-stat-card">
             <div class="gm-stat-icon">⭐</div>
             <div class="gm-stat-value">{data.total_poin_bulan.toLocaleString('id-ID')}</div>
-            <div class="gm-stat-label">Total Poin Bulan Ini</div>
+            <div class="gm-stat-label">{t.gm_total_poin_bulan}</div>
           </div>
           <div class="gm-stat-card">
             <div class="gm-stat-icon">🎖️</div>
             <div class="gm-stat-value">{data.total_badge_bulan}</div>
-            <div class="gm-stat-label">Badge Diraih</div>
+            <div class="gm-stat-label">{t.gm_badge_diraih}</div>
           </div>
         </div>
         <div class="gm-section">
-          <h3 class="gm-section-title">🏆 Top 5 Siswa Bulan Ini</h3>
+          <h3 class="gm-section-title">{t.gm_top5_judul}</h3>
           <div class="gm-card">
             {data.top_siswa.length === 0 ? (
               <div class="gm-empty">
-                Belum ada data poin. Jalankan kalkulasi poin terlebih dahulu.
+                {t.gm_belum_ada_poin}
               </div>
             ) : (
               <table class="gm-table">
-                <thead><tr><th>#</th><th>Siswa</th><th>Rombel</th><th>Poin</th></tr></thead>
+                <thead><tr><th>#</th><th>{t.gm_col_siswa}</th><th>{t.gm_col_rombel}</th><th>{t.gm_col_poin}</th></tr></thead>
                 <tbody>
                   {data.top_siswa.map((s, i) => (
                     <tr key={s.siswa_id}>
@@ -174,7 +178,7 @@ function TabProfil({ userType, siswaId }) {
           border: '1px solid var(--gm-primary)', borderRadius: 'var(--gm-radius)',
           fontSize: '0.8125rem', color: 'var(--gm-text)',
         }}>
-          💡 Untuk lihat profil poin siswa tertentu, masukkan siswa_id di kolom pencarian di atas.
+          {t.gm_hint_cari_siswa}
         </div>
       </div>
     )
@@ -207,12 +211,12 @@ function TabProfil({ userType, siswaId }) {
         </div>
         <div class="gm-hero-right">
           <div class="gm-total-poin">{total_poin.toLocaleString('id-ID')}</div>
-          <div class="gm-poin-label">Total Poin</div>
+          <div class="gm-poin-label">{t.gm_total_poin}</div>
           {nextLevel && (
             <>
               <PoinBar value={total_poin - level.min} max={nextLevel.min - level.min} color={level.color} />
               <div style={{ fontSize: '0.7rem', color: 'var(--gm-text-muted)', marginTop: '0.25rem' }}>
-                {(nextLevel.min - total_poin).toLocaleString()} poin lagi ke {nextLevel.nama}
+                {(nextLevel.min - total_poin).toLocaleString()} {t.gm_poin_lagi_ke} {nextLevel.nama}
               </div>
             </>
           )}
@@ -224,29 +228,29 @@ function TabProfil({ userType, siswaId }) {
         <div class="gm-stat-card">
           <div class="gm-stat-icon">📅</div>
           <div class="gm-stat-value">{poin_bulan_ini}</div>
-          <div class="gm-stat-label">Poin Bulan Ini</div>
+          <div class="gm-stat-label">{t.gm_poin_bulan_ini}</div>
         </div>
         <div class="gm-stat-card">
           <div class="gm-stat-icon">🏆</div>
           <div class="gm-stat-value">#{ranking_rombel.rank}</div>
-          <div class="gm-stat-label">Ranking Rombel</div>
+          <div class="gm-stat-label">{t.gm_ranking_rombel}</div>
         </div>
         <div class="gm-stat-card">
           <div class="gm-stat-icon">🔥</div>
           <div class="gm-stat-value">{streak_saat_ini}</div>
-          <div class="gm-stat-label">Streak Hari Ini</div>
+          <div class="gm-stat-label">{t.gm_streak_hari_ini}</div>
         </div>
         <div class="gm-stat-card">
           <div class="gm-stat-icon">🎖️</div>
           <div class="gm-stat-value">{badge.length}</div>
-          <div class="gm-stat-label">Badge Diraih</div>
+          <div class="gm-stat-label">{t.gm_badge_diraih}</div>
         </div>
       </div>
 
       {/* Badge grid */}
       {badge.length > 0 && (
         <div class="gm-section">
-          <h3 class="gm-section-title">🎖️ Badge Diraih</h3>
+          <h3 class="gm-section-title">{t.gm_badge_diraih_section}</h3>
           <div class="gm-badge-grid">
             {badge.map(b => (
               <div key={`${b.kode}-${b.periode}`} class="gm-badge-item"
@@ -263,14 +267,14 @@ function TabProfil({ userType, siswaId }) {
 
       {/* Riwayat poin */}
       <div class="gm-section">
-        <h3 class="gm-section-title">📋 Riwayat Poin Terbaru</h3>
+        <h3 class="gm-section-title">{t.gm_riwayat_poin_judul}</h3>
         <div class="gm-card">
           {riwayat_poin.length === 0 ? (
-            <div class="gm-empty">Belum ada riwayat poin.</div>
+            <div class="gm-empty">{t.gm_belum_ada_riwayat}</div>
           ) : (
             <table class="gm-table">
               <thead>
-                <tr><th>Aktivitas</th><th>Poin</th><th>Tanggal</th></tr>
+                <tr><th>{t.gm_col_aktivitas}</th><th>{t.gm_col_poin}</th><th>{t.lb_tanggal_label}</th></tr>
               </thead>
               <tbody>
                 {riwayat_poin.map(r => (
@@ -308,7 +312,7 @@ function TabProfil({ userType, siswaId }) {
 
 // ── Tab: Leaderboard ──────────────────────────────────────────────────────────
 
-function TabLeaderboard() {
+function TabLeaderboard({ t }) {
   const [data,      setData]      = useState([])
   const [selfRank,  setSelfRank]  = useState(null)
   const [loading,   setLoading]   = useState(true)
@@ -345,12 +349,12 @@ function TabLeaderboard() {
       <div class="gm-filter-bar">
         <input type="month" value={bulan} onInput={e => setBulan(e.target.value)} />
         <select value={rombelId} onChange={e => setRombelId(e.target.value)}>
-          <option value="">🌐 Global (semua rombel)</option>
+          <option value="">{t.gm_global_semua_rombel}</option>
           {rombelList.map(r => (
             <option key={r.rombel_id} value={r.rombel_id}>{r.label}</option>
           ))}
         </select>
-        <button class="gm-btn-ghost" onClick={load}>↺ Refresh</button>
+        <button class="gm-btn-ghost" onClick={load}>{t.gm_refresh}</button>
       </div>
 
       {/* Podium top 3 */}
@@ -360,7 +364,7 @@ function TabLeaderboard() {
           <div class="gm-podium-item" style={{ '--pclr': medalColor[2] }}>
             <div class="gm-podium-avatar">🥈</div>
             <div class="gm-podium-name">{data[1]?.nama_siswa?.split(' ')[0]}</div>
-            <div class="gm-podium-poin">{data[1]?.total_poin} poin</div>
+            <div class="gm-podium-poin">{data[1]?.total_poin} {t.gm_poin_suffix}</div>
             <div class="gm-podium-bar" style={{ height: 60 }} />
           </div>
           {/* Rank 1 */}
@@ -368,14 +372,14 @@ function TabLeaderboard() {
             <div class="gm-podium-crown">👑</div>
             <div class="gm-podium-avatar">🥇</div>
             <div class="gm-podium-name">{data[0]?.nama_siswa?.split(' ')[0]}</div>
-            <div class="gm-podium-poin">{data[0]?.total_poin} poin</div>
+            <div class="gm-podium-poin">{data[0]?.total_poin} {t.gm_poin_suffix}</div>
             <div class="gm-podium-bar" style={{ height: 80 }} />
           </div>
           {/* Rank 3 */}
           <div class="gm-podium-item" style={{ '--pclr': medalColor[3] }}>
             <div class="gm-podium-avatar">🥉</div>
             <div class="gm-podium-name">{data[2]?.nama_siswa?.split(' ')[0]}</div>
-            <div class="gm-podium-poin">{data[2]?.total_poin} poin</div>
+            <div class="gm-podium-poin">{data[2]?.total_poin} {t.gm_poin_suffix}</div>
             <div class="gm-podium-bar" style={{ height: 45 }} />
           </div>
         </div>
@@ -384,21 +388,21 @@ function TabLeaderboard() {
       {/* Tabel full */}
       <div class="gm-card">
         {loading ? (
-          <div class="gm-loading">Memuat leaderboard…</div>
+          <div class="gm-loading">{t.gm_memuat_leaderboard}</div>
         ) : data.length === 0 ? (
           <div class="gm-empty">
             <div class="gm-empty-icon">🏆</div>
-            Belum ada data poin untuk periode ini.
+            {t.gm_belum_ada_poin_periode}
           </div>
         ) : (
           <table class="gm-table">
             <thead>
               <tr>
                 <th style={{ width: 48 }}>#</th>
-                <th>Siswa</th>
-                <th>Rombel</th>
-                <th>Poin</th>
-                <th>Hari Hadir</th>
+                <th>{t.gm_col_siswa}</th>
+                <th>{t.gm_col_rombel}</th>
+                <th>{t.gm_col_poin}</th>
+                <th>{t.gm_col_hari_hadir}</th>
               </tr>
             </thead>
             <tbody>
@@ -412,7 +416,7 @@ function TabLeaderboard() {
                   <td>
                     <div style={{ fontWeight: d.is_self ? 700 : 600 }}>{d.nama_siswa}</div>
                     <div style={{ fontSize: '0.7rem', color: 'var(--gm-text-muted)' }}>
-                      {d.nis} {d.is_self && '← Kamu'}
+                      {d.nis} {d.is_self && t.gm_kamu_suffix}
                     </div>
                   </td>
                   <td style={{ fontSize: '0.8rem' }}>{d.label_rombel}</td>
@@ -435,8 +439,8 @@ function TabLeaderboard() {
       {/* Posisi siswa jika tidak di top */}
       {selfRank && (
         <div class="gm-self-rank-card">
-          📍 Posisi kamu bulan ini: <strong>#{selfRank.rank}</strong> dengan{' '}
-          <strong>{selfRank.poin} poin</strong>
+          {t.gm_posisi_kamu} <strong>#{selfRank.rank}</strong> dengan{' '}
+          <strong>{selfRank.poin} {t.gm_poin_suffix}</strong>
         </div>
       )}
     </div>
@@ -445,7 +449,7 @@ function TabLeaderboard() {
 
 // ── Tab: Katalog Badge ────────────────────────────────────────────────────────
 
-function TabKatalog({ userType, siswaId }) {
+function TabKatalog({ userType, siswaId, t }) {
   const [allBadge,    setAllBadge]    = useState([])
   const [ownedBadge,  setOwnedBadge]  = useState([])
   const [loading,     setLoading]     = useState(true)
@@ -473,15 +477,18 @@ function TabKatalog({ userType, siswaId }) {
     return acc
   }, {})
 
-  const kategoriLabel = {
-    kehadiran:    '📅 Kehadiran',
-    logbook:      '📒 Logbook PKL',
-    komunikasi:   '💬 Komunikasi',
-    prestasi:     '🏆 Prestasi',
-    khusus:       '⭐ Khusus',
+  function buildKategoriLabel(t) {
+    return {
+      kehadiran:  t.gm_kat_kehadiran,
+      logbook:    t.gm_kat_logbook,
+      komunikasi: t.gm_kat_komunikasi,
+      prestasi:   t.gm_kat_prestasi,
+      khusus:     t.gm_kat_khusus,
+    }
   }
+  const kategoriLabel = buildKategoriLabel(t)
 
-  if (loading) return <div class="gm-loading">Memuat katalog badge…</div>
+  if (loading) return <div class="gm-loading">{t.gm_memuat_katalog}</div>
 
   return (
     <div class="gm-tab-content">
@@ -501,8 +508,8 @@ function TabKatalog({ userType, siswaId }) {
                     <div class="gm-katalog-icon">{owned ? b.icon : '🔒'}</div>
                     <div class="gm-katalog-nama">{b.nama}</div>
                     <div class="gm-katalog-desc">{b.deskripsi}</div>
-                    <div class="gm-katalog-reward">+{b.poin_reward} poin</div>
-                    {owned && <div class="gm-katalog-check">✅ Diraih</div>}
+                    <div class="gm-katalog-reward">+{b.poin_reward} {t.gm_poin_suffix}</div>
+                    {owned && <div class="gm-katalog-check">{t.gm_diraih_tag}</div>}
                   </div>
                 )
               })}
@@ -516,7 +523,7 @@ function TabKatalog({ userType, siswaId }) {
 
 // ── Admin panel: Hitung Ulang Poin ────────────────────────────────────────────
 
-function AdminPanel() {
+function AdminPanel({ t }) {
   const [bulan,    setBulan]    = useState(() => {
     const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`
   })
@@ -525,7 +532,7 @@ function AdminPanel() {
   const [err,      setErr]      = useState('')
 
   async function handleHitung() {
-    if (!confirm(`Hitung ulang poin & badge untuk bulan ${bulan}? Proses ini akan memperbarui semua data poin bulan tersebut.`)) return
+    if (!confirm(`${t.gm_confirm_hitung_prefix} ${bulan}${t.gm_confirm_hitung_suffix}`)) return
     setErr(''); setResult(null); setLoading(true)
     try {
       const res = await apiFetch('/gamifikasi/hitung', {
@@ -538,10 +545,9 @@ function AdminPanel() {
 
   return (
     <div class="gm-admin-panel">
-      <h3 class="gm-section-title">⚙️ Kalkulasi Poin & Badge</h3>
+      <h3 class="gm-section-title">{t.gm_kalkulasi_judul}</h3>
       <p style={{ margin: '0 0 1rem', fontSize: '0.8125rem', color: 'var(--gm-text-muted)' }}>
-        Jalankan kalkulasi ulang poin dan badge untuk semua siswa aktif dalam satu bulan.
-        Biasanya dijalankan di akhir bulan atau setelah data presensi dikoreksi.
+        {t.gm_kalkulasi_desc}
       </p>
       <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
         <input type="month" value={bulan} onInput={e => setBulan(e.target.value)}
@@ -549,13 +555,13 @@ function AdminPanel() {
             borderRadius: '8px', fontFamily: 'var(--gm-font)', fontSize: '0.8125rem',
             color: 'var(--gm-text)', background: 'var(--gm-bg)' }} />
         <button class="gm-btn-primary" onClick={handleHitung} disabled={loading}>
-          {loading ? '⏳ Menghitung…' : '▶ Hitung Sekarang'}
+          {loading ? t.gm_menghitung : t.gm_hitung_sekarang}
         </button>
       </div>
       {err && <div class="gm-alert gm-alert-error" style={{ marginTop: '1rem' }}>{err}</div>}
       {result && (
         <div class="gm-alert gm-alert-success" style={{ marginTop: '1rem' }}>
-          ✅ Selesai — {result.processed} siswa diproses · {result.total_poin} poin diberikan · {result.badge_diberikan} badge diraih
+          {t.gm_hasil_selesai} {result.processed} {t.gm_hasil_siswa_diproses} {result.total_poin} {t.gm_hasil_poin_diberikan} {result.badge_diberikan} {t.gm_hasil_badge_diraih}
         </div>
       )}
     </div>
@@ -564,7 +570,9 @@ function AdminPanel() {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 
-export default function GamifikasiPage() {
+export default function GamifikasiPage({ lang }) {
+  const t = T[lang] || T.id
+
   const user     = getUser()
   const userType = user?.user_type ?? 'siswa'
   const isAdmin  = ['admin'].includes(userType)
@@ -574,9 +582,9 @@ export default function GamifikasiPage() {
   const [siswaId, setSiswaId] = useState('')
 
   const tabs = [
-    { key: 'profil',      label: '🎮 Profil Poin' },
-    { key: 'leaderboard', label: '🏆 Leaderboard' },
-    { key: 'katalog',     label: '🎖️ Katalog Badge' },
+    { key: 'profil',      label: t.gm_tab_profil },
+    { key: 'leaderboard', label: t.gm_tab_leaderboard },
+    { key: 'katalog',     label: t.gm_tab_katalog },
   ]
 
   return (
@@ -584,43 +592,41 @@ export default function GamifikasiPage() {
       {/* Header */}
       <div class="gm-page-header">
         <div>
-          <h1 class="gm-page-title">Gamifikasi Kehadiran</h1>
-          <p class="gm-page-sub">
-            Kumpulkan poin, raih badge, dan kompetisi di leaderboard bersama teman sekelasmu
-          </p>
+          <h1 class="gm-page-title">{t.gm_judul_halaman}</h1>
+          <p class="gm-page-sub">{t.gm_subtitle}</p>
         </div>
       </div>
 
       {/* Guru/Admin: pilih siswa */}
       {(isGuru || isAdmin) && tab === 'profil' && (
         <div class="gm-filter-bar">
-          <input type="text" placeholder="Masukkan siswa_id untuk lihat profil siswa..."
+          <input type="text" placeholder={t.gm_placeholder_siswa_id}
             value={siswaId} onInput={e => setSiswaId(e.target.value)}
             style={{ flex: 1 }} />
           <span style={{ fontSize: '0.75rem', color: 'var(--gm-text-muted)' }}>
-            Kosongkan untuk lihat statistik global
+            {t.gm_kosongkan_global}
           </span>
         </div>
       )}
 
       {/* Admin panel */}
-      {isAdmin && <AdminPanel />}
+      {isAdmin && <AdminPanel t={t} />}
 
       {/* Tab bar */}
       <div class="gm-tab-bar">
-        {tabs.map(t => (
-          <button key={t.key}
-            class={`gm-tab-btn${tab === t.key ? ' active' : ''}`}
-            onClick={() => setTab(t.key)}>
-            {t.label}
+        {tabs.map(tb => (
+          <button key={tb.key}
+            class={`gm-tab-btn${tab === tb.key ? ' active' : ''}`}
+            onClick={() => setTab(tb.key)}>
+            {tb.label}
           </button>
         ))}
       </div>
 
       {/* Tab content */}
-      {tab === 'profil'      && <TabProfil      userType={userType} siswaId={siswaId || null} />}
-      {tab === 'leaderboard' && <TabLeaderboard />}
-      {tab === 'katalog'     && <TabKatalog     userType={userType} siswaId={siswaId || null} />}
+      {tab === 'profil'      && <TabProfil      userType={userType} siswaId={siswaId || null} t={t} />}
+      {tab === 'leaderboard' && <TabLeaderboard t={t} />}
+      {tab === 'katalog'     && <TabKatalog     userType={userType} siswaId={siswaId || null} t={t} />}
     </div>
   )
 }

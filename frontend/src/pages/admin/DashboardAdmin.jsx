@@ -70,77 +70,74 @@ function PageSlot({ id, activePage, children }) {
 
 // ─── Semua page di-render sekaligus, dikontrol visibility ────────────────────
 
-function AllPages({ activePage, onNav }) {
+function AllPages({ activePage, onNav, lang }) {
   return (
     <>
       <PageSlot id="dashboard" activePage={activePage}>
-        <AdminDashboardPage onNav={onNav} />
+        <AdminDashboardPage onNav={onNav} lang={lang} />
       </PageSlot>
 
       <PageSlot id="analitik" activePage={activePage}>
-        <AnalitikPage />
+        <AnalitikPage lang={lang} />
       </PageSlot>
 
       <PageSlot id="analitik-prestasi" activePage={activePage}>
-        <AnalitikPrestasiPage />
+        <AnalitikPrestasiPage lang={lang} />
       </PageSlot>
 
-      {/* SesiPage punya auto-refresh 1 detik — kirim pageActive agar
-          interval berhenti saat halaman disembunyikan */}
       <PageSlot id="sesi" activePage={activePage}>
-        <SesiPage pageActive={activePage === 'sesi'} />
+        <SesiPage pageActive={activePage === 'sesi'} lang={lang} />
       </PageSlot>
 
       <PageSlot id="peringatan" activePage={activePage}>
-        <EarlyWarningPage />
+        <EarlyWarningPage lang={lang} />
       </PageSlot>
 
       <PageSlot id="users" activePage={activePage}>
-        <UsersPage />
+        <UsersPage lang={lang} />
       </PageSlot>
 
       <PageSlot id="laporan" activePage={activePage}>
-        <LaporanPage />
+        <LaporanPage lang={lang} />
       </PageSlot>
 
       <PageSlot id="audit" activePage={activePage}>
-        <AuditPage />
+        <AuditPage lang={lang} />
       </PageSlot>
 
       <PageSlot id="settings" activePage={activePage}>
-        <PengaturanPage />
+        <PengaturanPage lang={lang} />
       </PageSlot>
 
       <PageSlot id="e-izin" activePage={activePage}>
-        <EIzinPage />
+        <EIzinPage lang={lang} />
       </PageSlot>
 
       <PageSlot id="logbook" activePage={activePage}>
-        <LogbookPage />
+        <LogbookPage lang={lang} />
       </PageSlot>
 
       <PageSlot id="communication" activePage={activePage}>
-        <CommunicationHub />
+        <CommunicationHub lang={lang} />
       </PageSlot>
 
       <PageSlot id="gamifikasi" activePage={activePage}>
-        <GamifikasiPage />
+        <GamifikasiPage lang={lang} />
       </PageSlot>
     </>
   )
 }
-
-// ─── Main export ─────────────────────────────────────────────────────────────
 
 export default function DashboardAdmin({ user, onLogout }) {
   return (
     <AdminLayout
       user={user}
       onLogout={onLogout}
-      renderPage={(activePage, setActivePage) => (
+      renderPage={(activePage, setActivePage, lang) => (
         <AllPages
           activePage={activePage}
           onNav={setActivePage}
+          lang={lang}
         />
       )}
     />

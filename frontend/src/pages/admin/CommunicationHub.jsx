@@ -13,6 +13,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 import './CommunicationHub.css'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -54,15 +55,15 @@ function fmtDatetime(d) {
   })
 }
 
-function fmtRelative(d) {
+function fmtRelative(d, t) {
   if (!d) return '—'
   const diff = Date.now() - new Date(d).getTime()
   const m = Math.floor(diff / 60000)
-  if (m < 1)  return 'Baru saja'
-  if (m < 60) return `${m} menit lalu`
+  if (m < 1)  return t.ch_baru_saja
+  if (m < 60) return `${m} ${t.ch_menit_lalu}`
   const h = Math.floor(m / 60)
-  if (h < 24) return `${h} jam lalu`
-  return `${Math.floor(h / 24)} hari lalu`
+  if (h < 24) return `${h} ${t.ch_jam_lalu}`
+  return `${Math.floor(h / 24)} ${t.ch_hari_lalu}`
 }
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -75,21 +76,25 @@ const STATUS_CLR = {
   closed:      '#64748b',
 }
 
-const STATUS_LBL = {
-  open:        'Open',
-  in_progress: 'Diproses',
-  waiting:     'Menunggu',
-  resolved:    'Selesai',
-  closed:      'Ditutup',
+function buildStatusLbl(t) {
+  return {
+    open:        t.ch_status_open,
+    in_progress: t.ch_status_in_progress,
+    waiting:     t.ch_status_waiting,
+    resolved:    t.ch_status_resolved,
+    closed:      t.ch_status_closed,
+  }
 }
 
-const KATEGORI_LBL = {
-  pertanyaan:      '❓ Pertanyaan',
-  keluhan:         '😤 Keluhan',
-  izin_khusus:     '📋 Izin Khusus',
-  konsultasi:      '💬 Konsultasi',
-  laporan_masalah: '🐛 Laporan Masalah',
-  lainnya:         '📌 Lainnya',
+function buildKategoriLbl(t) {
+  return {
+    pertanyaan:      t.ch_kat_pertanyaan,
+    keluhan:         t.ch_kat_keluhan,
+    izin_khusus:     t.ch_kat_izin_khusus,
+    konsultasi:      t.ch_kat_konsultasi,
+    laporan_masalah: t.ch_kat_laporan_masalah,
+    lainnya:         t.ch_kat_lainnya,
+  }
 }
 
 const PRIORITAS_CLR = {
@@ -101,7 +106,8 @@ const PRIORITAS_CLR = {
 
 // ── Modal Buat Tiket ──────────────────────────────────────────────────────────
 
-function ModalBuatTiket({ onClose, onSaved }) {
+function ModalBuatTiket({ onClose, onSaved, t }) {
+  const KATEGORI_LBL = buildKategoriLbl(t)
   const [form, setForm] = useState({
     judul:    '',
     pesan:    '',
@@ -115,8 +121,8 @@ function ModalBuatTiket({ onClose, onSaved }) {
 
   async function handleSubmit() {
     setErr('')
-    if (form.judul.trim().length < 5) { setErr('Judul minimal 5 karakter.'); return }
-    if (form.pesan.trim().length < 10) { setErr('Pesan minimal 10 karakter.'); return }
+    if (form.judul.trim().length < 5) { setErr(t.ch_judul_min); return }
+    if (form.pesan.trim().length < 10) { setErr(t.ch_pesan_min); return }
     setLoading(true)
     try {
       await apiFetch('/tiket', { method: 'POST', body: JSON.stringify(form) })
@@ -130,7 +136,7 @@ function ModalBuatTiket({ onClose, onSaved }) {
     <div class="ch-modal-overlay" onClick={e => e.target === e.currentTarget && onClose()}>
       <div class="ch-modal">
         <div class="ch-modal-header">
-          <h3 class="ch-modal-title">📩 Buat Tiket Baru</h3>
+          <h3 class="ch-modal-title">{t.ch_buat_tiket_judul}</h3>
           <button class="ch-modal-close" onClick={onClose}>✕</button>
         </div>
         <div class="ch-modal-body">
@@ -139,15 +145,15 @@ function ModalBuatTiket({ onClose, onSaved }) {
           )}
 
           <div class="ch-field">
-            <label>Judul <span class="ch-req">*</span></label>
-            <input type="text" placeholder="Ringkasan singkat masalah/pertanyaan..."
+            <label>{t.ch_judul_label} <span class="ch-req">*</span></label>
+            <input type="text" placeholder={t.ch_placeholder_judul}
               maxLength={200} value={form.judul}
               onInput={e => setF('judul', e.target.value)} />
           </div>
 
           <div class="ch-field-row">
             <div class="ch-field">
-              <label>Kategori</label>
+              <label>{t.ch_kategori_label}</label>
               <select value={form.kategori} onChange={e => setF('kategori', e.target.value)}>
                 {Object.entries(KATEGORI_LBL).map(([k, v]) => (
                   <option key={k} value={k}>{v}</option>
@@ -155,28 +161,28 @@ function ModalBuatTiket({ onClose, onSaved }) {
               </select>
             </div>
             <div class="ch-field">
-              <label>Prioritas</label>
+              <label>{t.ch_prioritas_label}</label>
               <select value={form.prioritas} onChange={e => setF('prioritas', e.target.value)}>
-                <option value="rendah">🔵 Rendah</option>
-                <option value="normal">⚪ Normal</option>
-                <option value="tinggi">🟡 Tinggi</option>
-                <option value="urgent">🔴 Urgent</option>
+                <option value="rendah">{t.ch_prio_rendah}</option>
+                <option value="normal">{t.ch_prio_normal}</option>
+                <option value="tinggi">{t.ch_prio_tinggi}</option>
+                <option value="urgent">{t.ch_prio_urgent}</option>
               </select>
             </div>
           </div>
 
           <div class="ch-field">
-            <label>Pesan / Deskripsi <span class="ch-req">*</span></label>
+            <label>{t.ch_pesan_deskripsi} <span class="ch-req">*</span></label>
             <textarea rows={6}
-              placeholder="Jelaskan pertanyaan atau masalah Anda secara detail..."
+              placeholder={t.ch_placeholder_pesan}
               value={form.pesan}
               onInput={e => setF('pesan', e.target.value)} />
           </div>
         </div>
         <div class="ch-modal-footer">
-          <button class="ch-btn-ghost" onClick={onClose} disabled={loading}>Batal</button>
+          <button class="ch-btn-ghost" onClick={onClose} disabled={loading}>{t.ch_batal}</button>
           <button class="ch-btn-primary" onClick={handleSubmit} disabled={loading}>
-            {loading ? 'Mengirim…' : '📤 Kirim Tiket'}
+            {loading ? t.ch_mengirim : t.ch_kirim_tiket}
           </button>
         </div>
       </div>
@@ -186,7 +192,9 @@ function ModalBuatTiket({ onClose, onSaved }) {
 
 // ── Panel Detail + Chat ───────────────────────────────────────────────────────
 
-function PanelDetail({ tiket, user, userType, onClose, onUpdated }) {
+function PanelDetail({ tiket, user, userType, onClose, onUpdated, t }) {
+  const STATUS_LBL = buildStatusLbl(t)
+  const KATEGORI_LBL = buildKategoriLbl(t)
   const [balasan,  setBalasan]  = useState([])
   const [loading,  setLoading]  = useState(true)
   const [pesan,    setPesan]    = useState('')
@@ -268,19 +276,19 @@ function PanelDetail({ tiket, user, userType, onClose, onUpdated }) {
             {isGuru && tiket.status === 'open' && (
               <button class="ch-btn-ghost" style={{ fontSize: '0.75rem' }}
                 onClick={() => handleStatusChange('in_progress')}>
-                ▶ Proses
+                {t.ch_proses_btn}
               </button>
             )}
             {isGuru && ['open','in_progress','waiting'].includes(tiket.status) && (
               <button class="ch-btn-ghost" style={{ fontSize: '0.75rem', color: '#15803d', borderColor: '#15803d' }}
                 onClick={() => handleStatusChange('resolved')}>
-                ✅ Selesaikan
+                {t.ch_selesaikan_btn}
               </button>
             )}
             {!isGuru && tiket.is_own && tiket.status === 'open' && (
               <button class="ch-btn-ghost" style={{ fontSize: '0.75rem' }}
                 onClick={() => handleStatusChange('closed')}>
-                Tutup Tiket
+                {t.ch_tutup_tiket_btn}
               </button>
             )}
             <button class="ch-modal-close" onClick={onClose}>✕</button>
@@ -301,17 +309,17 @@ function PanelDetail({ tiket, user, userType, onClose, onUpdated }) {
         {/* Chat balasan */}
         <div class="ch-chat-area">
           {loading ? (
-            <div class="ch-loading">Memuat percakapan…</div>
+            <div class="ch-loading">{t.ch_memuat_percakapan}</div>
           ) : balasan.length === 0 ? (
-            <div class="ch-empty-chat">Belum ada balasan. Mulai percakapan di bawah.</div>
+            <div class="ch-empty-chat">{t.ch_belum_ada_balasan}</div>
           ) : (
             balasan.map(b => (
               <div key={b.balasan_id}
                 class={`ch-bubble ${b.is_own ? 'ch-bubble-own' : 'ch-bubble-other'}${b.is_internal ? ' ch-bubble-internal' : ''}`}>
                 <div class="ch-bubble-meta">
                   <span class="ch-bubble-username">{b.username}</span>
-                  {b.is_internal && <span class="ch-bubble-internal-tag">📌 Catatan Internal</span>}
-                  <span class="ch-bubble-time">{fmtRelative(b.created_at)}</span>
+                  {b.is_internal && <span class="ch-bubble-internal-tag">{t.ch_catatan_internal_tag}</span>}
+                  <span class="ch-bubble-time">{fmtRelative(b.created_at, t)}</span>
                 </div>
                 <div class="ch-bubble-text">{b.pesan}</div>
               </div>
@@ -327,7 +335,7 @@ function PanelDetail({ tiket, user, userType, onClose, onUpdated }) {
             <textarea
               class="ch-reply-input"
               rows={3}
-              placeholder="Tulis balasan..."
+              placeholder={t.ch_placeholder_balasan}
               value={pesan}
               onInput={e => setPesan(e.target.value)}
               onKeyDown={e => {
@@ -339,11 +347,11 @@ function PanelDetail({ tiket, user, userType, onClose, onUpdated }) {
                 <label class="ch-checkbox-label">
                   <input type="checkbox" checked={internal}
                     onChange={e => setInternal(e.target.checked)} />
-                  <span>Catatan internal (tidak terlihat siswa)</span>
+                  <span>{t.ch_catatan_internal_label}</span>
                 </label>
               )}
               <button class="ch-btn-primary" onClick={handleSend} disabled={sending || !pesan.trim()}>
-                {sending ? '…' : '↩ Kirim'} <span style={{ fontSize: '0.7rem' }}>(Ctrl+Enter)</span>
+                {sending ? '…' : t.ch_kirim_balasan} <span style={{ fontSize: '0.7rem' }}>(Ctrl+Enter)</span>
               </button>
             </div>
           </div>
@@ -358,7 +366,7 @@ function PanelDetail({ tiket, user, userType, onClose, onUpdated }) {
             color: 'var(--ch-text-muted)',
             textAlign: 'center',
           }}>
-            Tiket ini sudah ditutup. Buat tiket baru jika masih ada pertanyaan.
+            {t.ch_tiket_ditutup_info}
           </div>
         )}
       </div>
@@ -368,7 +376,11 @@ function PanelDetail({ tiket, user, userType, onClose, onUpdated }) {
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export default function CommunicationHub() {
+export default function CommunicationHub({ lang }) {
+  const t = T[lang] || T.id
+  const STATUS_LBL = buildStatusLbl(t)
+  const KATEGORI_LBL = buildKategoriLbl(t)
+
   const user     = getUser()
   const userType = user?.user_type ?? 'siswa'
   const isSiswa  = userType === 'siswa'
@@ -399,7 +411,7 @@ export default function CommunicationHub() {
   useEffect(() => { load() }, [load])
 
   async function handleDelete(id) {
-    if (!confirm('Yakin hapus tiket ini?')) return
+    if (!confirm(t.ch_confirm_hapus)) return
     try {
       await apiFetch(`/tiket/${id}`, { method: 'DELETE' })
       await load()
@@ -411,29 +423,27 @@ export default function CommunicationHub() {
       {/* Header */}
       <div class="ch-page-header">
         <div>
-          <h1 class="ch-page-title">Pusat Komunikasi</h1>
+          <h1 class="ch-page-title">{t.ch_judul_halaman}</h1>
           <p class="ch-page-sub">
-            {isSiswa
-              ? 'Kirim pertanyaan, keluhan, atau izin khusus ke guru/admin'
-              : 'Kelola tiket komunikasi dari siswa'}
+            {isSiswa ? t.ch_subtitle_siswa : t.ch_subtitle_lain}
           </p>
         </div>
         <button class="ch-btn-primary" onClick={() => setShowBuat(true)}>
-          + Buat Tiket
+          {t.ch_buat_tiket_short}
         </button>
       </div>
 
       {/* Summary pills */}
       <div class="ch-summary-row">
         {[
-          { key: 'open',        label: 'Open',      color: STATUS_CLR.open },
-          { key: 'in_progress', label: 'Diproses',  color: STATUS_CLR.in_progress },
-          { key: 'waiting',     label: 'Menunggu',  color: STATUS_CLR.waiting },
-          { key: 'selesai',     label: 'Selesai',   color: STATUS_CLR.resolved },
-        ].map(s => (
-          <div key={s.key} class="ch-summary-card" style={{ '--sc': s.color }}>
-            <div class="ch-summary-value">{summary[s.key] ?? 0}</div>
-            <div class="ch-summary-label">{s.label}</div>
+          { key: 'open',        label: t.ch_status_open,        color: STATUS_CLR.open },
+          { key: 'in_progress', label: t.ch_status_in_progress, color: STATUS_CLR.in_progress },
+          { key: 'waiting',     label: t.ch_status_waiting,     color: STATUS_CLR.waiting },
+          { key: 'selesai',     label: t.ch_status_resolved,    color: STATUS_CLR.resolved },
+        ].map(sm => (
+          <div key={sm.key} class="ch-summary-card" style={{ '--sc': sm.color }}>
+            <div class="ch-summary-value">{summary[sm.key] ?? 0}</div>
+            <div class="ch-summary-label">{sm.label}</div>
           </div>
         ))}
       </div>
@@ -441,39 +451,37 @@ export default function CommunicationHub() {
       {/* Filter */}
       <div class="ch-filter-bar">
         <input
-          placeholder="🔍 Cari judul tiket..."
+          placeholder={t.ch_cari_placeholder}
           value={search}
           onInput={e => setSearch(e.target.value)}
           style={{ flex: 1, minWidth: 160 }}
         />
         <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)}>
-          <option value="">Semua Status</option>
+          <option value="">{t.ch_semua_status}</option>
           {Object.entries(STATUS_LBL).map(([k, v]) => (
             <option key={k} value={k}>{v}</option>
           ))}
         </select>
         <select value={filterKat} onChange={e => setFilterKat(e.target.value)}>
-          <option value="">Semua Kategori</option>
+          <option value="">{t.ch_semua_kategori}</option>
           {Object.entries(KATEGORI_LBL).map(([k, v]) => (
             <option key={k} value={k}>{v}</option>
           ))}
         </select>
-        <button class="ch-btn-ghost" onClick={load}>↺ Refresh</button>
+        <button class="ch-btn-ghost" onClick={load}>{t.ch_refresh}</button>
       </div>
 
       {/* List tiket */}
       <div class="ch-tiket-list">
         {loading ? (
-          <div class="ch-loading">Memuat tiket…</div>
+          <div class="ch-loading">{t.ch_memuat_tiket}</div>
         ) : items.length === 0 ? (
           <div class="ch-empty">
             <div class="ch-empty-icon">💬</div>
             <p>
               {filterStatus || filterKat || search
-                ? 'Tidak ada tiket yang cocok dengan filter ini.'
-                : isSiswa
-                  ? 'Belum ada tiket. Klik "+ Buat Tiket" untuk memulai.'
-                  : 'Tidak ada tiket masuk saat ini.'}
+                ? t.ch_kosong_filter
+                : isSiswa ? t.ch_kosong_siswa : t.ch_kosong_lain}
             </p>
           </div>
         ) : (
@@ -491,7 +499,7 @@ export default function CommunicationHub() {
                   ● {item.prioritas}
                 </span>
                 <span class="ch-kategori-tag">{KATEGORI_LBL[item.kategori]}</span>
-                <span class="ch-tiket-time">{fmtRelative(item.last_reply_at)}</span>
+                <span class="ch-tiket-time">{fmtRelative(item.last_reply_at, t)}</span>
               </div>
 
               {/* Judul */}
@@ -505,7 +513,7 @@ export default function CommunicationHub() {
                 {item.username_kepada && (
                   <span>→ {item.username_kepada}</span>
                 )}
-                <span>💬 {item.reply_count} balasan</span>
+                <span>💬 {item.reply_count} {t.ch_balasan_suffix}</span>
               </div>
 
               {/* Tombol delete (untuk pemilik + open, atau admin) */}
@@ -514,7 +522,7 @@ export default function CommunicationHub() {
                 <button
                   class="ch-delete-btn"
                   onClick={e => { e.stopPropagation(); handleDelete(item.tiket_id) }}
-                  title="Hapus tiket"
+                  title={t.ch_hapus_tiket_title}
                 >
                   🗑
                 </button>
@@ -529,6 +537,7 @@ export default function CommunicationHub() {
         <ModalBuatTiket
           onClose={() => setShowBuat(false)}
           onSaved={() => { setShowBuat(false); load() }}
+          t={t}
         />
       )}
 
@@ -539,6 +548,7 @@ export default function CommunicationHub() {
           userType={userType}
           onClose={() => { setDetail(null); load() }}
           onUpdated={() => load()}
+          t={t}
         />
       )}
     </div>

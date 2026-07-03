@@ -21,6 +21,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
 import { siswaApi } from '../../utils/api'
+import { T } from '../../utils/lang.js'
 import './TablePresensi.css'
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -33,15 +34,17 @@ const PER_PAGE = 10
  * Ordered list of filter chips shown in the filter bar.
  * `value` matches the ?filter= query param sent to the backend.
  */
-const FILTERS = [
-  { value: 'semua',      label: 'Tampilkan Semua' },
-  { value: 'hadir',      label: 'Tepat Waktu'     },
-  { value: 'terlambat',  label: 'Terlambat'       },
-  { value: 'alpha',      label: 'Alpha'            },
-  { value: 'date_range', label: 'By Tanggal'       },
-  { value: 'sakit',      label: 'Sakit'            },
-  { value: 'izin',       label: 'Izin'             },
-]
+function buildFilters(t) {
+  return [
+    { value: 'semua',      label: t.tp_filter_semua },
+    { value: 'hadir',      label: t.sc_tepat_waktu  },
+    { value: 'terlambat',  label: t.sc_terlambat    },
+    { value: 'alpha',      label: t.sc_alpha        },
+    { value: 'date_range', label: t.tp_filter_tanggal },
+    { value: 'sakit',      label: t.sc_sakit        },
+    { value: 'izin',       label: t.sc_izin         },
+  ]
+}
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -70,15 +73,16 @@ function formatTime(timeStr) {
 /**
  * Map a backend status value to a human-readable label.
  * @param {string} status
+ * @param {object} t translation dictionary
  * @returns {string}
  */
-function statusLabel(status) {
+function statusLabel(status, t) {
   const map = {
-    hadir:     'Tepat Waktu',
-    terlambat: 'Terlambat',
-    alpha:     'Alpha',
-    sakit:     'Sakit',
-    izin:      'Izin',
+    hadir:     t.sc_tepat_waktu,
+    terlambat: t.sc_terlambat,
+    alpha:     t.sc_alpha,
+    sakit:     t.sc_sakit,
+    izin:      t.sc_izin,
   }
   return map[status] ?? status
 }
@@ -121,13 +125,13 @@ function IconError() {
 
 /**
  * Status badge with per-status color.
- * @param {{ status: string }} props
+ * @param {{ status: string, t: object }} props
  */
-function StatusBadge({ status }) {
+function StatusBadge({ status, t }) {
   return (
     <span className={`status-badge status-badge--${status}`}>
       <span className="status-badge-dot" aria-hidden="true" />
-      {statusLabel(status)}
+      {statusLabel(status, t)}
     </span>
   )
 }
@@ -150,9 +154,9 @@ function SkeletonRows({ rows = PER_PAGE }) {
 
 /**
  * Pagination controls — prev, page numbers, next.
- * @param {{ page: number, totalPages: number, total: number, onPageChange: Function }} props
+ * @param {{ page: number, totalPages: number, total: number, onPageChange: Function, t: object }} props
  */
-function Pagination({ page, totalPages, total, onPageChange }) {
+function Pagination({ page, totalPages, total, onPageChange, t }) {
   if (totalPages <= 1) return null
 
   // Build page number list with ellipsis for large ranges
@@ -172,17 +176,17 @@ function Pagination({ page, totalPages, total, onPageChange }) {
   return (
     <div className="pagination-bar">
       <span className="pagination-info">
-        Menampilkan {from}–{to} dari {total} data
+        {t.tp_menampilkan} {from}–{to} {t.tp_dari} {total} {t.tp_data}
       </span>
 
-      <nav className="pagination-controls" role="navigation" aria-label="Pagination presensi">
+      <nav className="pagination-controls" role="navigation" aria-label={t.tp_judul}>
         {/* Prev */}
         <button
           type="button"
           className="pagination-btn"
           onClick={() => onPageChange(page - 1)}
           disabled={page === 1}
-          aria-label="Halaman sebelumnya"
+          aria-label={t.tp_halaman_sebelumnya}
         >
           <IconChevronLeft />
         </button>
@@ -197,7 +201,7 @@ function Pagination({ page, totalPages, total, onPageChange }) {
                 type="button"
                 className={`pagination-btn${page === p ? ' active' : ''}`}
                 onClick={() => onPageChange(p)}
-                aria-label={`Halaman ${p}`}
+                aria-label={`${t.tp_halaman} ${p}`}
                 aria-current={page === p ? 'page' : undefined}
               >
                 {p}
@@ -211,7 +215,7 @@ function Pagination({ page, totalPages, total, onPageChange }) {
           className="pagination-btn"
           onClick={() => onPageChange(page + 1)}
           disabled={page === totalPages}
-          aria-label="Halaman berikutnya"
+          aria-label={t.tp_halaman_berikutnya}
         >
           <IconChevronRight />
         </button>
@@ -222,14 +226,15 @@ function Pagination({ page, totalPages, total, onPageChange }) {
 
 /**
  * Filter bar with chip buttons and date-range inputs.
- * @param {{ active: string, dateStart: string, dateEnd: string, onFilterChange: Function, onDateApply: Function, onDateChange: Function }} props
+ * @param {{ active: string, dateStart: string, dateEnd: string, onFilterChange: Function, onDateApply: Function, onDateChange: Function, t: object }} props
  */
-function FilterBar({ active, dateStart, dateEnd, onFilterChange, onDateApply, onDateChange }) {
+function FilterBar({ active, dateStart, dateEnd, onFilterChange, onDateApply, onDateChange, t }) {
+  const filters = buildFilters(t)
   return (
-    <div className="filter-bar" role="group" aria-label="Filter data presensi">
-      <span className="filter-bar-label">Filter:</span>
+    <div className="filter-bar" role="group" aria-label={t.tp_filter_label}>
+      <span className="filter-bar-label">{t.tp_filter_label}</span>
 
-      {FILTERS.map((f) => (
+      {filters.map((f) => (
         <button
           key={f.value}
           type="button"
@@ -254,16 +259,16 @@ function FilterBar({ active, dateStart, dateEnd, onFilterChange, onDateApply, on
             className="filter-date-input"
             value={dateStart}
             max={dateEnd || undefined}
-            aria-label="Tanggal mulai"
+            aria-label={t.tp_tanggal_mulai}
             onChange={(e) => onDateChange('start', e.currentTarget.value)}
           />
-          <span className="filter-date-sep">s/d</span>
+          <span className="filter-date-sep">{t.tp_sd}</span>
           <input
             type="date"
             className="filter-date-input"
             value={dateEnd}
             min={dateStart || undefined}
-            aria-label="Tanggal akhir"
+            aria-label={t.tp_tanggal_akhir}
             onChange={(e) => onDateChange('end', e.currentTarget.value)}
           />
           <button
@@ -271,7 +276,7 @@ function FilterBar({ active, dateStart, dateEnd, onFilterChange, onDateApply, on
             className="filter-date-apply-btn"
             onClick={onDateApply}
           >
-            Tampilkan
+            {t.tp_tampilkan_btn}
           </button>
         </div>
       )}
@@ -289,7 +294,9 @@ function FilterBar({ active, dateStart, dateEnd, onFilterChange, onDateApply, on
  *
  * @returns {preact.VNode}
  */
-export default function TablePresensi() {
+export default function TablePresensi({ lang }) {
+  const t = T[lang] || T.id
+
   // ── Data state ──
   const [rows,       setRows]       = useState([])
   const [meta,       setMeta]       = useState({ total: 0, page: 1, per_page: PER_PAGE, total_pages: 1 })
@@ -331,7 +338,7 @@ export default function TablePresensi() {
       setPage(targetPage)
     } catch (err) {
       console.error('[TablePresensi] Fetch error:', err)
-      setError(err.message || 'Gagal memuat data presensi.')
+      setError(err.message || t.sc_gagal_muat)
     } finally {
       setLoading(false)
     }
@@ -372,13 +379,13 @@ export default function TablePresensi() {
   const startIndex = (page - 1) * PER_PAGE
 
   return (
-    <section className="presensi-table-section" aria-label="Halaman Presensi Siswa">
+    <section className="presensi-table-section" aria-label={t.tp_judul}>
 
       {/* Header */}
       <header>
-        <h2 className="presensi-table-title">Riwayat Presensi</h2>
+        <h2 className="presensi-table-title">{t.tp_judul}</h2>
         <p className="presensi-table-subtitle">
-          Rekap lengkap kehadiran kamu di seluruh sesi laboratorium.
+          {t.tp_subtitle}
         </p>
       </header>
 
@@ -390,22 +397,23 @@ export default function TablePresensi() {
         onFilterChange={handleFilterChange}
         onDateApply={handleDateApply}
         onDateChange={handleDateChange}
+        t={t}
       />
 
       {/* Table card */}
       <div className="presensi-table-card">
         <div className="presensi-table-wrap">
-          <table className="presensi-table" aria-label="Tabel riwayat presensi">
+          <table className="presensi-table" aria-label={t.tp_judul}>
             <thead>
               <tr>
-                <th className="col-no" scope="col">No</th>
-                <th scope="col">Tanggal</th>
-                <th scope="col">Ruangan</th>
-                <th scope="col">Kelas</th>
-                <th scope="col">Jam Sesi</th>
-                <th scope="col">Selesai</th>
-                <th scope="col">Status</th>
-                <th scope="col">Keterangan</th>
+                <th className="col-no" scope="col">{t.tp_col_no}</th>
+                <th scope="col">{t.tp_col_tanggal}</th>
+                <th scope="col">{t.tp_col_ruangan}</th>
+                <th scope="col">{t.tp_col_kelas}</th>
+                <th scope="col">{t.tp_col_jam_sesi}</th>
+                <th scope="col">{t.tp_col_selesai}</th>
+                <th scope="col">{t.tp_col_status}</th>
+                <th scope="col">{t.tp_col_keterangan}</th>
               </tr>
             </thead>
 
@@ -420,14 +428,14 @@ export default function TablePresensi() {
                     <div className="table-state-icon is-error" aria-hidden="true">
                       <IconError />
                     </div>
-                    <p className="table-state-title">Gagal Memuat Data</p>
+                    <p className="table-state-title">{t.tp_gagal_judul}</p>
                     <p className="table-state-desc">{error}</p>
                     <button
                       type="button"
                       className="table-retry-btn"
                       onClick={() => fetchPresensi(page, activeFilter)}
                     >
-                      Coba Lagi
+                      {t.sc_coba_lagi}
                     </button>
                   </td>
                 </tr>
@@ -440,9 +448,9 @@ export default function TablePresensi() {
                     <div className="table-state-icon" aria-hidden="true">
                       <IconEmpty />
                     </div>
-                    <p className="table-state-title">Tidak Ada Data</p>
+                    <p className="table-state-title">{t.tp_kosong_judul}</p>
                     <p className="table-state-desc">
-                      Tidak ada data presensi yang sesuai dengan filter yang dipilih.
+                      {t.tp_kosong_desc}
                     </p>
                   </td>
                 </tr>
@@ -457,7 +465,7 @@ export default function TablePresensi() {
                   <td>{row.kelas     || '—'}</td>
                   <td>{row.label_jam ? `${row.label_jam} (${formatTime(row.waktu_mulai)})` : formatTime(row.waktu_mulai)}</td>
                   <td>{formatTime(row.waktu_selesai)}</td>
-                  <td><StatusBadge status={row.status} /></td>
+                  <td><StatusBadge status={row.status} t={t} /></td>
                   <td style={{ maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {row.keterangan || '—'}
                   </td>
@@ -474,6 +482,7 @@ export default function TablePresensi() {
             totalPages={meta.total_pages}
             total={meta.total}
             onPageChange={handlePageChange}
+            t={t}
           />
         )}
       </div>

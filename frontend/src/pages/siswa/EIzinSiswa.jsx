@@ -9,6 +9,7 @@
 
 import { useState, useEffect, useCallback } from 'preact/hooks'
 import { authApi } from '../../utils/api'
+import { T } from '../../utils/lang.js'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -90,20 +91,29 @@ const STATUS_CLR = {
   // backward compat
   menunggu:       '#d97706',
 }
-const STATUS_LBL = {
-  menunggu_ortu:  '⏳ Menunggu Ortu',
-  pending:        '⏳ Menunggu Wali Kelas',
-  disetujui_wali: '🔄 Menunggu Admin',
-  ditolak_wali:   '❌ Ditolak Wali',
-  disetujui:      '✅ Disetujui',
-  ditolak:        '❌ Ditolak',
-  menunggu:       '⏳ Menunggu',
+function buildStatusLbl(t) {
+  return {
+    menunggu_ortu:  t.ei_status_menunggu_ortu,
+    pending:        t.ei_status_pending,
+    disetujui_wali: t.ei_status_disetujui_wali,
+    ditolak_wali:   t.ei_status_ditolak_wali,
+    disetujui:      t.ei_status_disetujui,
+    ditolak:        t.ei_status_ditolak,
+    // backward compat
+    menunggu:       t.ei_status_menunggu,
+  }
 }
-const TYPE_LBL   = { sakit: '🏥 Sakit', izin: '📋 Izin' }
+function buildTypeLbl(t) {
+  return { sakit: t.ei_opt_sakit, izin: t.ei_opt_izin }
+}
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export default function EIzinSiswa() {
+export default function EIzinSiswa({ lang }) {
+  const t = T[lang] || T.id
+  const STATUS_LBL = buildStatusLbl(t)
+  const TYPE_LBL   = buildTypeLbl(t)
+
   const [items,       setItems]       = useState([])
   const [loading,     setLoading]     = useState(true)
   const [showForm,    setShowForm]    = useState(false)
@@ -136,12 +146,12 @@ export default function EIzinSiswa() {
   async function handleSubmit() {
     setGlobalErr('')
     if (!form.alasan.trim()) {
-      setGlobalErr('Keterangan wajib diisi.'); return
+      setGlobalErr(t.ei_keterangan_wajib); return
     }
     setSubmitting(true)
     try {
       await apiFetch('/e-izin', { method: 'POST', body: JSON.stringify(form) })
-      setSuccessMsg('Pengajuan izin berhasil dikirim.')
+      setSuccessMsg(t.ei_sukses)
       setShowForm(false)
       setForm({ jenis: 'sakit', tanggal_mulai: today, tanggal_selesai: today, alasan: '' })
       await load()
@@ -162,14 +172,14 @@ export default function EIzinSiswa() {
       }}>
         <div>
           <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: 'var(--clr-text-base)' }}>
-            Portal E-Izin
+            {t.ei_judul}
           </h1>
           <p style={{ margin: '0.25rem 0 0', fontSize: '0.8125rem', color: 'var(--clr-text-muted)' }}>
-            Ajukan izin atau sakit dan pantau status persetujuannya
+            {t.ei_subtitle}
           </p>
         </div>
         <button style={s.btnPrimary} onClick={() => { setShowForm(true); setGlobalErr(''); setSuccessMsg('') }}>
-          + Ajukan Izin
+          {t.ei_ajukan_btn}
         </button>
       </div>
 
@@ -187,8 +197,8 @@ export default function EIzinSiswa() {
       {showForm && (
         <div style={s.card}>
           <div style={s.cardHeader}>
-            <h3 style={s.cardTitle}>📝 Ajukan Izin / Sakit</h3>
-            <button style={s.btnGhost} onClick={() => setShowForm(false)}>✕ Tutup</button>
+            <h3 style={s.cardTitle}>{t.ei_form_judul}</h3>
+            <button style={s.btnGhost} onClick={() => setShowForm(false)}>{t.ei_tutup}</button>
           </div>
           <div style={{ ...s.cardBody, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
             {globalErr && (
@@ -202,23 +212,23 @@ export default function EIzinSiswa() {
             )}
 
             <div style={s.field}>
-              <label style={s.label}>Jenis</label>
+              <label style={s.label}>{t.ei_jenis_label}</label>
               <select value={form.jenis} onChange={e => setF('jenis', e.target.value)}
                 style={s.input}>
-                <option value="sakit">🏥 Sakit</option>
-                <option value="izin">📋 Izin</option>
+                <option value="sakit">{t.ei_opt_sakit}</option>
+                <option value="izin">{t.ei_opt_izin}</option>
               </select>
             </div>
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
               <div style={s.field}>
-                <label style={s.label}>Tanggal Mulai</label>
+                <label style={s.label}>{t.ei_tgl_mulai}</label>
                 <input type="date" value={form.tanggal_mulai}
                   max={today} style={s.input}
                   onInput={e => setF('tanggal_mulai', e.target.value)} />
               </div>
               <div style={s.field}>
-                <label style={s.label}>Tanggal Selesai</label>
+                <label style={s.label}>{t.ei_tgl_selesai}</label>
                 <input type="date" value={form.tanggal_selesai}
                   min={form.tanggal_mulai} max={today} style={s.input}
                   onInput={e => setF('tanggal_selesai', e.target.value)} />
@@ -226,8 +236,8 @@ export default function EIzinSiswa() {
             </div>
 
             <div style={s.field}>
-              <label style={s.label}>Keterangan <span style={{ color: '#dc2626' }}>*</span></label>
-              <textarea rows={4} placeholder="Jelaskan alasan izin/sakit..."
+              <label style={s.label}>{t.ei_keterangan_label} <span style={{ color: '#dc2626' }}>*</span></label>
+              <textarea rows={4} placeholder={t.ei_placeholder_alasan}
                 value={form.alasan}
                 onInput={e => setF('alasan', e.target.value)}
                 style={{ ...s.input, resize: 'vertical' }} />
@@ -235,10 +245,10 @@ export default function EIzinSiswa() {
 
             <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
               <button style={s.btnGhost} onClick={() => setShowForm(false)} disabled={submitting}>
-                Batal
+                {t.ei_batal}
               </button>
               <button style={s.btnPrimary} onClick={handleSubmit} disabled={submitting}>
-                {submitting ? 'Mengirim…' : '📤 Kirim Pengajuan'}
+                {submitting ? t.ei_mengirim : t.ei_kirim_btn}
               </button>
             </div>
           </div>
@@ -248,25 +258,25 @@ export default function EIzinSiswa() {
       {/* Riwayat */}
       <div style={s.card}>
         <div style={s.cardHeader}>
-          <h3 style={s.cardTitle}>📋 Riwayat Izin</h3>
+          <h3 style={s.cardTitle}>{t.ei_riwayat_judul}</h3>
           <button style={s.btnGhost} onClick={load} style={{ ...s.btnGhost, fontSize: '0.75rem' }}>
-            ↺ Refresh
+            {t.ei_refresh}
           </button>
         </div>
         {loading ? (
           <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--clr-text-muted)' }}>
-            Memuat riwayat…
+            {t.ei_memuat}
           </div>
         ) : items.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--clr-text-muted)' }}>
             <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📋</div>
-            Belum ada pengajuan izin.
+            {t.ei_kosong}
           </div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
             <thead>
               <tr>
-                {['Jenis','Tanggal','Keterangan','Status','Catatan Guru'].map(h => (
+                {[t.ei_jenis_label, t.tp_col_tanggal, t.ei_keterangan_label, t.ei_col_status, t.ei_col_catatan].map(h => (
                   <th key={h} style={{
                     padding: '0.625rem 1rem', textAlign: 'left',
                     fontSize: '0.7rem', fontWeight: 700, textTransform: 'uppercase',

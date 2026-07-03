@@ -9,6 +9,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 import { bukaWA, pesanIzinDisetujui, pesanIzinDitolak } from '../../utils/waLink.jsx'
 import { emailIzinDisetujui, emailIzinDitolak } from '../../services/emailService.js'
 import './EIzinPage.css'
@@ -39,13 +40,19 @@ async function apiFetch(path, options = {}) {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const STATUS_LABEL = {
-  menunggu_ortu:   'Menunggu Ortu',
-  pending:         'Menunggu Wali',
-  disetujui_wali:  'Menunggu Admin',
-  ditolak_wali:    'Ditolak Wali',
-  disetujui:       'Disetujui',
-  ditolak:         'Ditolak',
+function buildStatusLabel(t) {
+  return {
+    menunggu_ortu:  t.ei_status_menunggu_ortu,
+    pending:        t.ei_status_pending,
+    disetujui_wali: t.ei_status_disetujui_wali,
+    ditolak_wali:   t.ei_status_ditolak_wali,
+    disetujui:      t.ei_status_disetujui,
+    ditolak:        t.ei_status_ditolak,
+  }
+}
+
+function buildJenisLabel(t) {
+  return { sakit: t.ei_opt_sakit.replace(/^.+ /,''), izin: t.sc_izin, dispensasi: t.ad_dispensasi }
 }
 
 const STATUS_COLOR = {
@@ -57,7 +64,6 @@ const STATUS_COLOR = {
   ditolak:         'var(--eizin-badge-ditolak)',
 }
 
-const JENIS_LABEL = { sakit: 'Sakit', izin: 'Izin', dispensasi: 'Dispensasi' }
 const JENIS_ICON  = { sakit: '🤒', izin: '📋', dispensasi: '🎓' }
 
 function fmtDate(d) {
@@ -180,7 +186,7 @@ function ApproveModal({ izin, onClose, onDone }) {
         </div>
 
         <div class="eizin-modal-catatan">
-          <label>Catatan {action === 'reject' ? '(wajib diisi saat menolak)' : '(opsional)'}</label>
+          <label>Catatan {action === 'reject' ? t.ad_catatan_wajib_tolak : t.ad_catatan_opsional}</label>
           <textarea
             rows={3}
             placeholder="Tulis catatan untuk siswa/wali..."
@@ -198,7 +204,7 @@ function ApproveModal({ izin, onClose, onDone }) {
             onClick={handleSubmit}
             disabled={loading || (action === 'reject' && !catatan.trim())}
           >
-            {loading ? 'Menyimpan...' : action === 'approve' ? '✅ Setujui' : '❌ Tolak'}
+            {loading ? t.ad_menyimpan_izin : action === 'approve' ? t.gu_setujui : '❌ ' + t.gu_batal}
           </button>
         </div>
       </div>
@@ -487,7 +493,7 @@ function AjukanTab({ userType }) {
       const payload = { ...form }
       if (isSiswa) delete payload.siswa_id
       await apiFetch('/e-izin', { method: 'POST', body: JSON.stringify(payload) })
-      setSuccess('Pengajuan berhasil dikirim! Menunggu persetujuan wali kelas.')
+      setSuccess(t.ad_pengajuan_sukses)
       setForm(INITIAL_FORM)
       setQuery('')
     } catch (e) {
@@ -606,7 +612,7 @@ function AjukanTab({ userType }) {
           <button class="eizin-btn eizin-btn-primary"
             onClick={handleSubmit}
             disabled={loading || !isValid}>
-            {loading ? 'Mengirim...' : '📤 Kirim Pengajuan'}
+            {loading ? t.ad_mengirim_izin : t.ei_kirim_btn}
           </button>
         </div>
       </div>
@@ -616,7 +622,10 @@ function AjukanTab({ userType }) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export default function EIzinPage() {
+export default function EIzinPage({ lang }) {
+  const t = T[lang] || T.id
+  const STATUS_LABEL = buildStatusLabel(t)
+  const JENIS_LABEL  = buildJenisLabel(t)
   const [activeTab, setActiveTab] = useState('daftar')
 
   // Ambil user type dari localStorage

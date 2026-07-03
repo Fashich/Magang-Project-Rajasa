@@ -10,6 +10,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 import './LogbookPage.css'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -46,11 +47,13 @@ async function apiFetch(path, options = {}) {
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
-const STATUS_LABEL = {
-  draft:            'Draft',
-  menunggu_review:  'Menunggu Review',
-  disetujui:        'Disetujui',
-  ditolak:          'Dikembalikan',
+function buildStatusLabel(t) {
+  return {
+    draft:           t.lb_status_draft,
+    menunggu_review: t.lb_status_menunggu_review,
+    disetujui:       t.lb_status_disetujui,
+    ditolak:         t.lb_status_ditolak,
+  }
 }
 
 const STATUS_COLOR = {
@@ -111,7 +114,7 @@ function DetailModal({ item, userType, onClose, onReview, onEdit, onDelete }) {
   async function handleReview(action) {
     setReviewErr('')
     if (action === 'reject' && !catatan.trim()) {
-      setReviewErr('Catatan wajib diisi saat mengembalikan logbook.')
+      setReviewErr(t.ad_catatan_wajib_logbook)
       return
     }
     setLoading(true)
@@ -393,10 +396,10 @@ function FormPenilaianModal({ siswaId, namaSiswa, existing, onClose, onSaved }) 
   }
 
   const komponen = [
-    { key: 'nilai_kedisiplinan', label: 'Kedisiplinan' },
-    { key: 'nilai_keterampilan', label: 'Keterampilan' },
-    { key: 'nilai_sikap',        label: 'Sikap' },
-    { key: 'nilai_laporan',      label: 'Laporan' },
+    { key: 'nilai_kedisiplinan', label: t.gm_nilai_kedisiplinan },
+    { key: 'nilai_keterampilan', label: t.gm_nilai_keterampilan },
+    { key: 'nilai_sikap',        label: t.gm_nilai_sikap },
+    { key: 'nilai_laporan',      label: t.gm_nilai_laporan },
   ]
 
   // Preview nilai akhir
@@ -656,7 +659,7 @@ function TabPenilaian({ userType }) {
         <div class="lb-empty">
           <div class="lb-empty-icon">⭐</div>
           <div class="lb-empty-text">
-            {isSiswa ? 'Belum ada penilaian dari guru pembimbing.' : 'Belum ada penilaian yang diberikan.'}
+            {isSiswa ? t.lb_penilaian_kosong_judul : t.ad_belum_ada_penilaian2}
           </div>
         </div>
       ) : (
@@ -676,10 +679,10 @@ function TabPenilaian({ userType }) {
 
               <div class="lb-nilai-grid">
                 {[
-                  { label: 'Kedisiplinan', val: p.nilai_kedisiplinan },
-                  { label: 'Keterampilan', val: p.nilai_keterampilan },
-                  { label: 'Sikap',        val: p.nilai_sikap },
-                  { label: 'Laporan',      val: p.nilai_laporan },
+                  { label: t.gm_nilai_kedisiplinan, val: p.nilai_kedisiplinan },
+                  { label: t.gm_nilai_keterampilan, val: p.nilai_keterampilan },
+                  { label: t.gm_nilai_sikap,        val: p.nilai_sikap },
+                  { label: t.gm_nilai_laporan,      val: p.nilai_laporan },
                 ].map(n => (
                   <div class="lb-nilai-item" key={n.label}>
                     <div class="nilai-angka">{n.val ?? '—'}</div>
@@ -747,7 +750,9 @@ function TabPenilaian({ userType }) {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 
-export default function LogbookPage() {
+export default function LogbookPage({ lang }) {
+  const t = T[lang] || T.id
+  const STATUS_LABEL = buildStatusLabel(t)
   const user     = getUser()
   const userType = user?.user_type ?? 'siswa'
   const isSiswa  = userType === 'siswa'

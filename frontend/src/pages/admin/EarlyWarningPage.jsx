@@ -12,6 +12,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 import './EarlyWarningPage.css'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -46,10 +47,12 @@ function pctColor(rate) {
 
 // ── Severity ──────────────────────────────────────────────────────────────────
 
-const SEVERITY = {
-  critical: { label: 'Kritis',  cls: 'ew-badge--critical', icon: '🔴' },
-  high:     { label: 'Tinggi',  cls: 'ew-badge--high',     icon: '🟠' },
-  medium:   { label: 'Sedang',  cls: 'ew-badge--medium',   icon: '🟡' },
+function buildSeverity(t) {
+  return {
+    critical: { label: t.ad_kritis, cls: 'ew-badge--critical', icon: '🔴' },
+    high:     { label: t.ad_tinggi, cls: 'ew-badge--high',     icon: '🟠' },
+    medium:   { label: t.ad_sedang, cls: 'ew-badge--medium',   icon: '🟡' },
+  }
 }
 
 function SeverityBadge({ sev }) {
@@ -136,7 +139,9 @@ function Toast({ toast }) {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export default function EarlyWarningPage() {
+export default function EarlyWarningPage({ lang }) {
+  const t = T[lang] || T.id
+  const SEVERITY = buildSeverity(t)
   const [warnings,    setWarnings]  = useState([])
   const [summary,     setSummary]   = useState({})
   const [rombelList,  setRombel]    = useState([])
@@ -188,7 +193,7 @@ export default function EarlyWarningPage() {
     try {
       const p   = new URLSearchParams({ days })
       const res = await apiFetch(`/early-warnings/notify?${p}`, { method: 'POST' })
-      showToast(res.message ?? 'Notifikasi berhasil dikirim.')
+      showToast(res.message ?? t.ad_notif_sukses)
     } catch (e) { showToast(e.message, 'error') }
     finally { setNotifying(false) }
   }
@@ -223,7 +228,7 @@ export default function EarlyWarningPage() {
             <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
               <path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
             </svg>
-            {loading ? 'Memuat…' : 'Refresh'}
+            {loading ? t.ad_memuat : t.ad_refresh}
           </button>
           <button
             class="ew-btn ew-btn--warn"
@@ -234,7 +239,7 @@ export default function EarlyWarningPage() {
             <svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor">
               <path d="M12 22c1.1 0 2-.9 2-2h-4c0 1.1.9 2 2 2zm6-6v-5c0-3.07-1.64-5.64-4.5-6.32V4c0-.83-.67-1.5-1.5-1.5s-1.5.67-1.5 1.5v.68C7.63 5.36 6 7.92 6 11v5l-2 2v1h16v-1l-2-2z"/>
             </svg>
-            {notifying ? 'Mengirim…' : 'Notifikasi Wali Kelas'}
+            {notifying ? t.ad_mengirim : t.ad_notif_wali}
           </button>
         </div>
       </div>
@@ -332,12 +337,12 @@ export default function EarlyWarningPage() {
           <p class="ew-empty-title">
             {warnings.length === 0
               ? `Tidak ada siswa dengan alpha ≥${minAlpha}x dalam ${days} hari terakhir`
-              : 'Tidak ada hasil yang sesuai filter'}
+              : t.ad_tidak_ada_hasil}
           </p>
           <p class="ew-empty-sub">
             {warnings.length === 0
-              ? 'Kehadiran dalam kondisi baik!'
-              : 'Coba ubah filter level atau kata kunci pencarian.'}
+              ? t.ad_hadir_baik
+              : t.ad_coba_ubah_filter}
           </p>
         </div>
       )}

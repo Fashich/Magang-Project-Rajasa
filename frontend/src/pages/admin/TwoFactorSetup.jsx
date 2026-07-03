@@ -11,6 +11,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 
 const API = import.meta.env.VITE_API_URL || '/api'
 
@@ -33,7 +34,8 @@ async function apiFetch(path, opts = {}) {
   return data
 }
 
-export default function TwoFactorSetup() {
+export default function TwoFactorSetup({ lang }) {
+  const t = T[lang] || T.id
   const [status,      setStatus]      = useState(null)   // null | { enabled: bool }
   const [setupData,   setSetupData]   = useState(null)   // { secret, qr_url }
   const [step,        setStep]        = useState('idle') // idle | setup | verify | done | disable
@@ -258,7 +260,7 @@ export default function TwoFactorSetup() {
           </div>
           <div style={{ display: 'flex', gap: 8 }}>
             <button style={btnDanger} onClick={handleDisable} disabled={loading || disableCode.length !== 6}>
-              {loading ? '⏳' : 'Konfirmasi Nonaktifkan'}
+              {loading ? '⏳' : t.ad_konfirmasi}
             </button>
             <button style={btnGhost} onClick={() => { setStep('idle'); setDisableCode(''); setError('') }}>
               Batal

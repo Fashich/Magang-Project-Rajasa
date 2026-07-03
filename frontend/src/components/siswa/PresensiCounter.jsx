@@ -19,6 +19,7 @@
 
 import { useState, useEffect } from 'preact/hooks'
 import { siswaApi } from '../../utils/api'
+import { T } from '../../utils/lang.js'
 import './PresensiCounter.css'
 
 // ─── SVG Icons (muted colors applied via CSS vars) ───────────────────────────
@@ -75,45 +76,48 @@ function IconError() {
 
 /**
  * Ordered list of counter cards.
- * `key` matches the API response field name.
+ * `key` matches the API response field name. Labels are built from the
+ * active translation dictionary so they follow the selected language.
  */
-const COUNTER_CONFIG = [
-  {
-    key: 'tepat_waktu',
-    label: 'Tepat Waktu',
-    modifier: 'hadir',
-    icon: <IconCheck />,
-    ariaLabel: 'Jumlah kehadiran tepat waktu',
-  },
-  {
-    key: 'terlambat',
-    label: 'Terlambat',
-    modifier: 'terlambat',
-    icon: <IconClock />,
-    ariaLabel: 'Jumlah kehadiran terlambat',
-  },
-  {
-    key: 'alpha',
-    label: 'Alpha',
-    modifier: 'alpha',
-    icon: <IconClose />,
-    ariaLabel: 'Jumlah ketidakhadiran alpha',
-  },
-  {
-    key: 'sakit',
-    label: 'Sakit',
-    modifier: 'sakit',
-    icon: <IconMedical />,
-    ariaLabel: 'Jumlah tidak hadir karena sakit',
-  },
-  {
-    key: 'izin',
-    label: 'Izin',
-    modifier: 'izin',
-    icon: <IconPermit />,
-    ariaLabel: 'Jumlah tidak hadir dengan izin',
-  },
-]
+function buildCounterConfig(t) {
+  return [
+    {
+      key: 'tepat_waktu',
+      label: t.sc_tepat_waktu,
+      modifier: 'hadir',
+      icon: <IconCheck />,
+      ariaLabel: t.sc_tepat_waktu,
+    },
+    {
+      key: 'terlambat',
+      label: t.sc_terlambat,
+      modifier: 'terlambat',
+      icon: <IconClock />,
+      ariaLabel: t.sc_terlambat,
+    },
+    {
+      key: 'alpha',
+      label: t.sc_alpha,
+      modifier: 'alpha',
+      icon: <IconClose />,
+      ariaLabel: t.sc_alpha,
+    },
+    {
+      key: 'sakit',
+      label: t.sc_sakit,
+      modifier: 'sakit',
+      icon: <IconMedical />,
+      ariaLabel: t.sc_sakit,
+    },
+    {
+      key: 'izin',
+      label: t.sc_izin,
+      modifier: 'izin',
+      icon: <IconPermit />,
+      ariaLabel: t.sc_izin,
+    },
+  ]
+}
 
 // ─── Sub-components ───────────────────────────────────────────────────────────
 
@@ -156,7 +160,8 @@ function CounterCard({ config, value, isLoading }) {
  *
  * @returns {preact.VNode}
  */
-export default function PresensiCounter() {
+export default function PresensiCounter({ lang }) {
+  const t = T[lang] || T.id
   const [stats, setStats]       = useState(null)
   const [isLoading, setLoading] = useState(true)
   const [error, setError]       = useState(null)
@@ -170,7 +175,7 @@ export default function PresensiCounter() {
       setStats(res.data ?? null)
     } catch (err) {
       console.error('[PresensiCounter] Fetch error:', err)
-      setError(err.message || 'Gagal memuat data presensi.')
+      setError(err.message || t.sc_gagal_muat)
     } finally {
       setLoading(false)
     }
@@ -181,12 +186,14 @@ export default function PresensiCounter() {
     fetchStats()
   }, [])
 
+  const counterConfig = buildCounterConfig(t)
+
   return (
-    <section className="presensi-counter-section" aria-label="Ringkasan Presensi Siswa">
+    <section className="presensi-counter-section" aria-label={t.sc_ringkasan_judul}>
       <header>
-        <h2 className="presensi-counter-title">Ringkasan Presensi</h2>
+        <h2 className="presensi-counter-title">{t.sc_ringkasan_judul}</h2>
         <p className="presensi-counter-subtitle">
-          Rekap kehadiran kamu di seluruh sesi laboratorium.
+          {t.sc_ringkasan_sub}
         </p>
       </header>
 
@@ -200,14 +207,14 @@ export default function PresensiCounter() {
             className="counter-retry-btn"
             onClick={fetchStats}
           >
-            Coba Lagi
+            {t.sc_coba_lagi}
           </button>
         </div>
       )}
 
       {/* Counter cards grid */}
       <div className="presensi-counter-grid" role="list">
-        {COUNTER_CONFIG.map((config) => (
+        {counterConfig.map((config) => (
           <CounterCard
             key={config.key}
             config={config}

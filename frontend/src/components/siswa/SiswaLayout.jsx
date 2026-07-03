@@ -486,7 +486,7 @@ export default function SiswaLayout({ user, onLogout, renderPage }) {
         user={user}
       />
       <main className="siswa-content-new">
-        {typeof renderPage === 'function' ? renderPage(activePage) : null}
+        {typeof renderPage === 'function' ? renderPage(activePage, lang) : null}
       </main>
       <LogoutOverlay
         state={logoutState}

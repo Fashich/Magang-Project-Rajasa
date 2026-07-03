@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 import TambahGuruModal from './components/TambahGuruModal.jsx'
 import TambahSiswaModal from './components/TambahSiswaModal.jsx'
 import './UsersPage.css'
@@ -34,40 +35,24 @@ async function apiFetch(path, options = {}) {
 }
 
 const USER_TYPE_LABELS = {
-  siswa:      'Siswa',
-  guru:       'Guru',
-  staff:      'Staff',
-  admin:      'Admin',
-  intern:     'Intern',
+  siswa: 'Siswa', guru: 'Guru', staff: 'Staff', admin: 'Admin', intern: 'Intern',
 }
 
-const STATUS_LABELS = {
-  aktif:     'Aktif',
-  nonaktif:  'Nonaktif',
-  suspended: 'Suspended',
-}
-
-const INITIAL_FORM = {
-  username: '',
-  email: '',
-  password: '',
-  user_type: 'guru',
-  status: 'aktif',
-}
+const STATUS_LABELS = { aktif: 'Aktif', nonaktif: 'Nonaktif', suspended: 'Suspended' }
 
 // ── Badge ─────────────────────────────────────────────────────────────────────
 
-function StatusBadge({ status }) {
+function StatusBadge({ status, labels }) {
   const cls = {
     aktif:     'users-badge users-badge--aktif',
     nonaktif:  'users-badge users-badge--nonaktif',
     suspended: 'users-badge users-badge--suspended',
   }[status] ?? 'users-badge'
-  return <span className={cls}>{STATUS_LABELS[status] ?? status}</span>
+  return <span className={cls}>{(labels ?? STATUS_LABELS)[status] ?? status}</span>
 }
 
-function TypeBadge({ type }) {
-  return <span className="users-badge users-badge--type">{USER_TYPE_LABELS[type] ?? type}</span>
+function TypeBadge({ type, labels }) {
+  return <span className="users-badge users-badge--type">{(labels ?? USER_TYPE_LABELS)[type] ?? type}</span>
 }
 
 // Kolom ID — kode identifikasi gabungan: {username}_{NIP-atau-NISN}
@@ -76,11 +61,13 @@ function buildDisplayId(u) {
   return code ? `${u.username}_${code}` : '—'
 }
 
+const INITIAL_FORM = { username: '', email: '', password: '', user_type: 'guru', status: 'aktif' }
+
 // ── Presence (Online / Idle / Offline) ──────────────────────────────────────
 // "Offline" diturunkan murni dari basi-tidaknya last_heartbeat_at (bukan
 // disimpan di server) — kalau heartbeat sudah lebih lama dari ambang batas,
 // dianggap offline berapa pun status terakhir yang dilaporkan client.
-const PRESENCE_OFFLINE_THRESHOLD_MS = 15_000 // 3x interval heartbeat (5 detik)
+const PRESENCE_OFFLINE_THRESHOLD_MS = 15_000
 
 function derivePresence(u) {
   if (!u.last_heartbeat_at) return 'offline'
@@ -89,13 +76,14 @@ function derivePresence(u) {
   return u.presence_state === 'idle' ? 'idle' : 'online'
 }
 
-function PresenceBadge({ user }) {
+function PresenceBadge({ user, config }) {
   const presence = derivePresence(user)
-  const config = {
+  const defaultConfig = {
     online:  { label: 'Online',  cls: 'users-presence--online'  },
     idle:    { label: 'Idle',    cls: 'users-presence--idle'    },
     offline: { label: 'Offline', cls: 'users-presence--offline' },
-  }[presence]
+  }
+  const { label, cls } = (config ?? defaultConfig)[presence]
 
   return (
     <span className={`users-presence ${config.cls}`}>
@@ -180,7 +168,7 @@ function ResetPasswordModal({ user, onClose, onSuccess }) {
             onClick={handleSubmit}
             disabled={loading}
           >
-            {loading ? 'Menyimpan…' : 'Reset Password'}
+            {loading ? t.ad_menyimpan : t.ad_reset_password}
           </button>
         </div>
       </div>
@@ -294,7 +282,7 @@ function UserFormModal({ user, onClose, onSuccess }) {
             onClick={handleSubmit}
             disabled={loading}
           >
-            {loading ? 'Menyimpan…' : (isEdit ? 'Simpan Perubahan' : 'Buat Pengguna')}
+            {loading ? t.ad_menyimpan : (isEdit ? t.ad_simpan_perubahan : t.ad_buat_pengguna)}
           </button>
         </div>
       </div>
@@ -304,7 +292,19 @@ function UserFormModal({ user, onClose, onSuccess }) {
 
 // ── Main Page ─────────────────────────────────────────────────────────────────
 
-export default function UsersPage() {
+export default function UsersPage({ lang }) {
+  const t = T[lang] || T.id
+
+  const USER_TYPE_LABELS = {
+    siswa: t.ad_role_siswa, guru: t.ad_role_guru, staff: t.ad_role_staff,
+    admin: t.ad_role_admin, intern: t.ad_role_intern,
+  }
+  const STATUS_LABELS = { aktif: t.ad_aktif, nonaktif: t.ad_nonaktif, suspended: 'Suspended' }
+  const PRESENCE_CONFIG = {
+    online:  { label: t.ad_online,  cls: 'users-presence--online'  },
+    idle:    { label: t.ad_idle,    cls: 'users-presence--idle'    },
+    offline: { label: t.ad_offline, cls: 'users-presence--offline' },
+  }
   const [users, setUsers]       = useState([])
   const [meta, setMeta]         = useState(null)
   const [loading, setLoading]   = useState(false)
@@ -384,7 +384,7 @@ export default function UsersPage() {
     try {
       await apiFetch(`/users/${deleteTarget.user_id}`, { method: 'DELETE' })
       setDeleteTarget(null)
-      showToast('Pengguna berhasil dihapus.')
+      showToast(t.ad_pengguna_dihapus)
       fetchUsers()
     } catch (err) {
       showToast(err.message, 'error')
@@ -405,7 +405,7 @@ export default function UsersPage() {
         <div>
           <h2 className="users-page-title">Manajemen Pengguna</h2>
           <p className="users-page-sub">
-            {meta ? `${meta.total} pengguna terdaftar` : 'Memuat…'}
+            {meta ? `${meta.total} ${t.ad_role_siswa.toLowerCase()}/${t.ad_role_guru.toLowerCase()}` : t.ad_memuat}
           </p>
         </div>
         <div className="users-page-actions" style={{ display: 'flex', gap: '0.625rem' }}>
@@ -481,9 +481,9 @@ export default function UsersPage() {
                 <td className="users-td-mono">{buildDisplayId(u)}</td>
                 <td className="users-td-bold">{u.username}</td>
                 <td className="users-td-muted">{u.email ?? '—'}</td>
-                <td><TypeBadge type={u.user_type} /></td>
-                <td><StatusBadge status={u.status} /></td>
-                <td><PresenceBadge user={u} /></td>
+                <td><TypeBadge type={u.user_type} labels={USER_TYPE_LABELS} /></td>
+                <td><StatusBadge status={u.status} labels={STATUS_LABELS} /></td>
+                <td><PresenceBadge user={u} config={PRESENCE_CONFIG} /></td>
                 <td className="users-td-muted">{u.last_login_at ? new Date(u.last_login_at).toLocaleString('id-ID') : '—'}</td>
                 <td>
                   <div className="users-actions">
@@ -527,27 +527,29 @@ export default function UsersPage() {
       {showCreateGuru && (
         <TambahGuruModal
           onClose={() => setShowCreateGuru(false)}
-          onSuccess={() => { showToast('Akun guru berhasil dibuat.'); fetchUsers() }}
+          onSuccess={() => { showToast(t.ad_akun_guru_sukses); fetchUsers() }}
+          lang={lang}
         />
       )}
       {showCreateSiswa && (
         <TambahSiswaModal
           onClose={() => setShowCreateSiswa(false)}
-          onSuccess={() => { showToast('Akun siswa berhasil dibuat.'); fetchUsers() }}
+          onSuccess={() => { showToast(t.ad_akun_siswa_sukses); fetchUsers() }}
+          lang={lang}
         />
       )}
       {editUser && (
         <UserFormModal
           user={editUser}
           onClose={() => setEditUser(null)}
-          onSuccess={() => { showToast('Pengguna berhasil diperbarui.'); fetchUsers() }}
+          onSuccess={() => { showToast(t.ad_pengguna_diperbarui); fetchUsers() }}
         />
       )}
       {resetUser && (
         <ResetPasswordModal
           user={resetUser}
           onClose={() => setResetUser(null)}
-          onSuccess={() => showToast('Password berhasil direset.')}
+          onSuccess={() => showToast(t.ad_password_reset_sukses)}
         />
       )}
       {deleteTarget && (

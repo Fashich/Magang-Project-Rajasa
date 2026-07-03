@@ -11,6 +11,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 import './AuditPage.css'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -70,13 +71,13 @@ function formatDurasi(menit) {
   return sisa > 0 ? `${jam}j ${sisa}m` : `${jam} jam`
 }
 
-function userTypeBadge(type) {
+function userTypeBadge(type, t) {
   const map = {
-    admin:      { label: 'Admin',    cls: 'at-badge at-badge--admin'  },
-    guru:       { label: 'Guru',     cls: 'at-badge at-badge--guru'   },
-    staff:      { label: 'Staff',    cls: 'at-badge at-badge--staff'  },
-    siswa:      { label: 'Siswa',    cls: 'at-badge at-badge--siswa'  },
-    intern:     { label: 'Intern',   cls: 'at-badge at-badge--intern' },
+    admin:  { label: t.ad_role_admin,  cls: 'at-badge at-badge--admin'  },
+    guru:   { label: t.ad_role_guru,   cls: 'at-badge at-badge--guru'   },
+    staff:  { label: t.ad_role_staff,  cls: 'at-badge at-badge--staff'  },
+    siswa:  { label: t.ad_role_siswa,  cls: 'at-badge at-badge--siswa'  },
+    intern: { label: t.ad_role_intern, cls: 'at-badge at-badge--intern' },
   }
   const { label, cls } = map[type] || { label: type, cls: 'at-badge' }
   return <span class={cls}>{label}</span>
@@ -100,18 +101,18 @@ function activityIcon(type) {
 
 // ── Summary Cards ─────────────────────────────────────────────────────────────
 
-function SummaryCards({ summary, tab }) {
+function SummaryCards({ summary, tab, t }) {
   const sessionCards = [
-    { key: 'sedang_online',  label: 'Sedang Online',    icon: '🟢', accent: '--at-green'  },
-    { key: 'login_hari_ini', label: 'Login Hari Ini',   icon: '📅', accent: '--at-blue'   },
-    { key: 'total_session',  label: 'Total Sesi',        icon: '🔐', accent: '--at-indigo' },
-    { key: 'unique_users',   label: 'Pengguna Aktif',   icon: '👥', accent: '--at-purple' },
+    { key: 'sedang_online',  label: t.ad_sedang_online,      icon: '🟢', accent: '--at-green'  },
+    { key: 'login_hari_ini', label: t.ad_login_hari_ini,     icon: '📅', accent: '--at-blue'   },
+    { key: 'total_session',  label: t.ad_total_sesi,         icon: '🔐', accent: '--at-indigo' },
+    { key: 'unique_users',   label: t.ad_pengguna_aktif,     icon: '👥', accent: '--at-purple' },
   ]
   const activityCards = [
-    { key: 'aktivitas_hari_ini', label: 'Aktivitas Hari Ini', icon: '⚡', accent: '--at-orange' },
-    { key: 'total_aktivitas',    label: 'Total Log',           icon: '📋', accent: '--at-indigo' },
-    { key: 'unique_users',       label: 'Pengguna Terlibat',  icon: '👥', accent: '--at-blue'   },
-    { key: 'module_count',       label: 'Modul Berbeda',       icon: '🧩', accent: '--at-purple' },
+    { key: 'aktivitas_hari_ini', label: t.ad_aktivitas_hari_ini, icon: '⚡', accent: '--at-orange' },
+    { key: 'total_aktivitas',    label: t.ad_total_log,           icon: '📋', accent: '--at-indigo' },
+    { key: 'unique_users',       label: t.ad_pengguna_terlibat,  icon: '👥', accent: '--at-blue'   },
+    { key: 'module_count',       label: t.ad_modul_berbeda,       icon: '🧩', accent: '--at-purple' },
   ]
   const cards = tab === 'sessions' ? sessionCards : activityCards
 
@@ -198,7 +199,7 @@ function SessionsTable({ rows, page, perPage }) {
               <td>
                 <span class="at-username">{row.username}</span>
               </td>
-              <td>{userTypeBadge(row.user_type)}</td>
+              <td>{userTypeBadge(row.user_type, t)}</td>
               <td><code class="at-ip">{row.ip_address}</code></td>
               <td>
                 <span class={`at-device at-device--${row.device?.toLowerCase()}`}>
@@ -248,7 +249,7 @@ function ActivitiesTable({ rows, page, perPage }) {
               <td>
                 <div class="at-user-cell">
                   <span class="at-username">{row.username}</span>
-                  {userTypeBadge(row.user_type)}
+                  {userTypeBadge(row.user_type, t)}
                 </div>
               </td>
               <td>
@@ -287,7 +288,8 @@ function ActivitiesTable({ rows, page, perPage }) {
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export default function AuditPage() {
+export default function AuditPage({ lang }) {
+  const t = T[lang] || T.id
   const [tab,           setTab]     = useState('sessions')
   const [tanggalDari,   setDari]    = useState(sevenDaysAgo)
   const [tanggalSampai, setSampai]  = useState(todayString)
@@ -349,7 +351,7 @@ export default function AuditPage() {
             <svg viewBox="0 0 24 24" width="14" height="14" fill="currentColor">
               <path d="M17.65 6.35A7.958 7.958 0 0 0 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08A5.99 5.99 0 0 1 12 18c-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/>
             </svg>
-            {loading ? 'Memuat…' : 'Refresh'}
+            {loading ? t.ad_memuat : t.ad_refresh}
           </button>
         </div>
       </div>
@@ -377,7 +379,7 @@ export default function AuditPage() {
       </div>
 
       {/* ── Summary cards ── */}
-      <SummaryCards summary={summary} tab={tab} />
+      <SummaryCards summary={summary} tab={tab} t={t} />
 
       {/* ── Filter bar ── */}
       <div class="at-filter-bar">
@@ -403,9 +405,9 @@ export default function AuditPage() {
         </div>
         <div class="at-filter-shortcuts">
           {[
-            { label: 'Hari ini',   dari: todayString(),   sampai: todayString()   },
-            { label: '7 hari',     dari: sevenDaysAgo(),  sampai: todayString()   },
-            { label: '30 hari',    dari: (() => { const d = new Date(); d.setDate(d.getDate()-29); return d.toISOString().slice(0,10) })(), sampai: todayString() },
+            { label: t.ad_hari_ini, dari: todayString(),   sampai: todayString()   },
+            { label: t.ad_7_hari,  dari: sevenDaysAgo(),  sampai: todayString()   },
+            { label: t.ad_30_hari, dari: (() => { const d = new Date(); d.setDate(d.getDate()-29); return d.toISOString().slice(0,10) })(), sampai: todayString() },
           ].map(({ label, dari, sampai }) => {
             const active = tanggalDari === dari && tanggalSampai === sampai
             return (
@@ -444,7 +446,7 @@ export default function AuditPage() {
           <span class="at-count-label">
             {rows.length > 0
               ? `Menampilkan ${(page-1)*25+1}–${(page-1)*25+rows.length} dari ${meta.total}`
-              : 'Tidak ada data'
+              : t.ad_tidak_ada_data
             }
           </span>
           <Pagination page={page} lastPage={meta.last_page} onPage={setPage} />

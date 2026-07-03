@@ -22,16 +22,16 @@ import GamifikasiPage from '../admin/GamifikasiPage'
 
 // ── Page resolver ─────────────────────────────────────────────────────────────
 
-function resolveContent(activePage) {
+function resolveContent(activePage, lang) {
   switch (activePage) {
-    case 'dashboard': return <PresensiCounter />
-    case 'rekap':     return <TablePresensi />
-    case 'kalender':  return <KalenderAkademik />
-    case 'izin':      return <EIzinSiswa />
-    case 'logbook':        return <LogbookSiswa />
-    case 'communication':  return <CommunicationHub />
-    case 'gamifikasi':     return <GamifikasiPage />
-    default:          return <PresensiCounter />
+    case 'dashboard': return <PresensiCounter lang={lang} />
+    case 'rekap':     return <TablePresensi lang={lang} />
+    case 'kalender':  return <KalenderAkademik lang={lang} />
+    case 'izin':      return <EIzinSiswa lang={lang} />
+    case 'logbook':        return <LogbookSiswa lang={lang} />
+    case 'communication':  return <CommunicationHub lang={lang} />
+    case 'gamifikasi':     return <GamifikasiPage lang={lang} />
+    default:          return <PresensiCounter lang={lang} />
   }
 }
 
@@ -42,7 +42,7 @@ export default function DashboardSiswa({ user, onLogout }) {
     <SiswaLayout
       user={user}
       onLogout={onLogout}
-      renderPage={(activePage) => resolveContent(activePage)}
+      renderPage={(activePage, lang) => resolveContent(activePage, lang)}
     />
   )
 }

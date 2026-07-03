@@ -5,6 +5,7 @@
  */
 
 import { useState } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
@@ -57,7 +58,8 @@ const INITIAL_FORM = {
   jenis_user:         'guru',
 }
 
-export default function TambahGuruModal({ onClose, onSuccess }) {
+export default function TambahGuruModal({ onClose, onSuccess, lang }) {
+  const t = T[lang] || T.id
   const [form, setForm]       = useState({ ...INITIAL_FORM })
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState(null)
@@ -71,11 +73,11 @@ export default function TambahGuruModal({ onClose, onSuccess }) {
     setError(null)
 
     if (!form.nama_lengkap.trim() || !form.username.trim()) {
-      setError('Nama lengkap dan username wajib diisi.')
+      setError(t.ei_keterangan_wajib)
       return
     }
     if (isNipRequired && !form.nip.trim()) {
-      setError('NIP wajib diisi untuk jenis user Guru.')
+      setError(t.ei_keterangan_wajib)
       return
     }
 
@@ -214,7 +216,7 @@ export default function TambahGuruModal({ onClose, onSuccess }) {
             onClick={handleSubmit}
             disabled={loading}
           >
-            {loading ? 'Menyimpan…' : 'Buat Akun Guru'}
+            {loading ? t.ad_menyimpan : t.ad_buat_pengguna}
           </button>
         </div>
       </div>

@@ -1,18 +1,5 @@
-/**
- * AnalitikPage.jsx
- * Halaman Analitik Kehadiran (admin)
- * Branch: feature/admin-dashboard
- *
- * Empat panel:
- *   - Tren Harian        : line chart rate kehadiran + stacked area
- *   - Distribusi Status  : donut + bar per tingkatan
- *   - Ranking Rombel     : horizontal bar chart semua kelas
- *   - Heatmap per Jam    : bar chart alpha/hadir per jam pelajaran
- *
- * Semua chart pakai Chart.js (dynamic import, pola sama dengan AdminDashboardPage)
- */
-
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 import './AnalitikPage.css'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -612,16 +599,17 @@ function EmptyChart() {
 
 // ── Main ──────────────────────────────────────────────────────────────────────
 
-export default function AnalitikPage() {
+export default function AnalitikPage({ lang }) {
+  const t = T[lang] || T.id
   const [dari,   setDari]   = useState(daysAgo(29))
   const [sampai, setSampai] = useState(todayString)
 
   const rangeLabel = `${formatDate(dari)} – ${formatDate(sampai)}`
 
   const shortcuts = [
-    { label: '7 hari',     d: daysAgo(6),    s: todayString() },
-    { label: '30 hari',    d: daysAgo(29),   s: todayString() },
-    { label: 'Bulan ini',  d: startOfMonth(), s: todayString() },
+    { label: t.ad_7_hari,    d: daysAgo(6),     s: todayString() },
+    { label: t.ad_30_hari,   d: daysAgo(29),    s: todayString() },
+    { label: t.ad_bulan_ini, d: startOfMonth(), s: todayString() },
   ]
 
   return (

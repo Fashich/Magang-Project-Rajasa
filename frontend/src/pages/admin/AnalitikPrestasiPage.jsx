@@ -15,6 +15,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 import './AnalitikPrestasiPage.css'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -444,7 +445,7 @@ function TabRankingMapel({ filter }) {
           labels: data.map(d => d.kode_mapel),
           datasets: [
             {
-              label: 'Rata-rata Nilai',
+              label: t.ad_rata_rata_nilai,
               data: data.map(d => d.avg_nilai),
               backgroundColor: data.map(d => d.avg_nilai >= 75 ? '#15803d99' : '#dc262699'),
               borderColor:     data.map(d => d.avg_nilai >= 75 ? '#15803d' : '#dc2626'),
@@ -699,45 +700,26 @@ function ModalInputNilai({ onClose, onSaved }) {
   })
 
   useEffect(() => {
-    Promise.allSettled([
+    Promise.all([
       apiFetch('/nilai/mapel'),
       apiFetch('/rombel/options'),
       apiFetch('/admin/pengaturan'),
-    ]).then(([mResult, rResult, pResult]) => {
-      const failedParts = []
-
-      if (mResult.status === 'fulfilled') {
-        setMapelList(mResult.value.data?.mapel ?? [])
-      } else {
-        failedParts.push(`Mata Pelajaran (${mResult.reason?.message ?? 'gagal dimuat'})`)
-      }
-
-      if (rResult.status === 'fulfilled') {
-        setRombelList(rResult.value.data?.rombel ?? [])
-      } else {
-        failedParts.push(`Rombel (${rResult.reason?.message ?? 'gagal dimuat'})`)
-      }
-
-      if (pResult.status === 'fulfilled') {
-        const ta = pResult.value.data?.tahun_ajaran ?? []
-        setTahunList(Array.isArray(ta) ? ta : [ta])
-      } else {
-        failedParts.push(`Tahun Ajaran (${pResult.reason?.message ?? 'gagal dimuat'})`)
-      }
-
-      if (failedParts.length > 0) {
-        setErr(`Sebagian data gagal dimuat: ${failedParts.join(', ')}. Coba refresh halaman, atau hubungi admin jika berlanjut.`)
-      }
-    })
+    ]).then(([m, r, p]) => {
+      setMapelList(m.data?.mapel ?? [])
+      setRombelList(r.data?.rombel ?? [])
+      // Extract tahun ajaran dari pengaturan
+      const ta = p.data?.tahun_ajaran ?? []
+      setTahunList(Array.isArray(ta) ? ta : [ta])
+    }).catch(console.error)
   }, [])
 
   const setF = (k, v) => setForm(f => ({ ...f, [k]: v }))
 
   async function handleSave() {
     setErr('')
-    if (!form.siswa_nis) { setErr('NIS siswa wajib diisi.'); return }
-    if (!form.mapel_id)  { setErr('Mata pelajaran wajib dipilih.'); return }
-    if (!form.tahun_ajaran_id) { setErr('Tahun ajaran wajib dipilih.'); return }
+    if (!form.siswa_nis) { setErr(t.ad_nis_wajib); return }
+    if (!form.mapel_id)  { setErr(t.ad_mapel_wajib); return }
+    if (!form.tahun_ajaran_id) { setErr(t.ad_tahun_ajaran_wajib); return }
 
     setLoading(true)
     try {
@@ -835,9 +817,9 @@ function ModalInputNilai({ onClose, onSaved }) {
 
           <div class="ap-field-row" style={{ gridTemplateColumns: '1fr 1fr 1fr' }}>
             {[
-              { key: 'nilai_harian', label: 'Nilai Harian (40%)' },
-              { key: 'nilai_uts',    label: 'Nilai UTS (30%)' },
-              { key: 'nilai_uas',    label: 'Nilai UAS (30%)' },
+              { key: 'nilai_harian', label: t.ad_nilai_harian },
+              { key: 'nilai_uts',    label: t.ad_nilai_uts },
+              { key: 'nilai_uas',    label: t.ad_nilai_uas },
             ].map(f => (
               <div class="ap-field" key={f.key}>
                 <label>{f.label}</label>
@@ -866,7 +848,8 @@ function ModalInputNilai({ onClose, onSaved }) {
 
 // ── Main Component ─────────────────────────────────────────────────────────────
 
-export default function AnalitikPrestasiPage() {
+export default function AnalitikPrestasiPage({ lang }) {
+  const t = T[lang] || T.id
   const user     = getUser()
   const userType = user?.user_type ?? 'admin'
   const canInput = ['admin', 'guru'].includes(userType)

@@ -527,7 +527,7 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
         <div className="admin-page">
           {activePage === '2fa'
             ? <TwoFactorSetup />
-            : typeof renderPage === 'function' ? renderPage(activePage, setActivePage) : null}
+            : typeof renderPage === 'function' ? renderPage(activePage, setActivePage, lang) : null}
         </div>
       </main>
       <LogoutOverlay

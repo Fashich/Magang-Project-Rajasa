@@ -10,6 +10,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -81,13 +82,16 @@ const s = {
 const STATUS_CLR = {
   draft: '#64748b', menunggu_review: '#d97706', disetujui: '#15803d', ditolak: '#dc2626',
 }
-const STATUS_LBL = {
-  draft: 'Draft', menunggu_review: 'Menunggu Review', disetujui: 'Disetujui', ditolak: 'Dikembalikan',
+function buildStatusLbl(t) {
+  return {
+    draft: t.lb_status_draft, menunggu_review: t.lb_status_menunggu_review,
+    disetujui: t.lb_status_disetujui, ditolak: t.lb_status_ditolak,
+  }
 }
 
 // ── Form Entri ────────────────────────────────────────────────────────────────
 
-function FormEntri({ editing, onClose, onSaved }) {
+function FormEntri({ editing, onClose, onSaved, t }) {
   const today = new Date().toISOString().slice(0, 10)
   const [form, setForm] = useState({
     tanggal:     editing?.tanggal     ?? today,
@@ -104,8 +108,8 @@ function FormEntri({ editing, onClose, onSaved }) {
 
   async function handleSave(submit = false) {
     setErr('')
-    if (!form.tanggal) { setErr('Tanggal wajib diisi.'); return }
-    if (form.deskripsi.trim().length < 10) { setErr('Deskripsi minimal 10 karakter.'); return }
+    if (!form.tanggal) { setErr(t.lb_tanggal_wajib); return }
+    if (form.deskripsi.trim().length < 10) { setErr(t.lb_deskripsi_min); return }
     setLoading(true)
     try {
       if (editing) {
@@ -126,8 +130,8 @@ function FormEntri({ editing, onClose, onSaved }) {
   return (
     <div style={s.card}>
       <div style={s.cardHeader}>
-        <h3 style={s.cardTitle}>{editing ? '✏️ Edit Logbook' : '📝 Entri Logbook Baru'}</h3>
-        <button style={s.btnGhost} onClick={onClose}>✕ Tutup</button>
+        <h3 style={s.cardTitle}>{editing ? t.lb_edit_judul : t.lb_baru_judul}</h3>
+        <button style={s.btnGhost} onClick={onClose}>{t.lb_tutup_x}</button>
       </div>
       <div style={{ ...s.cardBody, display: 'flex', flexDirection: 'column', gap: '1rem' }}>
         {err && (
@@ -139,52 +143,52 @@ function FormEntri({ editing, onClose, onSaved }) {
         )}
 
         <div style={s.field}>
-          <label style={s.label}>Tanggal <span style={{ color: '#dc2626' }}>*</span></label>
+          <label style={s.label}>{t.lb_tanggal_label} <span style={{ color: '#dc2626' }}>*</span></label>
           <input type="date" value={form.tanggal} max={today} style={s.input}
             onInput={e => setF('tanggal', e.target.value)} />
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
           <div style={s.field}>
-            <label style={s.label}>Jam Mulai</label>
+            <label style={s.label}>{t.lb_jam_mulai}</label>
             <input type="time" value={form.jam_mulai} style={s.input}
               onInput={e => setF('jam_mulai', e.target.value)} />
           </div>
           <div style={s.field}>
-            <label style={s.label}>Jam Selesai</label>
+            <label style={s.label}>{t.lb_jam_selesai}</label>
             <input type="time" value={form.jam_selesai} style={s.input}
               onInput={e => setF('jam_selesai', e.target.value)} />
           </div>
         </div>
 
         <div style={s.field}>
-          <label style={s.label}>Lokasi / Tempat PKL</label>
-          <input type="text" placeholder="Contoh: Lab Komputer Gedung A" maxLength={200}
+          <label style={s.label}>{t.lb_lokasi_label}</label>
+          <input type="text" placeholder={t.lb_placeholder_lokasi} maxLength={200}
             value={form.lokasi} style={s.input}
             onInput={e => setF('lokasi', e.target.value)} />
         </div>
 
         <div style={s.field}>
-          <label style={s.label}>Deskripsi Kegiatan <span style={{ color: '#dc2626' }}>*</span></label>
-          <textarea rows={5} placeholder="Ceritakan secara detail kegiatan yang dilakukan..."
+          <label style={s.label}>{t.lb_deskripsi_label} <span style={{ color: '#dc2626' }}>*</span></label>
+          <textarea rows={5} placeholder={t.lb_placeholder_deskripsi}
             value={form.deskripsi} style={{ ...s.input, resize: 'vertical' }}
             onInput={e => setF('deskripsi', e.target.value)} />
         </div>
 
         <div style={s.field}>
-          <label style={s.label}>Path Foto Dokumentasi</label>
-          <input type="text" placeholder="Contoh: pkl/2026/foto-hari1.jpg"
+          <label style={s.label}>{t.lb_foto_label}</label>
+          <input type="text" placeholder={t.lb_placeholder_foto}
             value={form.foto_path} style={s.input}
             onInput={e => setF('foto_path', e.target.value)} />
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-          <button style={s.btnGhost} onClick={onClose} disabled={loading}>Batal</button>
+          <button style={s.btnGhost} onClick={onClose} disabled={loading}>{t.lb_batal}</button>
           <button style={s.btnGhost} onClick={() => handleSave(false)} disabled={loading}>
-            💾 Simpan Draft
+            {t.lb_simpan_draft}
           </button>
           <button style={s.btnPrimary} onClick={() => handleSave(true)} disabled={loading}>
-            {loading ? 'Menyimpan…' : '📤 Kirim ke Guru'}
+            {loading ? t.lb_menyimpan : t.lb_kirim_guru}
           </button>
         </div>
       </div>
@@ -194,7 +198,10 @@ function FormEntri({ editing, onClose, onSaved }) {
 
 // ── Main Component ────────────────────────────────────────────────────────────
 
-export default function LogbookSiswa() {
+export default function LogbookSiswa({ lang }) {
+  const t = T[lang] || T.id
+  const STATUS_LBL = buildStatusLbl(t)
+
   const [items,   setItems]   = useState([])
   const [summary, setSummary] = useState({})
   const [penilaian, setPenilaian] = useState(null)
@@ -234,7 +241,7 @@ export default function LogbookSiswa() {
   useEffect(() => { loadPenilaian() }, [loadPenilaian])
 
   async function handleDelete(id) {
-    if (!confirm('Yakin hapus entri ini?')) return
+    if (!confirm(t.lb_confirm_hapus)) return
     try {
       await apiFetch(`/logbook/${id}`, { method: 'DELETE' })
       await load()
@@ -270,14 +277,14 @@ export default function LogbookSiswa() {
       }}>
         <div>
           <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700, color: 'var(--clr-text-base)' }}>
-            Logbook Praktik (PKL)
+            {t.lb_judul}
           </h1>
           <p style={{ margin: '0.25rem 0 0', fontSize: '0.8125rem', color: 'var(--clr-text-muted)' }}>
-            Catat kegiatan harian PKL dan kirim ke guru pembimbing untuk divalidasi
+            {t.lb_subtitle}
           </p>
         </div>
         <button style={s.btnPrimary} onClick={() => { setEditing(null); setShowForm(true) }}>
-          + Tambah Entri
+          {t.lb_tambah_btn}
         </button>
       </div>
 
@@ -286,11 +293,11 @@ export default function LogbookSiswa() {
         display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
         gap: '0.875rem', marginBottom: '1.25rem',
       }}>
-        <StatPill label="Total"         value={summary.total}     color="var(--clr-primary)" />
-        <StatPill label="Draft"         value={summary.draft}     color="#64748b" />
-        <StatPill label="Menunggu"      value={summary.menunggu}  color="#d97706" />
-        <StatPill label="Disetujui"     value={summary.disetujui} color="#15803d" />
-        <StatPill label="Dikembalikan"  value={summary.ditolak}   color="#dc2626" />
+        <StatPill label={t.lb_stat_total}    value={summary.total}     color="var(--clr-primary)" />
+        <StatPill label={t.lb_status_draft}  value={summary.draft}     color="#64748b" />
+        <StatPill label={t.lb_stat_menunggu} value={summary.menunggu}  color="#d97706" />
+        <StatPill label={t.lb_status_disetujui} value={summary.disetujui} color="#15803d" />
+        <StatPill label={t.lb_status_ditolak}   value={summary.ditolak}   color="#dc2626" />
       </div>
 
       {/* Tab bar */}
@@ -299,17 +306,17 @@ export default function LogbookSiswa() {
         borderBottom: '2px solid var(--clr-border)', marginBottom: '1.25rem',
       }}>
         {[
-          { key: 'daftar',    label: '📋 Daftar Logbook' },
-          { key: 'penilaian', label: '⭐ Penilaian Guru' },
-        ].map(t => (
-          <button key={t.key} onClick={() => setTab(t.key)} style={{
+          { key: 'daftar',    label: t.lb_tab_daftar },
+          { key: 'penilaian', label: t.lb_tab_penilaian },
+        ].map(tabItem => (
+          <button key={tabItem.key} onClick={() => setTab(tabItem.key)} style={{
             padding: '0.5rem 1.25rem', border: 'none', background: 'transparent',
-            fontFamily: 'var(--font-main)', fontSize: '0.875rem', fontWeight: tab === t.key ? 600 : 500,
-            color: tab === t.key ? 'var(--clr-primary)' : 'var(--clr-text-muted)',
-            cursor: 'pointer', borderBottom: `2px solid ${tab === t.key ? 'var(--clr-primary)' : 'transparent'}`,
+            fontFamily: 'var(--font-main)', fontSize: '0.875rem', fontWeight: tab === tabItem.key ? 600 : 500,
+            color: tab === tabItem.key ? 'var(--clr-primary)' : 'var(--clr-text-muted)',
+            cursor: 'pointer', borderBottom: `2px solid ${tab === tabItem.key ? 'var(--clr-primary)' : 'transparent'}`,
             marginBottom: '-2px', transition: 'color 0.15s, border-color 0.15s',
           }}>
-            {t.label}
+            {tabItem.label}
           </button>
         ))}
       </div>
@@ -320,6 +327,7 @@ export default function LogbookSiswa() {
           editing={editing}
           onClose={() => { setShowForm(false); setEditing(null) }}
           onSaved={load}
+          t={t}
         />
       )}
 
@@ -334,29 +342,29 @@ export default function LogbookSiswa() {
             <input type="month" value={filterBulan}
               onInput={e => setFilterBulan(e.target.value)} style={s.input} />
             <select value={filterStatus} onChange={e => setFilterStatus(e.target.value)} style={s.input}>
-              <option value="">Semua Status</option>
+              <option value="">{t.lb_semua_status}</option>
               {Object.entries(STATUS_LBL).map(([k, v]) => (
                 <option key={k} value={k}>{v}</option>
               ))}
             </select>
-            <button style={s.btnGhost} onClick={load}>↺ Refresh</button>
+            <button style={s.btnGhost} onClick={load}>{t.lb_refresh}</button>
           </div>
 
           <div style={s.card}>
             {loading ? (
               <div style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--clr-text-muted)' }}>
-                Memuat logbook…
+                {t.lb_memuat}
               </div>
             ) : items.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '2.5rem', color: 'var(--clr-text-muted)' }}>
                 <div style={{ fontSize: '2rem', marginBottom: '0.5rem' }}>📒</div>
-                Belum ada entri logbook untuk bulan ini.
+                {t.lb_kosong}
               </div>
             ) : (
               <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
                 <thead>
                   <tr>
-                    {['Tanggal','Lokasi','Status','Catatan Guru','Aksi'].map(h => (
+                    {[t.lb_tanggal_label, t.lb_col_lokasi, t.lb_col_status, t.lb_col_catatan, t.lb_col_aksi].map(h => (
                       <th key={h} style={{
                         padding: '0.625rem 1rem', textAlign: 'left', fontSize: '0.7rem',
                         fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em',
@@ -402,7 +410,7 @@ export default function LogbookSiswa() {
                             padding: '0.25rem 0.625rem', borderRadius: '6px',
                             border: '1px solid var(--clr-border)', background: 'transparent',
                             fontSize: '0.75rem', cursor: 'pointer', fontFamily: 'var(--font-main)',
-                          }}>Lihat</button>
+                          }}>{t.lb_lihat_btn}</button>
                           {['draft','ditolak'].includes(item.status) && (
                             <button onClick={() => { setEditing(item); setShowForm(true) }} style={{
                               padding: '0.25rem 0.625rem', borderRadius: '6px',
@@ -436,16 +444,16 @@ export default function LogbookSiswa() {
             <div style={{ ...s.card }}>
               <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--clr-text-muted)' }}>
                 <div style={{ fontSize: '2.5rem', marginBottom: '0.75rem' }}>⭐</div>
-                <p style={{ margin: 0, fontWeight: 600 }}>Belum ada penilaian dari guru pembimbing.</p>
+                <p style={{ margin: 0, fontWeight: 600 }}>{t.lb_penilaian_kosong_judul}</p>
                 <p style={{ margin: '0.5rem 0 0', fontSize: '0.8125rem' }}>
-                  Penilaian akan muncul setelah guru pembimbing menilai keseluruhan logbook PKL kamu.
+                  {t.lb_penilaian_kosong_desc}
                 </p>
               </div>
             </div>
           ) : (
             <div style={s.card}>
               <div style={s.cardHeader}>
-                <h3 style={s.cardTitle}>⭐ Penilaian Akhir dari {penilaian.nama_guru}</h3>
+                <h3 style={s.cardTitle}>{t.lb_penilaian_akhir_dari} {penilaian.nama_guru}</h3>
               </div>
               <div style={s.cardBody}>
                 {/* 4 komponen nilai */}
@@ -454,10 +462,10 @@ export default function LogbookSiswa() {
                   gap: '0.75rem', marginBottom: '1.25rem',
                 }}>
                   {[
-                    { label: 'Kedisiplinan', val: penilaian.nilai_kedisiplinan },
-                    { label: 'Keterampilan', val: penilaian.nilai_keterampilan },
-                    { label: 'Sikap',        val: penilaian.nilai_sikap },
-                    { label: 'Laporan',      val: penilaian.nilai_laporan },
+                    { label: t.lb_nilai_kedisiplinan, val: penilaian.nilai_kedisiplinan },
+                    { label: t.lb_nilai_keterampilan, val: penilaian.nilai_keterampilan },
+                    { label: t.lb_nilai_sikap,        val: penilaian.nilai_sikap },
+                    { label: t.lb_nilai_laporan,      val: penilaian.nilai_laporan },
                   ].map(n => (
                     <div key={n.label} style={{
                       background: 'var(--clr-bg)', border: '1px solid var(--clr-border)',
@@ -494,7 +502,7 @@ export default function LogbookSiswa() {
                         {penilaian.nilai_akhir}
                       </div>
                       <div style={{ fontSize: '0.75rem', color: 'var(--clr-text-muted)', marginTop: '0.2rem' }}>
-                        Nilai Akhir Logbook PKL
+                        {t.lb_nilai_akhir_label}
                       </div>
                     </div>
                   </div>
@@ -507,7 +515,7 @@ export default function LogbookSiswa() {
                     border: '1px solid var(--clr-border)', borderRadius: '10px',
                   }}>
                     <p style={{ margin: '0 0 0.35rem', fontSize: '0.8125rem', fontWeight: 600 }}>
-                      💬 Catatan dari Guru Pembimbing:
+                      {t.lb_catatan_dari_guru}
                     </p>
                     <p style={{ margin: 0, fontSize: '0.875rem', lineHeight: 1.6, color: 'var(--clr-text-base)' }}>
                       {penilaian.catatan_akhir}
@@ -516,7 +524,7 @@ export default function LogbookSiswa() {
                 )}
 
                 <p style={{ margin: '0.75rem 0 0', fontSize: '0.75rem', color: 'var(--clr-text-muted)' }}>
-                  Dinilai: {fmtDate(penilaian.dinilai_at)}
+                  {t.lb_dinilai} {fmtDate(penilaian.dinilai_at)}
                 </p>
               </div>
             </div>
@@ -540,7 +548,7 @@ export default function LogbookSiswa() {
               display: 'flex', alignItems: 'center', justifyContent: 'space-between',
               padding: '1.25rem 1.5rem 1rem', borderBottom: '1px solid var(--clr-border)',
             }}>
-              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700 }}>📋 Detail Logbook</h3>
+              <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700 }}>{t.lb_detail_judul}</h3>
               <button onClick={() => setDetail(null)} style={{
                 background: 'none', border: 'none', fontSize: '1.25rem',
                 cursor: 'pointer', color: 'var(--clr-text-muted)',
@@ -551,17 +559,17 @@ export default function LogbookSiswa() {
                 display: 'grid', gridTemplateColumns: '120px 1fr',
                 gap: '0.4rem 1rem', fontSize: '0.8125rem', margin: 0,
               }}>
-                <dt style={{ color: 'var(--clr-text-muted)' }}>Tanggal</dt>
+                <dt style={{ color: 'var(--clr-text-muted)' }}>{t.lb_tanggal_label}</dt>
                 <dd style={{ margin: 0, fontWeight: 600 }}>{fmtDate(detail.tanggal)}</dd>
-                <dt style={{ color: 'var(--clr-text-muted)' }}>Waktu</dt>
+                <dt style={{ color: 'var(--clr-text-muted)' }}>{t.lb_waktu_label}</dt>
                 <dd style={{ margin: 0 }}>
                   {detail.jam_mulai && detail.jam_selesai
                     ? `${detail.jam_mulai} – ${detail.jam_selesai}`
                     : detail.jam_mulai || '—'}
                 </dd>
-                <dt style={{ color: 'var(--clr-text-muted)' }}>Lokasi</dt>
+                <dt style={{ color: 'var(--clr-text-muted)' }}>{t.lb_col_lokasi}</dt>
                 <dd style={{ margin: 0 }}>{detail.lokasi || '—'}</dd>
-                <dt style={{ color: 'var(--clr-text-muted)' }}>Status</dt>
+                <dt style={{ color: 'var(--clr-text-muted)' }}>{t.lb_col_status}</dt>
                 <dd style={{ margin: 0 }}>
                   <span style={{
                     display: 'inline-block', padding: '0.2rem 0.625rem',
@@ -575,7 +583,7 @@ export default function LogbookSiswa() {
 
               <div>
                 <p style={{ margin: '0 0 0.4rem', fontSize: '0.8125rem', fontWeight: 600 }}>
-                  Deskripsi Kegiatan
+                  {t.lb_deskripsi_label}
                 </p>
                 <p style={{
                   margin: 0, fontSize: '0.875rem', lineHeight: 1.7, whiteSpace: 'pre-wrap',
@@ -591,7 +599,7 @@ export default function LogbookSiswa() {
                   border: '1px solid #fcd34d', borderRadius: '10px',
                 }}>
                   <p style={{ margin: '0 0 0.35rem', fontSize: '0.8125rem', fontWeight: 700, color: '#92400e' }}>
-                    💬 Catatan Guru Pembimbing:
+                    {t.lb_catatan_dari_guru}
                   </p>
                   <p style={{ margin: 0, fontSize: '0.875rem', color: 'var(--clr-text-base)', lineHeight: 1.6 }}>
                     {detail.catatan_guru}
@@ -603,7 +611,7 @@ export default function LogbookSiswa() {
               padding: '1rem 1.5rem', borderTop: '1px solid var(--clr-border)',
               display: 'flex', justifyContent: 'flex-end',
             }}>
-              <button style={s.btnGhost} onClick={() => setDetail(null)}>Tutup</button>
+              <button style={s.btnGhost} onClick={() => setDetail(null)}>{t.lb_tutup_simple}</button>
             </div>
           </div>
         </div>

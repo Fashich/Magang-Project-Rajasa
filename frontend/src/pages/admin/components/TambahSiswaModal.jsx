@@ -5,6 +5,7 @@
  */
 
 import { useState, useEffect } from 'preact/hooks'
+import { T } from '../../utils/lang.js'
 
 const API_BASE = import.meta.env.VITE_API_URL || '/api'
 
@@ -43,7 +44,8 @@ const INITIAL_FORM = {
   rombel_id:     '',
 }
 
-export default function TambahSiswaModal({ onClose, onSuccess }) {
+export default function TambahSiswaModal({ onClose, onSuccess, lang }) {
+  const t = T[lang] || T.id
   const [form, setForm]       = useState({ ...INITIAL_FORM })
   const [loading, setLoading] = useState(false)
   const [error, setError]     = useState(null)
@@ -56,11 +58,11 @@ export default function TambahSiswaModal({ onClose, onSuccess }) {
   useEffect(() => {
     apiFetch('/jurusan/options')
       .then(res => setJurusanList(res.data?.jurusan ?? []))
-      .catch(() => setOptionsErr(prev => prev || 'Gagal memuat daftar jurusan.'))
+      .catch(() => setOptionsErr(prev => prev || t.ad_gagal_memuat_msg))
 
     apiFetch('/rombel/options')
       .then(res => setRombelList(res.data?.rombel ?? []))
-      .catch(() => setOptionsErr(prev => prev || 'Gagal memuat daftar rombel.'))
+      .catch(() => setOptionsErr(prev => prev || t.ad_gagal_memuat_msg))
   }, [])
 
   const set = (key) => (e) => setForm(f => ({ ...f, [key]: e.target.value }))
@@ -70,11 +72,11 @@ export default function TambahSiswaModal({ onClose, onSuccess }) {
     setError(null)
 
     if (!form.nama_lengkap.trim() || !form.username.trim() || !form.nisn.trim() || !form.angkatan) {
-      setError('Nama lengkap, username, NISN, dan angkatan wajib diisi.')
+      setError(t.ei_keterangan_wajib)
       return
     }
     if (form.nisn.trim().length < 8) {
-      setError('NISN minimal 8 karakter.')
+      setError(t.gu_password_min)
       return
     }
 
@@ -232,7 +234,7 @@ export default function TambahSiswaModal({ onClose, onSuccess }) {
             onClick={handleSubmit}
             disabled={loading}
           >
-            {loading ? 'Menyimpan…' : 'Buat Akun Siswa'}
+            {loading ? t.ad_menyimpan : t.ad_buat_pengguna}
           </button>
         </div>
       </div>
