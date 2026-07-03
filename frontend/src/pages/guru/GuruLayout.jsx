@@ -13,6 +13,7 @@
  */
 
 import { useState, useEffect, useCallback, useRef } from 'preact/hooks'
+import { authApi } from '../../utils/api.js'
 import { T } from '../../utils/lang.js'
 import ProfileCard from '../../components/shared/ProfileCard.jsx'
 import NotifikasiBell from '../../components/shared/NotifikasiBell.jsx'
@@ -464,23 +465,14 @@ export default function GuruLayout({ user, onLogout, renderPage }) {
 
   const handleLogoutConfirm = useCallback(async () => {
     setLogoutState('loading')
-    const controller = new AbortController()
-    abortRef.current = controller
-    let cancelled = false
     try {
-      const token = localStorage.getItem('presensi_lab_rajasa:auth_token') || localStorage.getItem('auth_token')
-      await fetch('/api/auth/logout', {
-        method: 'POST', signal: controller.signal,
-        headers: { 'Content-Type': 'application/json', ...(token ? { Authorization: `Bearer ${token}` } : {}) },
-      })
+      await authApi.logout()
     } catch (err) {
-      if (err?.name === 'AbortError') cancelled = true
+      // logout tetap lanjut meski API error
     }
-    if (cancelled) return
+    // bersihkan legacy keys
     localStorage.removeItem('presensi_lab_rajasa:auth_token')
     localStorage.removeItem('presensi_lab_rajasa:auth_user')
-    localStorage.removeItem('auth_token')
-    localStorage.removeItem('user_data')
     setLogoutState('idle')
     if (typeof onLogout === 'function') onLogout()
   }, [onLogout])
