@@ -719,3 +719,63 @@
     display: flex !important;
   }
 }
+
+/* ═══════════════════════════════════════════════════════════════════════════ */
+/* RESPONSIVE FIX — override bugs di mobile CSS di atas                       */
+/* ═══════════════════════════════════════════════════════════════════════════ */
+
+@media (max-width: 767px) {
+  /* Fix: hapus padding-top ganda (sudah ada margin-top global 64px) */
+  .admin-content {
+    padding-top: 0 !important;
+  }
+
+  /* Header: padding lebih kecil supaya tidak overflow */
+  .admin-header {
+    padding: 0 1rem !important;
+  }
+
+  /* Sembunyikan user name/role di header agar tidak overflow */
+  .admin-user-name,
+  .admin-user-role {
+    display: none;
+  }
+  .admin-header-user {
+    padding: 0.35rem 0.5rem;
+  }
+
+  /* Page padding lebih kecil */
+  .admin-page {
+    padding: 1rem;
+  }
+
+  /* Stats: 1 kolom di mobile */
+  .admin-stats-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Quick actions: 1 kolom */
+  .admin-quick-actions {
+    grid-template-columns: 1fr;
+  }
+
+  /* Tabel: bisa scroll horizontal */
+  .admin-table-wrap {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+/* Tablet fix: pastikan header title tidak overflow */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .admin-header-title,
+  .admin-header-breadcrumb {
+    font-size: 0.85rem;
+    max-width: 180px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .admin-page {
+    padding: 1.25rem;
+  }
+}

@@ -451,6 +451,15 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
 
   useEffect(() => { setMobileOpen(false) }, [activePage])
 
+  useEffect(() => {
+    const onResize = () => {
+      if (window.innerWidth >= 768) setMobileOpen(false)
+      if (window.innerWidth < 768)  setCollapsed(false)
+    }
+    window.addEventListener('resize', onResize)
+    return () => window.removeEventListener('resize', onResize)
+  }, [])
+
   const handleToggleTheme = useCallback(() => setTheme(t => t === 'light' ? 'dark' : 'light'), [])
   const handleChangeLang  = useCallback((l) => setLang(l), [])
 
@@ -490,7 +499,7 @@ export default function AdminLayout({ user, onLogout, renderPage }) {
 
   return (
     <div className={`admin-layout${collapsed ? ' collapsed' : ''}${mobileOpen ? ' mobile-open' : ''}`}>
-      {mobileOpen && (
+      {mobileOpen && window.innerWidth < 768 && (
         <div className="admin-mobile-overlay" onClick={() => setMobileOpen(false)} aria-hidden="true" />
       )}
       <AdminSidebar
